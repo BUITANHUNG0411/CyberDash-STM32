@@ -16,6 +16,7 @@ compile_commands.json
 .qt/
 .qtc_clangd/
 .cache/
+.worktrees/
 
 # QtCreator
 *.user

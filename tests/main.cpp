@@ -2,6 +2,7 @@
 #include <QCoreApplication>
 #include "viewmodels/VehicleStatusViewModel.h"
 #include "viewmodels/ThemeViewModel.h"
+#include "viewmodels/VehicleModeViewModel.h"
 
 class TestViewModels : public QObject
 {
@@ -183,6 +184,40 @@ private slots:
 
         QTRY_COMPARE_WITH_TIMEOUT(theme.bootStage(), 2, 2000);
         QCOMPARE(theme.isNight(), false);
+    }
+
+    // --- VehicleModeViewModel (Phase 14) ---
+
+    void testVehicleModeDefaultIsCar() {
+        VehicleModeViewModel mode;
+        QCOMPARE(mode.vehicleMode(), QString("car"));
+    }
+
+    void testCycleVehicleMode() {
+        VehicleModeViewModel mode;
+        QSignalSpy spy(&mode, &VehicleModeViewModel::vehicleModeChanged);
+
+        mode.cycleVehicleMode();
+        QCOMPARE(mode.vehicleMode(), QString("bike"));
+        QCOMPARE(spy.count(), 1);
+
+        mode.cycleVehicleMode();
+        QCOMPARE(mode.vehicleMode(), QString("scooter"));
+        QCOMPARE(spy.count(), 2);
+
+        mode.cycleVehicleMode();
+        QCOMPARE(mode.vehicleMode(), QString("car"));
+        QCOMPARE(spy.count(), 3);
+    }
+
+    void testCycleVehicleModeWrapsRepeatedly() {
+        VehicleModeViewModel mode;
+        QSignalSpy spy(&mode, &VehicleModeViewModel::vehicleModeChanged);
+
+        mode.cycleVehicleMode(); mode.cycleVehicleMode(); mode.cycleVehicleMode();
+        mode.cycleVehicleMode(); mode.cycleVehicleMode(); mode.cycleVehicleMode();
+        QCOMPARE(mode.vehicleMode(), QString("car"));
+        QCOMPARE(spy.count(), 6);
     }
 };
 

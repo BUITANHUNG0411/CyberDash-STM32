@@ -3,6 +3,7 @@
 #include "viewmodels/VehicleStatusViewModel.h"
 #include "viewmodels/MusicPlayerViewModel.h"
 #include "viewmodels/ThemeViewModel.h"
+#include "viewmodels/VehicleModeViewModel.h"
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
@@ -53,9 +54,11 @@ int main(int argc, char *argv[]) {
   // Expose ViewModels to QML
   MusicPlayerViewModel musicVm;
   ThemeViewModel themeVm;
+  VehicleModeViewModel vehicleModeVm;
   engine.rootContext()->setContextProperty("VehicleStatus", &vm);
   engine.rootContext()->setContextProperty("MusicViewModel", &musicVm);
   engine.rootContext()->setContextProperty("ThemeController", &themeVm);
+  engine.rootContext()->setContextProperty("VehicleMode", &vehicleModeVm);
 
   QObject::connect(
       &engine, &QQmlApplicationEngine::objectCreationFailed, &app,

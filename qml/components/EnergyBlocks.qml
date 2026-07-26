@@ -11,7 +11,11 @@ Item {
     property color dangerColor: Theme.warningRed
     property int dangerThreshold: 4
 
+    implicitWidth: blockRow.implicitWidth
+    implicitHeight: blockRow.implicitHeight
+
     Row {
+        id: blockRow
         spacing: Theme.spaceXs
         Repeater {
             model: root.count

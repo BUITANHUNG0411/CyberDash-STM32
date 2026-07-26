@@ -45,6 +45,7 @@ qt_add_qml_module(${PROJECT_NAME}
         qml/components/GlassPanel.qml
         qml/components/NeonIcon.qml
         qml/components/NeonIconButton.qml
+        qml/components/RangeTripCard.qml
         qml/screens/DashboardScreen.qml
     RESOURCES
         resources/icons/play.svg
@@ -59,6 +60,9 @@ qt_add_qml_module(${PROJECT_NAME}
         resources/icons/temperature-high.svg
         resources/icons/theme-day.svg
         resources/icons/theme-night.svg
+        resources/icons/vehicle-car.svg
+        resources/icons/vehicle-scooter.svg
+        resources/icons/vehicle-bike.svg
     SOURCES
         src/viewmodels/VehicleStatusViewModel.h
         src/viewmodels/VehicleStatusViewModel.cpp
@@ -66,6 +70,8 @@ qt_add_qml_module(${PROJECT_NAME}
         src/viewmodels/MusicPlayerViewModel.cpp
         src/viewmodels/ThemeViewModel.h
         src/viewmodels/ThemeViewModel.cpp
+        src/viewmodels/VehicleModeViewModel.h
+        src/viewmodels/VehicleModeViewModel.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}

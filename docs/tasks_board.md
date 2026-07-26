@@ -95,3 +95,12 @@
 - [x] Sun/moon `NeonIconButton` toggle in the top bar (new stroke-style SVG icons).
 - [x] Boot choreography: telltale self-test, gauge sweep 0→max→0, sequential center/bottom fade-in — all declarative ternary bindings (Zero JS).
 - [x] Verify: clean build (0 warnings), all ctest pass (16 viewmodel tests), 8s smoke run clean.
+
+## Phase 14: Vehicle Morphing (Bike / Scooter / Car)
+- [x] Implement `VehicleModeViewModel` (TDD): `vehicleMode` string Q_PROPERTY + `cycleVehicleMode()` (car → bike → scooter → car), exposed as `VehicleMode` context property.
+- [x] Add vehicle cycle `NeonIconButton` to the top bar (3 new stroke-style SVG icons: car/scooter/bike), disabled during boot.
+- [x] Create `RangeTripCard.qml` (GlassPanel + EnergyBlocks) as the scooter center content, loaded via self-unloading async `Loader` (Zero-JS `active` binding).
+- [x] Introduce QML `States`/`Transitions` in `DashboardScreen`: root `state` bound to `VehicleMode.vehicleMode`; "dip" transition (fade+scale both arches → `PropertyAction` swap → OutBack rise) masks Repeater tick relabeling.
+- [x] Scooter: speed max 120, right gauge rebound to `vm.battery` (0–100, no redline); Bike: speed max 60, right arch shows large battery %, music player + bottom bar hidden.
+- [x] Fix latent `EnergyBlocks` zero implicit size (invisible inside `Column`).
+- [x] Verify: Zero-JS grep clean, build 0 warnings, all ctest pass (19 viewmodel tests), 8s smoke clean, per-mode screenshots (car/bike/scooter, both themes) confirmed bezel identical across modes.

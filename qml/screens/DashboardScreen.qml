@@ -56,6 +56,22 @@ Item {
             defaultColor: Theme.textSecondary
             onClicked: ThemeController.toggleTheme()
         }
+
+        // Vehicle morph cycle — icon shows the mode you will switch TO
+        NeonIconButton {
+            Layout.preferredWidth: 28
+            Layout.preferredHeight: 28
+            enabled: !ThemeController.isBooting
+            opacity: enabled ? 1.0 : 0.4
+            source: VehicleMode.vehicleMode === "car"
+                    ? "qrc:/qt/qml/com/showcase/resources/icons/vehicle-bike.svg"
+                    : VehicleMode.vehicleMode === "bike"
+                      ? "qrc:/qt/qml/com/showcase/resources/icons/vehicle-scooter.svg"
+                      : "qrc:/qt/qml/com/showcase/resources/icons/vehicle-car.svg"
+            sourceSize: Qt.size(28, 28)
+            defaultColor: Theme.textSecondary
+            onClicked: VehicleMode.cycleVehicleMode()
+        }
     }
 
     // Main 3-Panel Layout
@@ -75,6 +91,7 @@ Item {
             anchors.leftMargin: Theme.gaugeInsetLeft - width / 2
 
             NeonTickGauge {
+                id: speedGauge
                 anchors.centerIn: parent
                 width: 350
                 height: 350
@@ -125,8 +142,23 @@ Item {
             Behavior on opacity { NumberAnimation { duration: Theme.durationSlow } }
 
             MusicPlayer {
+                id: musicPlayer
                 anchors.fill: parent
                 anchors.margins: 10
+                opacity: 1
+                visible: opacity > 0
+            }
+
+            // Card Range/Trip cho Scooter — Loader tự unload sau khi fade xong (Zero-JS)
+            Loader {
+                id: scooterCard
+                anchors.fill: parent
+                anchors.margins: Theme.spaceXXl
+                asynchronous: true
+                opacity: 0
+                visible: opacity > 0
+                active: VehicleMode.vehicleMode === "scooter" || opacity > 0
+                source: "../components/RangeTripCard.qml"
             }
         }
 
@@ -142,36 +174,72 @@ Item {
             anchors.left: parent.left
             anchors.leftMargin: Theme.gaugeInsetRight - width / 2
 
-            NeonTickGauge {
-                anchors.centerIn: parent
-                width: 350
-                height: 350
-                value: vm.rpm
-                maxValue: 6000
-                isWarning: vm.isWarning
-                tickCount: 60
-                majorTickInterval: 10
-                redlineValue: 5000
+            // Nhóm gauge RPM/Battery + chữ giữa — ẩn nguyên khối ở chế độ Bike
+            Item {
+                id: rightGaugeGroup
+                anchors.fill: parent
+                visible: opacity > 0
+
+                NeonTickGauge {
+                    id: rightGauge
+                    anchors.centerIn: parent
+                    width: 350
+                    height: 350
+                    value: vm.rpm
+                    maxValue: 6000
+                    isWarning: vm.isWarning
+                    tickCount: 60
+                    majorTickInterval: 10
+                    redlineValue: 5000
+                }
+
+                Column {
+                    anchors.centerIn: parent
+                    spacing: 10
+
+                    GlowingText {
+                        id: gearText
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        text: vm.gear
+                        font.pixelSize: Theme.displayLg
+                        glowColor: vm.isWarning ? Theme.warningRed : Theme.accentCyan
+                        color: Theme.textPrimary
+                    }
+
+                    Text {
+                        id: gearSubText
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        text: "COMFORT"
+                        color: Theme.accentCyan
+                        font.family: Theme.fontMain
+                        font.pixelSize: Theme.textSm
+                        font.letterSpacing: 2
+                    }
+                }
             }
 
+            // Hiển thị % pin lớn cho chế độ Bike (thay gauge phải)
             Column {
+                id: bikeBatteryDisplay
                 anchors.centerIn: parent
-                spacing: 10
-                
+                spacing: 0
+                opacity: 0
+                visible: opacity > 0
+                scale: 0.85
+
                 GlowingText {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    text: vm.gear
+                    text: vm.battery + "%"
                     font.pixelSize: Theme.displayLg
-                    glowColor: vm.isWarning ? Theme.warningRed : Theme.accentCyan
+                    glowColor: vm.battery < 20 ? Theme.warningRed : Theme.accentCyan
                     color: Theme.textPrimary
                 }
-                
                 Text {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    text: "COMFORT"
-                    color: Theme.accentCyan
+                    text: "BATTERY"
+                    color: Theme.textSecondary
                     font.family: Theme.fontMain
-                    font.pixelSize: Theme.textSm
+                    font.pixelSize: Theme.textMd
                     font.letterSpacing: 2
                 }
             }
@@ -241,11 +309,79 @@ Item {
                 anchors.right: parent.right 
             }
             EnergyBlocks {
-                anchors.right: parent.right 
+                anchors.right: parent.right
                 count: 20
                 activeCount: vm.battery / 5
                 dangerThreshold: 4
             }
         }
     }
+
+    // ── Vehicle Morphing: State-Driven Layouts (Decision Log) ──
+    // State "car" rỗng = base bindings chính là layout Car.
+    // PropertyChanges tự khôi phục binding gốc khi rời state.
+    state: VehicleMode.vehicleMode
+
+    states: [
+        State { name: "car" },
+
+        State {
+            name: "scooter"
+            PropertyChanges {
+                target: speedGauge
+                maxValue: 120
+                tickCount: 60
+                majorTickInterval: 10
+            }
+            PropertyChanges {
+                target: rightGauge
+                value: vm.battery
+                maxValue: 100
+                tickCount: 50
+                majorTickInterval: 10
+                redlineValue: -1
+            }
+            PropertyChanges { target: gearText; text: vm.battery }
+            PropertyChanges { target: gearSubText; text: "BATT %" }
+            PropertyChanges { target: musicPlayer; opacity: 0 }
+            PropertyChanges { target: scooterCard; opacity: 1 }
+        },
+
+        State {
+            name: "bike"
+            PropertyChanges {
+                target: speedGauge
+                maxValue: 60
+                tickCount: 60
+                majorTickInterval: 10
+            }
+            PropertyChanges { target: rightGaugeGroup; opacity: 0 }
+            PropertyChanges { target: bikeBatteryDisplay; opacity: 1; scale: 1.0 }
+            PropertyChanges { target: musicPlayer; opacity: 0 }
+            PropertyChanges { target: bottomBar; opacity: 0 }
+        }
+    ]
+
+    transitions: [
+        Transition {
+            SequentialAnimation {
+                // Pha A — "dip": chìm 2 vòm gauge để che khoảnh khắc relabel tick
+                ParallelAnimation {
+                    NumberAnimation { targets: [leftPanel, rightPanel]; property: "opacity"; to: 0.0; duration: Theme.durationNormal; easing.type: Easing.InQuad }
+                    NumberAnimation { targets: [leftPanel, rightPanel]; property: "scale"; to: 0.94; duration: Theme.durationNormal; easing.type: Easing.InQuad }
+                }
+                // Pha B — áp thay đổi tức thời khi đang ẩn
+                PropertyAction { targets: [speedGauge, rightGauge]; properties: "maxValue,tickCount,majorTickInterval,redlineValue,value" }
+                PropertyAction { targets: [gearText, gearSubText]; property: "text" }
+                PropertyAction { targets: [rightGaugeGroup, bikeBatteryDisplay]; property: "opacity" }
+                PropertyAction { target: bikeBatteryDisplay; property: "scale" }
+                // Pha C — nổi trở lại + cross-fade center/bottom song song
+                ParallelAnimation {
+                    NumberAnimation { targets: [leftPanel, rightPanel]; property: "opacity"; to: 1.0; duration: Theme.durationSlow; easing.type: Easing.OutCubic }
+                    NumberAnimation { targets: [leftPanel, rightPanel]; property: "scale"; to: 1.0; duration: Theme.durationSlow; easing.type: Easing.OutBack }
+                    NumberAnimation { targets: [musicPlayer, scooterCard, bottomBar]; property: "opacity"; duration: Theme.durationSlow; easing.type: Easing.OutQuad }
+                }
+            }
+        }
+    ]
 }

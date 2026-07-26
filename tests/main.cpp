@@ -5,6 +5,7 @@
 #include "viewmodels/VehicleModeViewModel.h"
 #include "viewmodels/DriveModeViewModel.h"
 #include "viewmodels/TripComputerViewModel.h"
+#include "viewmodels/MapViewModel.h"
 
 class TestViewModels : public QObject
 {
@@ -328,6 +329,31 @@ private slots:
         QCOMPARE(trip.tripKm(), 1.0);
         QCOMPARE(trip.avgSpeedKmh(), 60.0);
         QCOMPARE(trip.odometerKm(), 2.0);
+    }
+
+    // --- MapViewModel (Phase 16) ---
+
+    void testMapDefaults() {
+        MapViewModel map;
+        QCOMPARE(map.routeProgress(), 0.0);
+    }
+
+    void testMapProgressAdvances() {
+        MapViewModel map(2.0);
+        QSignalSpy spy(&map, &MapViewModel::routeProgressChanged);
+
+        map.updateDistance(0.5); // 0.5 km on a 2.0 km loop -> 0.25
+        QCOMPARE(map.routeProgress(), 0.25);
+        QCOMPARE(spy.count(), 1);
+
+        map.updateDistance(0.5); // same value -> no re-emit
+        QCOMPARE(spy.count(), 1);
+    }
+
+    void testMapProgressWraps() {
+        MapViewModel map(2.0);
+        map.updateDistance(2.5); // wraps past 1.0 -> 0.25
+        QCOMPARE(map.routeProgress(), 0.25);
     }
 };
 

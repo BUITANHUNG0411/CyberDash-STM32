@@ -79,6 +79,8 @@ qt_add_qml_module(${PROJECT_NAME}
         src/viewmodels/DriveModeViewModel.cpp
         src/viewmodels/TripComputerViewModel.h
         src/viewmodels/TripComputerViewModel.cpp
+        src/viewmodels/MapViewModel.h
+        src/viewmodels/MapViewModel.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}

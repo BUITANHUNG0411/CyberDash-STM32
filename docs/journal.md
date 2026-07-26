@@ -10,6 +10,7 @@
 - **Quyết định 2 (Map "thật" mà không cần GPS)**: `MapViewModel` chuyển odometer → `routeProgress` (fmod theo `routeLengthKm` inject được, mặc định 2 km). QML dùng `PathInterpolator` bind vào progress: marker tự định vị VÀ tự xoay theo tiếp tuyến đường (`angle`) — Zero-JS tuyệt đối, marker dừng khi xe dừng, nhanh khi xe nhanh, hoạt động với cả Simulator lẫn Serial.
 - **Quyết định 3 (Vẽ map)**: Thuần QtQuick.Shapes trong không gian thiết kế 400×360 scale khít khung (`Math.min` trong binding — tiền lệ MusicPlayer). Route stroke bằng `Theme.accentCyan` nên tự đổi màu theo drive mode; bloom qua MultiEffect đúng quy tắc sibling-source. Không Qt Location, không network tile.
 - Hub chỉ tồn tại ở Car mode: state scooter/bike chỉ đổi target `musicPlayer` → `centerHub`, RangeTripCard và bike layout giữ nguyên.
+- **Bug user phát hiện khi test (đã fix)**: không vuốt hub được — `DragHandler` kéo-cửa-sổ trong `Main.qml` gắn lên toàn bộ `clusterFrame` và mặc định có quyền cướp grab từ Flickable (`CanTakeOverFromItems`), nên mọi gesture kéo đều thành kéo cửa sổ (`startSystemMove()` giao thẳng cho compositor). Fix: thu DragHandler vào `windowDragStrip` — dải 60px trên cùng như title bar; phần còn lại của cluster nhường gesture cho nội dung (SwipeView, PathView, scrubber). **Quy tắc rút ra: không đặt DragHandler kéo-cửa-sổ phủ lên vùng có nội dung tương tác.**
 - Spec: `docs/superpowers/specs/2026-07-27-center-hub-neon-map-design.md`; Plan: `docs/superpowers/plans/2026-07-27-center-hub-neon-map.md`.
 
 ## 2026-07-26

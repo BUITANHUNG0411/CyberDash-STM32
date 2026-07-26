@@ -33,7 +33,7 @@ Window {
             // Nền chính của khung
             ShapePath {
                 fillColor: Theme.backgroundDeepSpace
-                strokeColor: Qt.rgba(Theme.textSecondary.r, Theme.textSecondary.g, Theme.textSecondary.b, 0.5)
+                strokeColor: Theme.bezelStroke
                 strokeWidth: 2
 
                 // Đường dẫn SVG tinh chỉnh cho mượt hoàn hảo bằng Cubic Bezier (C/S)

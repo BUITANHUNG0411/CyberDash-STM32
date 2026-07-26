@@ -1,6 +1,7 @@
 #include <QtTest>
 #include <QCoreApplication>
 #include "viewmodels/VehicleStatusViewModel.h"
+#include "viewmodels/ThemeViewModel.h"
 
 class TestViewModels : public QObject
 {
@@ -117,6 +118,71 @@ private slots:
         vm.updateTelemetry(90.6, 3000, "5", true);
         QCOMPARE(vm.displaySpeed(), 91);
         QCOMPARE(vm.isWarning(), true);
+    }
+
+    // --- ThemeViewModel (Phase 13) ---
+
+    void testThemeDefaultIsNight() {
+        ThemeViewModel theme;
+        QCOMPARE(theme.isNight(), true);
+        QCOMPARE(theme.bootStage(), 0);
+        QCOMPARE(theme.isBooting(), true);
+        QCOMPARE(theme.bootProgress(), 0.0);
+    }
+
+    void testToggleTheme() {
+        ThemeViewModel theme;
+        QSignalSpy spy(&theme, &ThemeViewModel::isNightChanged);
+
+        theme.toggleTheme();
+        QCOMPARE(theme.isNight(), false);
+        QCOMPARE(spy.count(), 1);
+
+        theme.toggleTheme();
+        QCOMPARE(theme.isNight(), true);
+        QCOMPARE(spy.count(), 2);
+    }
+
+    void testBootSequence() {
+        ThemeViewModel theme(10); // 10 ms per sweep leg -> full boot ~20 ms
+        QSignalSpy stageSpy(&theme, &ThemeViewModel::bootStageChanged);
+
+        qreal maxProgress = 0.0;
+        connect(&theme, &ThemeViewModel::bootProgressChanged, this, [&]() {
+            maxProgress = qMax(maxProgress, theme.bootProgress());
+        });
+
+        theme.startBootSequence();
+        QCOMPARE(theme.bootStage(), 1);
+
+        QTRY_COMPARE_WITH_TIMEOUT(theme.bootStage(), 2, 2000);
+        QCOMPARE(theme.isBooting(), false);
+        QVERIFY(maxProgress > 0.9);
+        QCOMPARE(theme.bootProgress(), 0.0);
+        QCOMPARE(stageSpy.count(), 2); // 0->1 and 1->2
+    }
+
+    void testBootSequenceIsIdempotent() {
+        ThemeViewModel theme(10);
+        QSignalSpy stageSpy(&theme, &ThemeViewModel::bootStageChanged);
+
+        theme.startBootSequence();
+        theme.startBootSequence(); // must be a no-op
+
+        QTRY_COMPARE_WITH_TIMEOUT(theme.bootStage(), 2, 2000);
+        QCOMPARE(stageSpy.count(), 2);
+    }
+
+    void testToggleDuringBoot() {
+        ThemeViewModel theme(50);
+        theme.startBootSequence();
+        QCOMPARE(theme.bootStage(), 1);
+
+        theme.toggleTheme(); // theme and boot are independent
+        QCOMPARE(theme.isNight(), false);
+
+        QTRY_COMPARE_WITH_TIMEOUT(theme.bootStage(), 2, 2000);
+        QCOMPARE(theme.isNight(), false);
     }
 };
 

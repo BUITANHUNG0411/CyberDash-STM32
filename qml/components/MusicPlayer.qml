@@ -19,9 +19,12 @@ Item {
         color: Theme.backgroundDeepSpace
         opacity: 0.65
 
+        // Source ẩn cho hiệu ứng blur — MultiEffect phải là SIBLING của source,
+        // tuyệt đối không dùng source: parent (đệ quy ShaderEffectSource → feedback loop).
         Item {
             id: backdropSource
             anchors.fill: parent
+            visible: false
             Image {
                 anchors.fill: parent
                 source: pathView.currentItem !== null ? pathView.currentItem.coverArt : ""
@@ -40,7 +43,7 @@ Item {
 
         MultiEffect {
             anchors.fill: parent
-            source: parent
+            source: backdropSource
             blurEnabled: true
             blurMax: 48
             blur: 1.0

@@ -87,3 +87,11 @@
 - [x] Replace the 4 decorative mock `Rectangle`s in `DashboardScreen` top bar with 3 data-bound `NeonIcon` telltales: Warning (`isWarning`), Low Battery (`battery < 20`), High Temp (`temperature > 85`).
 - [x] Add `Behavior on opacity` fade to `NeonIcon` so telltale lit/dim transitions animate per UI guidelines (Zero JS — pure declarative ternary bindings, no new backend properties).
 - [x] Verify: full build clean, `ctest` 2/2 pass, 8s smoke run with no QML errors.
+
+## Phase 13: Day/Night Theme + Startup Animation
+- [x] Implement `ThemeViewModel` (TDD): `isNight` toggle + boot timeline (`bootStage`, `bootProgress`) driven by `QSequentialAnimationGroup`.
+- [x] Register `ThemeController` context property and boot kick-off in `main.cpp`.
+- [x] Theme.qml: Day (Light Glassmorphism) token set via ternaries + centralized `Behavior { ColorAnimation }`; constant `bezelStroke` keeps the Double Arch identical in both themes.
+- [x] Sun/moon `NeonIconButton` toggle in the top bar (new stroke-style SVG icons).
+- [x] Boot choreography: telltale self-test, gauge sweep 0→max→0, sequential center/bottom fade-in — all declarative ternary bindings (Zero JS).
+- [x] Verify: clean build (0 warnings), all ctest pass (16 viewmodel tests), 8s smoke run clean.

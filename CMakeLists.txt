@@ -57,11 +57,15 @@ qt_add_qml_module(${PROJECT_NAME}
         resources/icons/warning-triangle.svg
         resources/icons/battery-low.svg
         resources/icons/temperature-high.svg
+        resources/icons/theme-day.svg
+        resources/icons/theme-night.svg
     SOURCES
         src/viewmodels/VehicleStatusViewModel.h
         src/viewmodels/VehicleStatusViewModel.cpp
         src/viewmodels/MusicPlayerViewModel.h
         src/viewmodels/MusicPlayerViewModel.cpp
+        src/viewmodels/ThemeViewModel.h
+        src/viewmodels/ThemeViewModel.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}

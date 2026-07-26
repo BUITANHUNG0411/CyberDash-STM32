@@ -2,28 +2,46 @@ pragma Singleton
 import QtQuick
 
 QtObject {
-    // Cyberpunk Color Palette
-    readonly property color backgroundDeepSpace: "#0B0C10"
-    readonly property color accentCyan: "#66FCF1"
+    // Cyberpunk Color Palette — Night (default) / Day (Light Glassmorphism)
+    // Themed tokens are non-readonly because a Behavior cannot attach to a readonly property.
+    property color backgroundDeepSpace: ThemeController.isNight ? "#0B0C10" : "#DDE7EE"
+    property color accentCyan: ThemeController.isNight ? "#66FCF1" : "#00857C"
     readonly property color warningRed: "#FF3B30"
-    readonly property color textPrimary: "#FFFFFF"
-    readonly property color textSecondary: "#C5C6C7"
-    readonly property color textOnAccent: "#0B0C10"
-    
-    readonly property color glassPanelBase: "#40151D26"
-    readonly property color glassPanelBorder: "#802A3B4C"
-    readonly property color trackInactive: "#40FFFFFF"
-    
-    readonly property color tickLitMajor: "#FFB3CC"
-    readonly property color tickLitMinor: "#FFFFFF"
-    readonly property color tickDimMajor: "#2A3B4C"
-    readonly property color tickDimMinor: "#151D26"
-    
+    property color textPrimary: ThemeController.isNight ? "#FFFFFF" : "#1A2530"
+    property color textSecondary: ThemeController.isNight ? "#C5C6C7" : "#4A5A68"
+    property color textOnAccent: ThemeController.isNight ? "#0B0C10" : "#F2F7FA"
+
+    property color glassPanelBase: ThemeController.isNight ? "#40151D26" : "#8CE8F0F8"
+    property color glassPanelBorder: ThemeController.isNight ? "#802A3B4C" : "#80FFFFFF"
+    property color trackInactive: ThemeController.isNight ? "#40FFFFFF" : "#401A2530"
+
+    property color tickLitMajor: ThemeController.isNight ? "#FFB3CC" : "#D81B60"
+    property color tickLitMinor: ThemeController.isNight ? "#FFFFFF" : "#0E8F88"
+    property color tickDimMajor: ThemeController.isNight ? "#2A3B4C" : "#B8C6D1"
+    property color tickDimMinor: ThemeController.isNight ? "#151D26" : "#D3DDE5"
+
     readonly property color coverFallback1: "#FF0055"
     readonly property color coverFallback2: "#4A00E0"
     readonly property color glassEdge: Qt.rgba(1.0, 1.0, 1.0, 0.15)
+    // Physical bezel outline — identical in both themes
+    readonly property color bezelStroke: "#80C5C6C7"
+
+    // Smooth cross-fade when the theme flips (single place for the whole app)
+    Behavior on backgroundDeepSpace { ColorAnimation { duration: durationTheme } }
+    Behavior on accentCyan { ColorAnimation { duration: durationTheme } }
+    Behavior on textPrimary { ColorAnimation { duration: durationTheme } }
+    Behavior on textSecondary { ColorAnimation { duration: durationTheme } }
+    Behavior on textOnAccent { ColorAnimation { duration: durationTheme } }
+    Behavior on glassPanelBase { ColorAnimation { duration: durationTheme } }
+    Behavior on glassPanelBorder { ColorAnimation { duration: durationTheme } }
+    Behavior on trackInactive { ColorAnimation { duration: durationTheme } }
+    Behavior on tickLitMajor { ColorAnimation { duration: durationTheme } }
+    Behavior on tickLitMinor { ColorAnimation { duration: durationTheme } }
+    Behavior on tickDimMajor { ColorAnimation { duration: durationTheme } }
+    Behavior on tickDimMinor { ColorAnimation { duration: durationTheme } }
 
     // Animation Timings
+    readonly property int durationTheme: 600
     readonly property int durationFast: 150
     readonly property int durationNormal: 300
     readonly property int durationSlow: 600

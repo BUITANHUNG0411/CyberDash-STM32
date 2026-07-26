@@ -22,24 +22,39 @@ Item {
             Layout.preferredHeight: 28
             source: "qrc:/qt/qml/com/showcase/resources/icons/warning-triangle.svg"
             sourceSize: Qt.size(28, 28)
-            colorizationColor: vm.isWarning ? Theme.warningRed : Theme.textSecondary
-            opacity: vm.isWarning ? 1.0 : 0.2
+            colorizationColor: ThemeController.isBooting ? Theme.warningRed
+                               : (vm.isWarning ? Theme.warningRed : Theme.textSecondary)
+            opacity: ThemeController.isBooting ? 1.0 : (vm.isWarning ? 1.0 : 0.2)
         }
         NeonIcon {
             Layout.preferredWidth: 28
             Layout.preferredHeight: 28
             source: "qrc:/qt/qml/com/showcase/resources/icons/battery-low.svg"
             sourceSize: Qt.size(28, 28)
-            colorizationColor: vm.battery < 20 ? Theme.warningRed : Theme.textSecondary
-            opacity: vm.battery < 20 ? 1.0 : 0.2
+            colorizationColor: ThemeController.isBooting ? Theme.warningRed
+                               : (vm.battery < 20 ? Theme.warningRed : Theme.textSecondary)
+            opacity: ThemeController.isBooting ? 1.0 : (vm.battery < 20 ? 1.0 : 0.2)
         }
         NeonIcon {
             Layout.preferredWidth: 28
             Layout.preferredHeight: 28
             source: "qrc:/qt/qml/com/showcase/resources/icons/temperature-high.svg"
             sourceSize: Qt.size(28, 28)
-            colorizationColor: vm.temperature > 85 ? Theme.warningRed : Theme.textSecondary
-            opacity: vm.temperature > 85 ? 1.0 : 0.2
+            colorizationColor: ThemeController.isBooting ? Theme.warningRed
+                               : (vm.temperature > 85 ? Theme.warningRed : Theme.textSecondary)
+            opacity: ThemeController.isBooting ? 1.0 : (vm.temperature > 85 ? 1.0 : 0.2)
+        }
+
+        // Theme toggle — icon shows the mode you will switch TO
+        NeonIconButton {
+            Layout.preferredWidth: 28
+            Layout.preferredHeight: 28
+            source: ThemeController.isNight
+                    ? "qrc:/qt/qml/com/showcase/resources/icons/theme-day.svg"
+                    : "qrc:/qt/qml/com/showcase/resources/icons/theme-night.svg"
+            sourceSize: Qt.size(28, 28)
+            defaultColor: Theme.textSecondary
+            onClicked: ThemeController.toggleTheme()
         }
     }
 
@@ -106,6 +121,8 @@ Item {
             anchors.leftMargin: -20
             anchors.rightMargin: -20
             z: -1 // Push slightly behind the gauges to create depth and prevent overlapping the glowing ticks
+            opacity: ThemeController.bootStage < 2 ? 0.0 : 1.0
+            Behavior on opacity { NumberAnimation { duration: Theme.durationSlow } }
 
             MusicPlayer {
                 anchors.fill: parent
@@ -163,6 +180,9 @@ Item {
 
     // Bottom Bar (Battery, Range, Temp)
     RowLayout {
+        id: bottomBar
+        opacity: ThemeController.bootStage < 2 ? 0.0 : 1.0
+        Behavior on opacity { NumberAnimation { duration: Theme.durationSlow } }
         anchors.bottom: parent.bottom
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottomMargin: 80

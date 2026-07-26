@@ -2,6 +2,7 @@
 #include "services/SimulatorService.h"
 #include "viewmodels/VehicleStatusViewModel.h"
 #include "viewmodels/MusicPlayerViewModel.h"
+#include "viewmodels/ThemeViewModel.h"
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
@@ -51,14 +52,18 @@ int main(int argc, char *argv[]) {
 
   // Expose ViewModels to QML
   MusicPlayerViewModel musicVm;
+  ThemeViewModel themeVm;
   engine.rootContext()->setContextProperty("VehicleStatus", &vm);
   engine.rootContext()->setContextProperty("MusicViewModel", &musicVm);
+  engine.rootContext()->setContextProperty("ThemeController", &themeVm);
 
   QObject::connect(
       &engine, &QQmlApplicationEngine::objectCreationFailed, &app,
       []() { QCoreApplication::exit(-1); }, Qt::QueuedConnection);
 
   engine.loadFromModule("com.showcase", "Main");
+
+  themeVm.startBootSequence();
 
   return app.exec();
 }

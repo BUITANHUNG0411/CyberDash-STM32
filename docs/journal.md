@@ -4,6 +4,14 @@
 
 ## 2026-07-26
 
+### Phase 13: Day/Night Theme + Startup Animation
+- **Vấn đề**: Cluster chỉ có một theme tối cố định và khởi động "bật thẳng" — thiếu chiều sâu automotive (self-test, gauge sweep) và không có chế độ ban ngày.
+- **Quyết định 1 (Kiến trúc)**: Tạo `ThemeViewModel` riêng (context property `ThemeController`) thay vì nhét vào `VehicleStatusViewModel` — UI chrome tách khỏi telemetry, tái dùng được cho Drive Modes/Vehicle Morphing sau này. Boot timeline chạy hoàn toàn trong C++ (`QSequentialAnimationGroup` + 2 `QVariantAnimation` legs, InOutQuad 900ms/chiều); constructor nhận duration để test chạy ~10ms với `QSignalSpy`/`QTRY_COMPARE_WITH_TIMEOUT`.
+- **Quyết định 2 (Theme)**: Token màu trong `Theme.qml` thành ternary theo `ThemeController.isNight`, kèm `Behavior { ColorAnimation }` đặt tập trung ngay trong singleton — toàn app cross-fade mà không sửa component nào. Token themed phải bỏ `readonly` (Behavior không gắn được vào readonly property). Bezel Double Arch giữ nguyên cả 2 theme qua token hằng mới `bezelStroke` (tách khỏi `textSecondary` vốn giờ đổi theo theme); fill của Shape là "mặt màn hình" nên vẫn đổi sáng/tối.
+- **Quyết định 3 (Boot)**: QML chỉ bind ternary vào `bootStage`/`isBooting`/`bootProgress`: telltale sáng hết khi self-test, `NeonTickGauge.displayedValue` hiển thị sweep (Behavior `enabled: !isBooting` để bám sát timeline C++), center panel + bottom bar fade-in ở stage 2. `startBootSequence()` idempotent, gọi sau `engine.loadFromModule`.
+- Spec: `docs/superpowers/specs/2026-07-26-day-night-theme-startup-animation-design.md`; Plan: `docs/superpowers/plans/2026-07-26-day-night-theme-startup-animation.md`.
+- **Bug tìm thấy khi user test (đã fix)**: `blurBackdrop` trong `MusicPlayer.qml` dùng `MultiEffect { source: parent }` — source chứa chính effect → ShaderEffectSource đệ quy. Màn hình tĩnh thì vô hại, nhưng khi theme toggle chạy `ColorAnimation` 600ms, backdrop re-render liên tục làm blur tích lũy (feedback loop) thành mảng hồng che cả 2 gauge và **đóng băng vĩnh viễn** sau khi animation dừng. Fix: `backdropSource` thành hidden source (`visible: false`), `MultiEffect { source: backdropSource }` — đúng pattern sibling như `NeonIcon`/`NeonTickGauge`. **Quy tắc rút ra: KHÔNG BAO GIỜ để `MultiEffect.source` trỏ vào item chứa chính nó.** Đồng thời chuyển nút toggle theme vào trong `topBar` RowLayout để cụm 4 icon tự căn giữa (trước đó anchor ngoài làm lệch phải).
+
 ### Hoàn tất Phase 10 (Unit Tests) & Phase 12 (Functional Telltale Bar)
 - **Vấn đề 1**: Mục cuối Phase 10 tham chiếu `updateRawTelemetry` — method không tồn tại (tên thật là `updateTelemetry`, đã có test). Lỗ hổng thật là 3 property `battery`/`range`/`temperature` thiếu test READ/WRITE/NOTIFY theo mandate của `testing_strategy.md`.
 - **Quyết định 1**: Thêm `testSetBattery`/`testSetRange`/`testSetTemperature` vào `tests/main.cpp` theo pattern QSignalSpy sẵn có; sửa lại tasks board cho đúng tên method.

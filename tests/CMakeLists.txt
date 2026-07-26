@@ -4,6 +4,7 @@
 qt_add_executable(tst_viewmodels
     main.cpp
     ../src/viewmodels/VehicleStatusViewModel.cpp
+    ../src/viewmodels/ThemeViewModel.cpp
 )
 
 target_include_directories(tst_viewmodels PRIVATE ../src)

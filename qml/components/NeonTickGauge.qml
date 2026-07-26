@@ -22,9 +22,13 @@ Item {
     // Điểm bắt đầu vùng đỏ (Redline), nếu > 0 sẽ kích hoạt
     property real redlineValue: -1 
 
-    // Giá trị hiển thị chạy mượt mà (trailing effect)
-    property real displayedValue: value
+    // Giá trị hiển thị chạy mượt mà (trailing effect).
+    // Khi boot: hiển thị sweep 0→max→0 do C++ điều khiển (Behavior tắt để bám sát timeline).
+    property real displayedValue: ThemeController.isBooting
+                                  ? ThemeController.bootProgress * maxValue
+                                  : value
     Behavior on displayedValue {
+        enabled: !ThemeController.isBooting
         NumberAnimation { duration: Theme.durationGauge; easing.type: Easing.OutQuad }
     }
 

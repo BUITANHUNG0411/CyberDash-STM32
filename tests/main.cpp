@@ -61,6 +61,45 @@ private slots:
         QCOMPARE(spy.count(), 1);
     }
     
+    void testSetBattery() {
+        VehicleStatusViewModel vm;
+        QSignalSpy spy(&vm, &VehicleStatusViewModel::batteryChanged);
+
+        vm.setBattery(72);
+        QCOMPARE(vm.battery(), 72);
+        QCOMPARE(spy.count(), 1);
+
+        // Setting same value should not emit signal again
+        vm.setBattery(72);
+        QCOMPARE(spy.count(), 1);
+    }
+
+    void testSetRange() {
+        VehicleStatusViewModel vm;
+        QSignalSpy spy(&vm, &VehicleStatusViewModel::rangeChanged);
+
+        vm.setRange(210);
+        QCOMPARE(vm.range(), 210);
+        QCOMPARE(spy.count(), 1);
+
+        // Setting same value should not emit signal again
+        vm.setRange(210);
+        QCOMPARE(spy.count(), 1);
+    }
+
+    void testSetTemperature() {
+        VehicleStatusViewModel vm;
+        QSignalSpy spy(&vm, &VehicleStatusViewModel::temperatureChanged);
+
+        vm.setTemperature(45);
+        QCOMPARE(vm.temperature(), 45);
+        QCOMPARE(spy.count(), 1);
+
+        // Setting same value should not emit signal again
+        vm.setTemperature(45);
+        QCOMPARE(spy.count(), 1);
+    }
+
     void testUpdateTelemetry() {
         VehicleStatusViewModel vm;
         

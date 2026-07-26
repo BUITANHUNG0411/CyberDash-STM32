@@ -72,7 +72,7 @@
 - [x] Refactor SerialService MVVM Leak: move calculated telemetry back to `VehicleStatusViewModel`.
 - [x] Implement proper SerialService write-back (`STOP`) and Checksum protocol validation.
 - [x] Clean up orphaned files and dead code (`CircularGauge.qml`, `GlassPanel.qml`, `QML_ELEMENT`, `MockScenarioEngine::setScenario`).
-- [ ] Add Unit Tests for `VehicleStatusViewModel::updateRawTelemetry` (STALE — no dedicated test file found in `tests/`; only `tst_music_playback.cpp` exists).
+- [x] Add Unit Tests for `VehicleStatusViewModel::updateTelemetry` (corrected from stale `updateRawTelemetry` reference — added dedicated READ/WRITE/NOTIFY tests for `battery`, `range`, `temperature` in `tests/main.cpp`, complementing the existing `testUpdateTelemetry`).
 
 ## Phase 11: UI Standardization & Layout Refactor
 - [x] Consolidate Design Tokens in `Theme.qml` (radii, durations, typography, geometry).

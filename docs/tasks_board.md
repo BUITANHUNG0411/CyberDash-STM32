@@ -81,3 +81,9 @@
 - [x] Transition `DashboardScreen` and `NeonTickGauge` from absolute (magic number) coordinates to declarative `anchors` aligned precisely with the `PathSvg` Double Arch bezel.
 - [x] Resolve all compiler warnings (`-Wconversion`) with proper `static_cast` in C++ ViewModels.
 - [x] Fix `MusicPlayer` control panel padding — bottom `GlassPanel` was too short for its content, crushing the Play/Pause button against the bottom edge (140px → 176px, spacing bumped to `Theme.spaceMd`).
+
+## Phase 12: Functional Telltale Bar
+- [x] Add stroke-style SVG telltale icons (`warning-triangle`, `battery-low`, `temperature-high`) matching the existing icon set, registered in CMake `RESOURCES`.
+- [x] Replace the 4 decorative mock `Rectangle`s in `DashboardScreen` top bar with 3 data-bound `NeonIcon` telltales: Warning (`isWarning`), Low Battery (`battery < 20`), High Temp (`temperature > 85`).
+- [x] Add `Behavior on opacity` fade to `NeonIcon` so telltale lit/dim transitions animate per UI guidelines (Zero JS — pure declarative ternary bindings, no new backend properties).
+- [x] Verify: full build clean, `ctest` 2/2 pass, 8s smoke run with no QML errors.

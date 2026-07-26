@@ -17,11 +17,30 @@ Item {
         anchors.topMargin: 70
         spacing: Theme.spaceXXl
 
-        // Mock Icons (Cyberpunk style)
-        Rectangle { Layout.preferredWidth: 30; Layout.preferredHeight: 10; radius: 5; color: Theme.accentCyan; opacity: 0.5 }
-        Rectangle { Layout.preferredWidth: 30; Layout.preferredHeight: 10; radius: 5; color: Theme.textSecondary; opacity: 0.2 }
-        Rectangle { Layout.preferredWidth: 30; Layout.preferredHeight: 10; radius: 5; color: vm.isWarning ? Theme.warningRed : Theme.textSecondary; opacity: vm.isWarning ? 1.0 : 0.2 }
-        Rectangle { Layout.preferredWidth: 30; Layout.preferredHeight: 10; radius: 5; color: Theme.textSecondary; opacity: 0.2 }
+        NeonIcon {
+            Layout.preferredWidth: 28
+            Layout.preferredHeight: 28
+            source: "qrc:/qt/qml/com/showcase/resources/icons/warning-triangle.svg"
+            sourceSize: Qt.size(28, 28)
+            colorizationColor: vm.isWarning ? Theme.warningRed : Theme.textSecondary
+            opacity: vm.isWarning ? 1.0 : 0.2
+        }
+        NeonIcon {
+            Layout.preferredWidth: 28
+            Layout.preferredHeight: 28
+            source: "qrc:/qt/qml/com/showcase/resources/icons/battery-low.svg"
+            sourceSize: Qt.size(28, 28)
+            colorizationColor: vm.battery < 20 ? Theme.warningRed : Theme.textSecondary
+            opacity: vm.battery < 20 ? 1.0 : 0.2
+        }
+        NeonIcon {
+            Layout.preferredWidth: 28
+            Layout.preferredHeight: 28
+            source: "qrc:/qt/qml/com/showcase/resources/icons/temperature-high.svg"
+            sourceSize: Qt.size(28, 28)
+            colorizationColor: vm.temperature > 85 ? Theme.warningRed : Theme.textSecondary
+            opacity: vm.temperature > 85 ? 1.0 : 0.2
+        }
     }
 
     // Main 3-Panel Layout

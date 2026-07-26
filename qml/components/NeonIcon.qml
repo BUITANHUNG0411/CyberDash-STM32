@@ -7,7 +7,9 @@ Item {
     property alias source: iconImg.source
     property alias sourceSize: iconImg.sourceSize
     property color colorizationColor: Theme.textSecondary
-    
+
+    Behavior on opacity { NumberAnimation { duration: Theme.durationNormal } }
+
     Image {
         id: iconImg
         anchors.fill: parent

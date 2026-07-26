@@ -54,6 +54,9 @@ qt_add_qml_module(${PROJECT_NAME}
         resources/icons/shuffle.svg
         resources/icons/repeat.svg
         resources/icons/volume.svg
+        resources/icons/warning-triangle.svg
+        resources/icons/battery-low.svg
+        resources/icons/temperature-high.svg
     SOURCES
         src/viewmodels/VehicleStatusViewModel.h
         src/viewmodels/VehicleStatusViewModel.cpp

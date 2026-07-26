@@ -4,6 +4,15 @@
 
 ## 2026-07-26
 
+### Phase 15: Drive Modes + Trip Computer
+- **Vấn đề**: Cluster chưa có chế độ lái (accent tĩnh, "COMFORT" hardcode) và không có odometer/trip — thiếu chiều sâu automotive; đồng thời `AGENTS.md` decision log chưa phản ánh kiến trúc Phase 13/14.
+- **Quyết định 1 (2 VM riêng)**: `DriveModeViewModel` (chrome state, pattern y hệt `VehicleModeViewModel`) và `TripComputerViewModel` (toán tích phân theo thời gian) — hai concern khác nhau, chiến lược test khác nhau, đúng One-VM-per-Concern.
+- **Quyết định 2 (Time injection)**: `updateSpeed(double kmh, qint64 elapsedMs)` + `QElapsedTimer::restart()` trong lambda telemetry của `main.cpp` (restart trả elapsed và reset trong 1 lời gọi). Test thuần số học, không wall-clock. Constructor nhận `maxDeltaMs = 1000` clamp khoảng trống stale khi đổi nguồn Serial ↔ Simulator (clock cũng restart trong `connectionStatusChanged`).
+- **Quyết định 3 (Accent 6 biến thể)**: token `accentCyan` giữ tên lịch sử, thành ternary lồng 3 mode × 2 theme — mọi component đã bind sẵn nên lan tự động, `Behavior` trong singleton cho cross-fade 600ms miễn phí. **SPORT dùng cam `#FF7A00`/`#C25600` chứ không đỏ** để phân biệt với `warningRed`/redline; ECO `#66FC8F`/`#1E8A4C`.
+- **Quyết định 4 (Zero-JS format)**: `.toFixed()`/`.toUpperCase()` bị cấm trong QML → C++ cung cấp chuỗi format sẵn (`driveModeLabel`, `tripDisplay`, `odoDisplay`) — cùng tiền lệ `displaySpeed`. 5 property của TripComputer chung một NOTIFY `tripChanged` (luôn đổi cùng nhau mỗi tick).
+- `gearSubText` bind `DriveMode.driveModeLabel`; override "BATT %" của state scooter giữ nguyên nhờ PropertyChanges tự restore binding.
+- Đồng bộ `AGENTS.md` decision log: State-Driven Layouts đánh dấu IMPLEMENTED + 5 quyết định mới (One-VM-per-Concern, Centralized Theme Ternaries, C++ Boot Choreography, Dip Transition Masking, MultiEffect Sibling Source).
+
 ### Phase 14: Vehicle Morphing (Bike / Scooter / Car)
 - **Vấn đề**: Trụ cột "morphs across form factors" trong Product Vision chưa hề được implement — chỉ có một layout Car cố định, repo chưa dùng QML `States`/`Transitions` bao giờ.
 - **Quyết định 1 (Kiến trúc)**: `VehicleModeViewModel` riêng (context property `VehicleMode`, string `vehicleMode`, `cycleVehicleMode()` car→bike→scooter→car) — đúng Decision Log "QML States bound to C++ string properties" và pattern one-VM-per-concern. UART frame không có trường vehicle-type nên state thuần UI; nút cycle disable khi boot (`enabled: !ThemeController.isBooting`) để sweep không đua với đổi maxValue.

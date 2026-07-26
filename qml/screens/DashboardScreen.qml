@@ -72,6 +72,20 @@ Item {
             defaultColor: Theme.textSecondary
             onClicked: VehicleMode.cycleVehicleMode()
         }
+
+        // Drive mode cycle — icon shows the mode you will switch TO
+        NeonIconButton {
+            Layout.preferredWidth: 28
+            Layout.preferredHeight: 28
+            source: DriveMode.driveMode === "normal"
+                    ? "qrc:/qt/qml/com/showcase/resources/icons/drive-sport.svg"
+                    : DriveMode.driveMode === "sport"
+                      ? "qrc:/qt/qml/com/showcase/resources/icons/drive-eco.svg"
+                      : "qrc:/qt/qml/com/showcase/resources/icons/drive-normal.svg"
+            sourceSize: Qt.size(28, 28)
+            defaultColor: Theme.textSecondary
+            onClicked: DriveMode.cycleDriveMode()
+        }
     }
 
     // Main 3-Panel Layout
@@ -209,7 +223,7 @@ Item {
                     Text {
                         id: gearSubText
                         anchors.horizontalCenter: parent.horizontalCenter
-                        text: "COMFORT"
+                        text: DriveMode.driveModeLabel
                         color: Theme.accentCyan
                         font.family: Theme.fontMain
                         font.pixelSize: Theme.textSm
@@ -286,12 +300,27 @@ Item {
                 font.letterSpacing: 1
                 anchors.horizontalCenter: parent.horizontalCenter 
             }
-            Text { 
+            Text {
                 text: vm.temperature + " °C"
                 color: Theme.textPrimary
                 font.family: Theme.fontMain
                 font.pixelSize: Theme.textXl
-                anchors.horizontalCenter: parent.horizontalCenter 
+                anchors.horizontalCenter: parent.horizontalCenter
+            }
+            Text {
+                text: "TRIP " + TripComputer.tripDisplay + "  ·  ODO " + TripComputer.odoDisplay
+                color: Theme.textSecondary
+                font.family: Theme.fontMain
+                font.pixelSize: Theme.textXs
+                font.letterSpacing: 1
+                anchors.horizontalCenter: parent.horizontalCenter
+
+                // Click để reset trip (Zero-JS: một lời gọi Q_INVOKABLE)
+                MouseArea {
+                    anchors.fill: parent
+                    anchors.margins: -Theme.spaceMd // nới vùng chạm
+                    onClicked: TripComputer.resetTrip()
+                }
             }
         }
 

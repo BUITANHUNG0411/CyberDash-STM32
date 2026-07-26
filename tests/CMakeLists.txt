@@ -6,6 +6,8 @@ qt_add_executable(tst_viewmodels
     ../src/viewmodels/VehicleStatusViewModel.cpp
     ../src/viewmodels/ThemeViewModel.cpp
     ../src/viewmodels/VehicleModeViewModel.cpp
+    ../src/viewmodels/DriveModeViewModel.cpp
+    ../src/viewmodels/TripComputerViewModel.cpp
 )
 
 target_include_directories(tst_viewmodels PRIVATE ../src)

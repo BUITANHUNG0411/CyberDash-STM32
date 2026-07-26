@@ -4,6 +4,9 @@
 #include "viewmodels/MusicPlayerViewModel.h"
 #include "viewmodels/ThemeViewModel.h"
 #include "viewmodels/VehicleModeViewModel.h"
+#include "viewmodels/DriveModeViewModel.h"
+#include "viewmodels/TripComputerViewModel.h"
+#include <QElapsedTimer>
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
@@ -12,6 +15,9 @@ int main(int argc, char *argv[]) {
   QGuiApplication app(argc, argv);
 
   VehicleStatusViewModel vm;
+  TripComputerViewModel tripVm;
+  QElapsedTimer tripClock;
+  tripClock.start();
 
   // Setup both services
   SimulatorService simulatorService;
@@ -22,6 +28,7 @@ int main(int argc, char *argv[]) {
   // Handle hardware connection status
   QObject::connect(&serialService, &SerialService::connectionStatusChanged, [&](bool connected) {
       isHardwareConnected = connected;
+      tripClock.restart(); // drop the dead-time gap when the telemetry source switches
       if (connected) {
           qDebug() << "Hardware connected! Using SerialService.";
           simulatorService.stopSimulation();
@@ -35,6 +42,7 @@ int main(int argc, char *argv[]) {
   QObject::connect(&serialService, &SerialService::telemetryUpdated, [&](double speed, int rpm, const QString &gear, bool isWarning, int battery, int range, int temperature) {
       if (isHardwareConnected) {
           vm.updateTelemetry(speed, rpm, gear, isWarning, battery, range, temperature);
+          tripVm.updateSpeed(speed, tripClock.restart()); // restart() returns elapsed ms
       }
   });
 
@@ -42,6 +50,7 @@ int main(int argc, char *argv[]) {
   QObject::connect(&simulatorService, &SimulatorService::telemetryUpdated, [&](double speed, int rpm, const QString &gear, bool isWarning, int battery, int range, int temperature) {
       if (!isHardwareConnected) {
           vm.updateTelemetry(speed, rpm, gear, isWarning, battery, range, temperature);
+          tripVm.updateSpeed(speed, tripClock.restart()); // restart() returns elapsed ms
       }
   });
 
@@ -55,10 +64,13 @@ int main(int argc, char *argv[]) {
   MusicPlayerViewModel musicVm;
   ThemeViewModel themeVm;
   VehicleModeViewModel vehicleModeVm;
+  DriveModeViewModel driveModeVm;
   engine.rootContext()->setContextProperty("VehicleStatus", &vm);
   engine.rootContext()->setContextProperty("MusicViewModel", &musicVm);
   engine.rootContext()->setContextProperty("ThemeController", &themeVm);
   engine.rootContext()->setContextProperty("VehicleMode", &vehicleModeVm);
+  engine.rootContext()->setContextProperty("DriveMode", &driveModeVm);
+  engine.rootContext()->setContextProperty("TripComputer", &tripVm);
 
   QObject::connect(
       &engine, &QQmlApplicationEngine::objectCreationFailed, &app,

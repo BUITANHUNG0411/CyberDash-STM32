@@ -54,7 +54,7 @@ A scalable, highly interactive Qt 6 / QML PC application simulating a digital au
 |---|---|
 | **MVVM + Q_PROPERTY** | Best way to enforce "Zero JS in QML". C++ acts as ViewModel, QML acts as a pure reactive view. |
 | **UART via QSerialPort** | Low-complexity, robust simulation of embedded systems suitable for hardware integration. |
-| **State-Driven Layouts** | QML `States` bound to C++ string properties allow seamless, animated morphing between vehicle types. |
+| **State-Driven Layouts** | IMPLEMENTED (Phase 14): `DashboardScreen` root `state` bound to `VehicleMode.vehicleMode` (car/scooter/bike) — QML `States` + classic `PropertyChanges` (auto-restores original bindings on state exit). |
 | **Runtime Hardware Fallback** | Dependency Injection in `main.cpp` attempts to open `SerialService` first. If hardware is disconnected, it instantly falls back to `SimulatorService` at runtime, ensuring UI continuity. |
 | **Watchdog & Auto-Reconnect** | Hardcoded safety mechanism in `SerialService` to guarantee UI falls back to a warning state if hardware disconnects. |
 | **Double Arch Glass Frame** | Application runs as a Frameless Transparent Window (`Qt.FramelessWindowHint`). A `Shape` with a precise `PathSvg` acts as the custom hardware bezel, creating a "Double Arch / Binocular" physical dashboard silhouette. |
@@ -64,6 +64,11 @@ A scalable, highly interactive Qt 6 / QML PC application simulating a digital au
 | **Declarative Bezel Alignment** | `DashboardScreen` uses robust `anchors` and `Theme.qml` geometry tokens (e.g., `gaugeInsetLeft`) to lock gauge centers precisely to the `PathSvg` Double Arch bezels, maximizing maintainability while preventing UI overflow. |
 | **Async Media Scanning** | Use `QThread` with `QDirIterator` (Worker Object pattern) in C++ to scan OS directories without blocking the QML Render Thread. |
 | **C++ Audio Playback** | `QMediaPlayer` is managed entirely within `MusicPlayerViewModel`. Playback state and progress are exposed to QML via `Q_PROPERTY` to ensure Zero JS. |
+| **One-ViewModel-per-Concern** | UI chrome state lives in dedicated small VMs (`ThemeViewModel`, `VehicleModeViewModel`, …) with their own context properties — independent lifecycles, focused TDD, never mixed into telemetry (`VehicleStatusViewModel`). |
+| **Centralized Theme Ternaries** | `Theme.qml` color tokens are ternaries on chrome VMs (`ThemeController.isNight`, …) with `Behavior { ColorAnimation }` declared INSIDE the singleton — the whole app cross-fades with zero per-component changes. |
+| **C++-Driven Boot Choreography** | Startup sequence (`bootStage`/`bootProgress`) is a `QSequentialAnimationGroup` timeline in `ThemeViewModel`; QML only binds ternaries (telltale self-test → gauge sweep → content fade-in). |
+| **Dip Transition Masking** | Layout morphs use a sequential transition: fade+scale both arches to 0 → `PropertyAction` applies swaps while invisible → OutBack rise. Only `opacity`/`scale` are ever animated (never width/height on complex subtrees). |
+| **MultiEffect Sibling Source** | NEVER write `MultiEffect { source: parent }` — the recursive ShaderEffectSource creates a feedback loop that freezes accumulated frames (real Phase-13 bug). The source must be a hidden sibling item (`visible: false`). |
 
 ## 6. Project Layout (Do not deviate without reason)
 ```text

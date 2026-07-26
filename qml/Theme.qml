@@ -5,7 +5,13 @@ QtObject {
     // Cyberpunk Color Palette — Night (default) / Day (Light Glassmorphism)
     // Themed tokens are non-readonly because a Behavior cannot attach to a readonly property.
     property color backgroundDeepSpace: ThemeController.isNight ? "#0B0C10" : "#DDE7EE"
-    property color accentCyan: ThemeController.isNight ? "#66FCF1" : "#00857C"
+    // Accent theo drive mode (ECO/NORMAL/SPORT) × day/night — 6 biến thể.
+    // SPORT dùng cam (không đỏ) để phân biệt rõ với warningRed/redline.
+    property color accentCyan: DriveMode.driveMode === "eco"
+                               ? (ThemeController.isNight ? "#66FC8F" : "#1E8A4C")
+                               : DriveMode.driveMode === "sport"
+                                 ? (ThemeController.isNight ? "#FF7A00" : "#C25600")
+                                 : (ThemeController.isNight ? "#66FCF1" : "#00857C")
     readonly property color warningRed: "#FF3B30"
     property color textPrimary: ThemeController.isNight ? "#FFFFFF" : "#1A2530"
     property color textSecondary: ThemeController.isNight ? "#C5C6C7" : "#4A5A68"

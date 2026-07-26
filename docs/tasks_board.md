@@ -104,3 +104,12 @@
 - [x] Scooter: speed max 120, right gauge rebound to `vm.battery` (0–100, no redline); Bike: speed max 60, right arch shows large battery %, music player + bottom bar hidden.
 - [x] Fix latent `EnergyBlocks` zero implicit size (invisible inside `Column`).
 - [x] Verify: Zero-JS grep clean, build 0 warnings, all ctest pass (19 viewmodel tests), 8s smoke clean, per-mode screenshots (car/bike/scooter, both themes) confirmed bezel identical across modes.
+
+## Phase 15: Drive Modes + Trip Computer
+- [x] Sync `AGENTS.md` decision log with Phase 13/14 architecture (One-VM-per-Concern, Centralized Theme Ternaries, Boot Choreography, Dip Transition, MultiEffect Sibling Source rule).
+- [x] Implement `DriveModeViewModel` (TDD): `driveMode`/`driveModeLabel` + `cycleDriveMode()` (normal → sport → eco → normal), context property `DriveMode`; 3 new stroke-style icons (leaf/dial/lightning).
+- [x] Implement `TripComputerViewModel` (TDD): odometer/trip/avgSpeed integrated from speed × injected `elapsedMs` (wall-clock-free tests), `maxDeltaMs` clamp for stale gaps, `resetTrip()` keeps odometer; C++-formatted `tripDisplay`/`odoDisplay` strings (Zero-JS — no `.toFixed()` in QML).
+- [x] Wire `QElapsedTimer` in `main.cpp` telemetry lambdas (`tripClock.restart()` returns elapsed ms); clock restart on telemetry source switch.
+- [x] Theme.qml: `accentCyan` extended to 6 variants (ECO green / NORMAL cyan / SPORT orange × night/day) — existing singleton `Behavior` cross-fades the whole cluster; SPORT is orange, not red, to stay distinguishable from `warningRed`.
+- [x] DashboardScreen: third top-bar cycle button (icon = next mode), `gearSubText` bound to `DriveMode.driveModeLabel` (scooter "BATT %" override preserved), bottom-center `TRIP x.x km · ODO y km` line with click-to-reset MouseArea.
+- [x] Verify: Zero-JS grep clean, build 0 warnings, all ctest pass (28 viewmodel tests), 8s smoke clean, screenshots across drive modes × themes.

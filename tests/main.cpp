@@ -3,6 +3,8 @@
 #include "viewmodels/VehicleStatusViewModel.h"
 #include "viewmodels/ThemeViewModel.h"
 #include "viewmodels/VehicleModeViewModel.h"
+#include "viewmodels/DriveModeViewModel.h"
+#include "viewmodels/TripComputerViewModel.h"
 
 class TestViewModels : public QObject
 {
@@ -218,6 +220,114 @@ private slots:
         mode.cycleVehicleMode(); mode.cycleVehicleMode(); mode.cycleVehicleMode();
         QCOMPARE(mode.vehicleMode(), QString("car"));
         QCOMPARE(spy.count(), 6);
+    }
+
+    // --- DriveModeViewModel (Phase 15) ---
+
+    void testDriveModeDefaultIsNormal() {
+        DriveModeViewModel mode;
+        QCOMPARE(mode.driveMode(), QString("normal"));
+        QCOMPARE(mode.driveModeLabel(), QString("NORMAL"));
+    }
+
+    void testCycleDriveMode() {
+        DriveModeViewModel mode;
+        QSignalSpy spy(&mode, &DriveModeViewModel::driveModeChanged);
+
+        mode.cycleDriveMode();
+        QCOMPARE(mode.driveMode(), QString("sport"));
+        QCOMPARE(mode.driveModeLabel(), QString("SPORT"));
+        QCOMPARE(spy.count(), 1);
+
+        mode.cycleDriveMode();
+        QCOMPARE(mode.driveMode(), QString("eco"));
+        QCOMPARE(mode.driveModeLabel(), QString("ECO"));
+        QCOMPARE(spy.count(), 2);
+
+        mode.cycleDriveMode();
+        QCOMPARE(mode.driveMode(), QString("normal"));
+        QCOMPARE(spy.count(), 3);
+    }
+
+    void testCycleDriveModeWrapsRepeatedly() {
+        DriveModeViewModel mode;
+        QSignalSpy spy(&mode, &DriveModeViewModel::driveModeChanged);
+
+        mode.cycleDriveMode(); mode.cycleDriveMode(); mode.cycleDriveMode();
+        mode.cycleDriveMode(); mode.cycleDriveMode(); mode.cycleDriveMode();
+        QCOMPARE(mode.driveMode(), QString("normal"));
+        QCOMPARE(spy.count(), 6);
+    }
+
+    // --- TripComputerViewModel (Phase 15) ---
+
+    void testTripDefaults() {
+        TripComputerViewModel trip;
+        QCOMPARE(trip.odometerKm(), 0.0);
+        QCOMPARE(trip.tripKm(), 0.0);
+        QCOMPARE(trip.avgSpeedKmh(), 0.0);
+        QCOMPARE(trip.tripDisplay(), QString("0.0 km"));
+        QCOMPARE(trip.odoDisplay(), QString("0 km"));
+    }
+
+    void testTripAccumulatesDistance() {
+        TripComputerViewModel trip(3600000); // maxDeltaMs wide open for math tests
+        QSignalSpy spy(&trip, &TripComputerViewModel::tripChanged);
+
+        trip.updateSpeed(60.0, 60000);   // 60 km/h for 1 min -> 1.0 km
+        QCOMPARE(trip.tripKm(), 1.0);
+        QCOMPARE(trip.odometerKm(), 1.0);
+        QCOMPARE(spy.count(), 1);
+
+        trip.updateSpeed(120.0, 30000);  // 120 km/h for 30 s -> +1.0 km
+        QCOMPARE(trip.tripKm(), 2.0);
+        QCOMPARE(trip.odometerKm(), 2.0);
+        QCOMPARE(trip.tripDisplay(), QString("2.0 km"));
+        QCOMPARE(trip.odoDisplay(), QString("2 km"));
+        QCOMPARE(spy.count(), 2);
+    }
+
+    void testTripAvgSpeedIncludesIdleTime() {
+        TripComputerViewModel trip(3600000);
+        trip.updateSpeed(60.0, 60000); // 1 km in 1 min
+        trip.updateSpeed(0.0, 60000);  // idle 1 min still counts toward avg
+        QCOMPARE(trip.tripKm(), 1.0);
+        QCOMPARE(trip.avgSpeedKmh(), 30.0);
+    }
+
+    void testTripAvgSpeedGuardsZeroElapsed() {
+        TripComputerViewModel trip;
+        QSignalSpy spy(&trip, &TripComputerViewModel::tripChanged);
+        QCOMPARE(trip.avgSpeedKmh(), 0.0); // no time elapsed -> no divide-by-zero
+
+        trip.updateSpeed(50.0, 0);   // zero dt is a no-op
+        trip.updateSpeed(50.0, -5);  // negative dt is a no-op
+        QCOMPARE(trip.tripKm(), 0.0);
+        QCOMPARE(trip.avgSpeedKmh(), 0.0);
+        QCOMPARE(spy.count(), 0);
+    }
+
+    void testTripClampsStaleDelta() {
+        TripComputerViewModel trip(100); // clamp deltas to 100 ms
+        trip.updateSpeed(36.0, 5000);    // stale 5 s gap -> treated as 100 ms
+        QVERIFY(qFuzzyCompare(trip.tripKm() + 1.0, 1.001)); // 36 km/h * 0.1 s = 1 m
+    }
+
+    void testResetTrip() {
+        TripComputerViewModel trip(3600000);
+        trip.updateSpeed(60.0, 60000);
+        QSignalSpy spy(&trip, &TripComputerViewModel::tripChanged);
+
+        trip.resetTrip();
+        QCOMPARE(trip.tripKm(), 0.0);
+        QCOMPARE(trip.avgSpeedKmh(), 0.0);
+        QCOMPARE(trip.odometerKm(), 1.0); // odometer survives trip reset
+        QCOMPARE(spy.count(), 1);
+
+        trip.updateSpeed(60.0, 60000);    // trip restarts cleanly after reset
+        QCOMPARE(trip.tripKm(), 1.0);
+        QCOMPARE(trip.avgSpeedKmh(), 60.0);
+        QCOMPARE(trip.odometerKm(), 2.0);
     }
 };
 

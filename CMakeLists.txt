@@ -63,6 +63,9 @@ qt_add_qml_module(${PROJECT_NAME}
         resources/icons/vehicle-car.svg
         resources/icons/vehicle-scooter.svg
         resources/icons/vehicle-bike.svg
+        resources/icons/drive-eco.svg
+        resources/icons/drive-normal.svg
+        resources/icons/drive-sport.svg
     SOURCES
         src/viewmodels/VehicleStatusViewModel.h
         src/viewmodels/VehicleStatusViewModel.cpp
@@ -72,6 +75,10 @@ qt_add_qml_module(${PROJECT_NAME}
         src/viewmodels/ThemeViewModel.cpp
         src/viewmodels/VehicleModeViewModel.h
         src/viewmodels/VehicleModeViewModel.cpp
+        src/viewmodels/DriveModeViewModel.h
+        src/viewmodels/DriveModeViewModel.cpp
+        src/viewmodels/TripComputerViewModel.h
+        src/viewmodels/TripComputerViewModel.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}

@@ -49,6 +49,7 @@
 - 🌃 **Tick-based neon gauges** — `NeonTickGauge.qml` lights individual ticks (`isIlluminated`) instead of solid arcs — pure QML, no JS math.
 - 🪟 **Double Arch / Binocular bezel** — A `Shape` with a precise `PathSvg` cubic bezier forms the physical dashboard silhouette in a `FramelessWindowHint` window.
 - 🧊 **Glassmorphism panels** — Translucent `#2C353F` tinted base + diagonal gradients + edge fade masks create frosted-glass neon lighting.
+- 🚨 **Data-bound telltale bar** — Warning, low-battery, and high-temperature icons light up from live `VehicleStatusViewModel` telemetry via pure declarative bindings, with animated fade transitions.
 - 🎵 **3D cover-flow music player** — Native `PathView` with `PathAttribute` provides a Zero-JS 3D carousel; audio is fully driven by `QMediaPlayer` inside `MusicPlayerViewModel`.
 - 🧵 **Async media scanning** — `MusicScanner` runs `QDirIterator` on a `QThread`, so the QML render thread never blocks while scanning a directory of audio files.
 - 🧪 **TDD by default** — Tests live alongside the code (`tests/`) and run via `ctest`.

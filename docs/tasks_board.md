@@ -113,3 +113,10 @@
 - [x] Theme.qml: `accentCyan` extended to 6 variants (ECO green / NORMAL cyan / SPORT orange × night/day) — existing singleton `Behavior` cross-fades the whole cluster; SPORT is orange, not red, to stay distinguishable from `warningRed`.
 - [x] DashboardScreen: third top-bar cycle button (icon = next mode), `gearSubText` bound to `DriveMode.driveModeLabel` (scooter "BATT %" override preserved), bottom-center `TRIP x.x km · ODO y km` line with click-to-reset MouseArea.
 - [x] Verify: Zero-JS grep clean, build 0 warnings, all ctest pass (28 viewmodel tests), 8s smoke clean, screenshots across drive modes × themes.
+
+## Phase 16: Center Hub (Music ⇄ Map) + Neon Map
+- [x] Implement `MapViewModel` (TDD): `routeProgress` (0..1, fmod wrap) from odometer over an injectable `routeLengthKm` (default 2.0), context property `MapModel`, fed from `TripComputerViewModel::tripChanged` in `main.cpp`.
+- [x] Create `NeonMapView.qml`: Shapes-drawn neon map (street grid + grey side streets + accent-colored route loop with sibling-source MultiEffect bloom) in a 400×360 design space auto-scaled to fit; marker arrow positioned/rotated by `PathInterpolator { progress: MapModel.routeProgress }`; TRIP label reuses `TripComputer.tripDisplay`.
+- [x] Create `CenterHub.qml`: `SwipeView` (first QtQuick.Controls usage — static children never destroyed, MusicPlayer stays alive) with Music + Map pages and a custom neon `PageIndicator`.
+- [x] DashboardScreen: center panel hosts `CenterHub`; Phase-14 scooter/bike states retarget `musicPlayer` → `centerHub`; scooterCard/bike behavior unchanged (hub is Car-mode only).
+- [x] Verify: Zero-JS grep clean, build 0 warnings, all ctest pass (31 viewmodel tests), 8s smoke clean, screenshots of both hub pages (marker advances with real odometer distance).

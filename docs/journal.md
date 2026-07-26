@@ -2,6 +2,16 @@
 
 > **AI Context**: File này dùng để AI ghi chép lại các quyết định kỹ thuật quan trọng và lý do đằng sau chúng theo trình tự thời gian. Đọc file này giúp AI khôi phục lại "trí nhớ" về bối cảnh dự án.
 
+## 2026-07-27
+
+### Phase 16: Center Hub (Music ⇄ Map) + Neon Map
+- **Vấn đề**: Panel trung tâm chỉ có MusicPlayer cố định; user muốn hub lướt qua lại giữa nhiều widget, bắt đầu với Map.
+- **Quyết định 1 (Container)**: `SwipeView` (QtQuick.Controls.Basic — lần đầu repo dùng Controls) thay vì ListView-snap hay StackLayout: children khai báo tĩnh được khởi tạo một lần và KHÔNG BAO GIỜ bị hủy → giữ đúng quyết định Phase 14 "MusicPlayer phải sống xuyên suốt" (nhạc không đứt khi lướt sang Map). `currentIndex` là view-state cục bộ (tiền lệ PathView).
+- **Quyết định 2 (Map "thật" mà không cần GPS)**: `MapViewModel` chuyển odometer → `routeProgress` (fmod theo `routeLengthKm` inject được, mặc định 2 km). QML dùng `PathInterpolator` bind vào progress: marker tự định vị VÀ tự xoay theo tiếp tuyến đường (`angle`) — Zero-JS tuyệt đối, marker dừng khi xe dừng, nhanh khi xe nhanh, hoạt động với cả Simulator lẫn Serial.
+- **Quyết định 3 (Vẽ map)**: Thuần QtQuick.Shapes trong không gian thiết kế 400×360 scale khít khung (`Math.min` trong binding — tiền lệ MusicPlayer). Route stroke bằng `Theme.accentCyan` nên tự đổi màu theo drive mode; bloom qua MultiEffect đúng quy tắc sibling-source. Không Qt Location, không network tile.
+- Hub chỉ tồn tại ở Car mode: state scooter/bike chỉ đổi target `musicPlayer` → `centerHub`, RangeTripCard và bike layout giữ nguyên.
+- Spec: `docs/superpowers/specs/2026-07-27-center-hub-neon-map-design.md`; Plan: `docs/superpowers/plans/2026-07-27-center-hub-neon-map.md`.
+
 ## 2026-07-26
 
 ### Phase 15: Drive Modes + Trip Computer

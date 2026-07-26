@@ -56,6 +56,7 @@
 - 🏍️ **Vehicle morphing (Bike ⇄ Scooter ⇄ Car)** — the dashboard reshapes itself via QML `States` bound to a C++ string property: gauges re-scale (60/120/160 km/h), the right arch swaps RPM ⇄ battery, and a "dip" transition masks tick relabeling.
 - 🏎️ **Drive modes (ECO / NORMAL / SPORT)** — a single 6-variant accent token in `Theme.qml` recolors every neon element (green / cyan / orange × day/night) with one 600 ms cross-fade.
 - 🧮 **Trip computer** — odometer, resettable trip, and average speed integrated in C++ from speed × real elapsed time (`QElapsedTimer`), displayed in the bottom bar with click-to-reset.
+- 🗺️ **Swipeable center hub (Music ⇄ Neon Map)** — a `SwipeView` hub in Car mode; the stylized Shapes-drawn map's marker advances along a neon route using real odometer distance (`PathInterpolator` bound to a C++ `routeProgress`), and the route inherits the drive-mode accent color.
 - 🧪 **TDD by default** — Tests live alongside the code (`tests/`) and run via `ctest`.
 
 ---
@@ -146,7 +147,8 @@ qt-qml-stm32/
 │       ├── ThemeViewModel.{h,cpp}        ← Day/Night flag + C++ boot timeline
 │       ├── VehicleModeViewModel.{h,cpp}  ← Bike/Scooter/Car morph state
 │       ├── DriveModeViewModel.{h,cpp}    ← ECO/NORMAL/SPORT accent state
-│       └── TripComputerViewModel.{h,cpp} ← Odometer / trip / avg-speed integration
+│       ├── TripComputerViewModel.{h,cpp} ← Odometer / trip / avg-speed integration
+│       └── MapViewModel.{h,cpp}          ← Odometer → route progress (0..1 loop)
 ├── qml/
 │   ├── Main.qml
 │   ├── Theme.qml                         ← Singleton: design tokens (radii, colors, geometry)
@@ -157,6 +159,8 @@ qt-qml-stm32/
 │   │   ├── EnergyBlocks.qml              ← Segmented battery / fuel cells
 │   │   ├── NeonIcon.qml • NeonIconButton.qml
 │   │   ├── RangeTripCard.qml             ← Scooter-mode center card (range/battery)
+│   │   ├── CenterHub.qml                 ← SwipeView hub: Music ⇄ Map + PageIndicator
+│   │   ├── NeonMapView.qml               ← Shapes-drawn neon map + telemetry marker
 │   │   └── GlowingText.qml
 │   └── screens/
 │       └── DashboardScreen.qml           ← Declarative anchors on PathSvg Double Arch
@@ -320,6 +324,7 @@ Tracked in [`docs/tasks_board.md`](docs/tasks_board.md). Snapshot:
 | 13 | Day/Night Theme + Startup Animation | ✅ |
 | 14 | Vehicle Morphing (Bike / Scooter / Car) | ✅ |
 | 15 | Drive Modes (ECO/NORMAL/SPORT) + Trip Computer | ✅ |
+| 16 | Center Hub (Music ⇄ Map) + Neon Map | ✅ |
 
 Planned next:
 

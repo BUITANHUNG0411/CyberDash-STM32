@@ -72,7 +72,7 @@
 - [x] Refactor SerialService MVVM Leak: move calculated telemetry back to `VehicleStatusViewModel`.
 - [x] Implement proper SerialService write-back (`STOP`) and Checksum protocol validation.
 - [x] Clean up orphaned files and dead code (`CircularGauge.qml`, `GlassPanel.qml`, `QML_ELEMENT`, `MockScenarioEngine::setScenario`).
-- [x] Add Unit Tests for `VehicleStatusViewModel::updateRawTelemetry`.
+- [ ] Add Unit Tests for `VehicleStatusViewModel::updateRawTelemetry` (STALE — no dedicated test file found in `tests/`; only `tst_music_playback.cpp` exists).
 
 ## Phase 11: UI Standardization & Layout Refactor
 - [x] Consolidate Design Tokens in `Theme.qml` (radii, durations, typography, geometry).
@@ -80,3 +80,8 @@
 - [x] Refactor `MusicPlayer.qml` to use declarative bindings exclusively (removed Connections & JS imperative logic).
 - [x] Transition `DashboardScreen` and `NeonTickGauge` from absolute (magic number) coordinates to declarative `anchors` aligned precisely with the `PathSvg` Double Arch bezel.
 - [x] Resolve all compiler warnings (`-Wconversion`) with proper `static_cast` in C++ ViewModels.
+
+## Phase 12: Mock-Only Architecture (In Progress — branch `feature/mock-only`)
+> **AI Context**: Active pivot to remove the live `SerialService`/`Qt6::SerialPort` runtime, leaving `SimulatorService` as the sole telemetry source. Full task-by-task plan and design spec live in `docs/superpowers/plans/2026-07-25-mock-only-architecture.md` and `docs/superpowers/specs/2026-07-25-mock-only-architecture-design.md`. Work is checked out in the `.worktrees/mock-only` git worktree, not yet merged to `main`.
+- [ ] Remove serial runtime (`SerialService`, `Qt6::SerialPort` dependency, CMake wiring).
+- [ ] Remaining steps per the linked plan (not yet executed on `main`).

@@ -18,6 +18,7 @@ Depending on the task, you MUST fetch and read the corresponding context:
 - 🔌 **Hardware & UART**: Read `docs/hardware_integration.md`
 - 🧪 **Testing Strategies**: Read `docs/testing_strategy.md`
 - 📋 **Current Task / Progress**: Read `docs/tasks_board.md`
+- 🧩 **Mock-Only Architecture Pivot (active)**: Read `docs/superpowers/plans/2026-07-25-mock-only-architecture.md` and `docs/superpowers/specs/2026-07-25-mock-only-architecture-design.md`. This work removes the live `SerialService`/`Qt6::SerialPort` runtime and is checked out in the `.worktrees/mock-only` git worktree (branch `feature/mock-only`), not yet merged to `main`.
 - 📘 **C++ Coding Standards**: Read `.agents/workflows/cpp_coding_standards.md` when writing C++.
 - 📙 **QML Coding Standards**: Read `.agents/workflows/qml_coding_standards.md` and `.agents/workflows/qml_docs_standards.md` when writing QML.
 - 🛠️ **CMake Build System**: Read `.agents/workflows/cmake_standards.md` when configuring builds.
@@ -67,8 +68,8 @@ A scalable, highly interactive Qt 6 / QML PC application simulating a digital au
 
 ## 6. Project Layout (Do not deviate without reason)
 ```text
-src/viewmodels/   src/services/simulator/   src/services/serial/
-qml/components/   qml/screens/              resources/   docs/   .agents/
+src/viewmodels/   src/services/  (flat: SimulatorService, SerialService, MockScenarioEngine, MusicScanner)
+qml/components/   qml/screens/   resources/   docs/   .agents/
 ```
 
 ## 7. Golden Checks Before Any "Done"

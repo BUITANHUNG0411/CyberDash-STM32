@@ -155,8 +155,8 @@ Item {
             opacity: ThemeController.bootStage < 2 ? 0.0 : 1.0
             Behavior on opacity { NumberAnimation { duration: Theme.durationSlow } }
 
-            MusicPlayer {
-                id: musicPlayer
+            CenterHub {
+                id: centerHub
                 anchors.fill: parent
                 anchors.margins: 10
                 opacity: 1
@@ -372,7 +372,7 @@ Item {
             }
             PropertyChanges { target: gearText; text: vm.battery }
             PropertyChanges { target: gearSubText; text: "BATT %" }
-            PropertyChanges { target: musicPlayer; opacity: 0 }
+            PropertyChanges { target: centerHub; opacity: 0 }
             PropertyChanges { target: scooterCard; opacity: 1 }
         },
 
@@ -386,7 +386,7 @@ Item {
             }
             PropertyChanges { target: rightGaugeGroup; opacity: 0 }
             PropertyChanges { target: bikeBatteryDisplay; opacity: 1; scale: 1.0 }
-            PropertyChanges { target: musicPlayer; opacity: 0 }
+            PropertyChanges { target: centerHub; opacity: 0 }
             PropertyChanges { target: bottomBar; opacity: 0 }
         }
     ]
@@ -408,7 +408,7 @@ Item {
                 ParallelAnimation {
                     NumberAnimation { targets: [leftPanel, rightPanel]; property: "opacity"; to: 1.0; duration: Theme.durationSlow; easing.type: Easing.OutCubic }
                     NumberAnimation { targets: [leftPanel, rightPanel]; property: "scale"; to: 1.0; duration: Theme.durationSlow; easing.type: Easing.OutBack }
-                    NumberAnimation { targets: [musicPlayer, scooterCard, bottomBar]; property: "opacity"; duration: Theme.durationSlow; easing.type: Easing.OutQuad }
+                    NumberAnimation { targets: [centerHub, scooterCard, bottomBar]; property: "opacity"; duration: Theme.durationSlow; easing.type: Easing.OutQuad }
                 }
             }
         }

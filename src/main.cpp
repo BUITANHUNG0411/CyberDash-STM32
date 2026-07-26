@@ -6,6 +6,7 @@
 #include "viewmodels/VehicleModeViewModel.h"
 #include "viewmodels/DriveModeViewModel.h"
 #include "viewmodels/TripComputerViewModel.h"
+#include "viewmodels/MapViewModel.h"
 #include <QElapsedTimer>
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
@@ -16,6 +17,9 @@ int main(int argc, char *argv[]) {
 
   VehicleStatusViewModel vm;
   TripComputerViewModel tripVm;
+  MapViewModel mapVm;
+  QObject::connect(&tripVm, &TripComputerViewModel::tripChanged, &mapVm,
+                   [&tripVm, &mapVm]() { mapVm.updateDistance(tripVm.odometerKm()); });
   QElapsedTimer tripClock;
   tripClock.start();
 
@@ -71,6 +75,7 @@ int main(int argc, char *argv[]) {
   engine.rootContext()->setContextProperty("VehicleMode", &vehicleModeVm);
   engine.rootContext()->setContextProperty("DriveMode", &driveModeVm);
   engine.rootContext()->setContextProperty("TripComputer", &tripVm);
+  engine.rootContext()->setContextProperty("MapModel", &mapVm);
 
   QObject::connect(
       &engine, &QQmlApplicationEngine::objectCreationFailed, &app,

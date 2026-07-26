@@ -46,6 +46,8 @@ qt_add_qml_module(${PROJECT_NAME}
         qml/components/NeonIcon.qml
         qml/components/NeonIconButton.qml
         qml/components/RangeTripCard.qml
+        qml/components/NeonMapView.qml
+        qml/components/CenterHub.qml
         qml/screens/DashboardScreen.qml
     RESOURCES
         resources/icons/play.svg

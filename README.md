@@ -52,6 +52,10 @@
 - 🚨 **Data-bound telltale bar** — Warning, low-battery, and high-temperature icons light up from live `VehicleStatusViewModel` telemetry via pure declarative bindings, with animated fade transitions.
 - 🎵 **3D cover-flow music player** — Native `PathView` with `PathAttribute` provides a Zero-JS 3D carousel; audio is fully driven by `QMediaPlayer` inside `MusicPlayerViewModel`.
 - 🧵 **Async media scanning** — `MusicScanner` runs `QDirIterator` on a `QThread`, so the QML render thread never blocks while scanning a directory of audio files.
+- 🌗 **Day/Night themes + automotive boot sequence** — one tap cross-fades the whole cluster between the dark Neon shell and a Light Glassmorphism day variant (bezel stays constant); startup plays a real-car choreography: telltale self-test → gauge sweep 0→max→0 → sequential content fade-in, all driven by a C++ `QSequentialAnimationGroup` timeline.
+- 🏍️ **Vehicle morphing (Bike ⇄ Scooter ⇄ Car)** — the dashboard reshapes itself via QML `States` bound to a C++ string property: gauges re-scale (60/120/160 km/h), the right arch swaps RPM ⇄ battery, and a "dip" transition masks tick relabeling.
+- 🏎️ **Drive modes (ECO / NORMAL / SPORT)** — a single 6-variant accent token in `Theme.qml` recolors every neon element (green / cyan / orange × day/night) with one 600 ms cross-fade.
+- 🧮 **Trip computer** — odometer, resettable trip, and average speed integrated in C++ from speed × real elapsed time (`QElapsedTimer`), displayed in the bottom bar with click-to-reset.
 - 🧪 **TDD by default** — Tests live alongside the code (`tests/`) and run via `ctest`.
 
 ---
@@ -138,7 +142,11 @@ qt-qml-stm32/
 │   │   └── MusicScanner.{h,cpp}          ← QThreaded directory scanner
 │   └── viewmodels/
 │       ├── VehicleStatusViewModel.{h,cpp}
-│       └── MusicPlayerViewModel.{h,cpp}  ← QAbstractListModel + QMediaPlayer
+│       ├── MusicPlayerViewModel.{h,cpp}  ← QAbstractListModel + QMediaPlayer
+│       ├── ThemeViewModel.{h,cpp}        ← Day/Night flag + C++ boot timeline
+│       ├── VehicleModeViewModel.{h,cpp}  ← Bike/Scooter/Car morph state
+│       ├── DriveModeViewModel.{h,cpp}    ← ECO/NORMAL/SPORT accent state
+│       └── TripComputerViewModel.{h,cpp} ← Odometer / trip / avg-speed integration
 ├── qml/
 │   ├── Main.qml
 │   ├── Theme.qml                         ← Singleton: design tokens (radii, colors, geometry)
@@ -148,6 +156,7 @@ qt-qml-stm32/
 │   │   ├── GlassPanel.qml                ← Glassmorphism container
 │   │   ├── EnergyBlocks.qml              ← Segmented battery / fuel cells
 │   │   ├── NeonIcon.qml • NeonIconButton.qml
+│   │   ├── RangeTripCard.qml             ← Scooter-mode center card (range/battery)
 │   │   └── GlowingText.qml
 │   └── screens/
 │       └── DashboardScreen.qml           ← Declarative anchors on PathSvg Double Arch
@@ -307,12 +316,16 @@ Tracked in [`docs/tasks_board.md`](docs/tasks_board.md). Snapshot:
 | 9 | Music Player UI (Neon Cyberpunk, 3D Cover Flow) | ✅ |
 | 10 | Architecture Audit & Technical Debt Eradication | ✅ |
 | 11 | UI Standardization & Layout Refactor | ✅ |
+| 12 | Functional Telltale Bar | ✅ |
+| 13 | Day/Night Theme + Startup Animation | ✅ |
+| 14 | Vehicle Morphing (Bike / Scooter / Car) | ✅ |
+| 15 | Drive Modes (ECO/NORMAL/SPORT) + Trip Computer | ✅ |
 
 Planned next:
 
-- Real-world field test with the STM32 MCU (closed-loop motor + encoder).
-- Adaptive layout morphing between Bike / Scooter / HMI / Car.
-- Persistence layer for user preferences (theme intensity, last-played track, gauge calibration).
+- Real-world field test with the STM32 MCU (closed-loop motor + encoder) — extend the UART frame beyond RPM/VBat/Error.
+- Scenario selector UI — expose the existing `MockScenarioEngine` scenarios (Drag Race / Battery Drain / Error Injection).
+- Persistence layer for user preferences (theme, vehicle & drive mode, odometer, last-played track).
 
 ---
 

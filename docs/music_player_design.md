@@ -23,13 +23,13 @@
   - *Why chosen:* Maintains absolute consistency with the existing dashboard gauges (e.g., NeonTickGauge).
 
 ## Final Design Breakdown
-### 1. Cover Flow Area (Top 70%)
+### 1. Cover Flow Area (fills remaining height)
 - **Component:** `PathView` with a custom `Path`.
 - **Delegate:** Rounded `Image` (via `OpacityMask`) with a static Neon glow shadow.
 - **Animation:** `PathAttribute` drives `scale` (1.0 at center, 0.7 at sides), `opacity` (1.0 at center, 0.5 at sides), and `z` index for the 3D depth illusion.
 
-### 2. Navigation Control Panel (Bottom 30%)
-- **Container:** Glassmorphism `Rectangle` with translucent background and subtle borders.
+### 2. Navigation Control Panel (fixed 176px)
+- **Container:** Glassmorphism `Rectangle` with translucent background and subtle borders. Height is sized to the centered `Column` content (track info + scrubber + volume + controls) plus ~16px of top/bottom breathing room — a shorter panel visually crushes the Play/Pause button against the bottom edge.
 - **Track Info:** Two `Text` elements (Title and Artist) bound to the active item in the `PathView`.
 - **Progress Bar:** Thin neon line with a glowing thumb.
 - **Media Controls:** `RowLayout` centering Previous, Play/Pause, and Next vector icons with scale-down and neon-flare effects on press.

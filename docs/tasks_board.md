@@ -80,3 +80,4 @@
 - [x] Refactor `MusicPlayer.qml` to use declarative bindings exclusively (removed Connections & JS imperative logic).
 - [x] Transition `DashboardScreen` and `NeonTickGauge` from absolute (magic number) coordinates to declarative `anchors` aligned precisely with the `PathSvg` Double Arch bezel.
 - [x] Resolve all compiler warnings (`-Wconversion`) with proper `static_cast` in C++ ViewModels.
+- [x] Fix `MusicPlayer` control panel padding — bottom `GlassPanel` was too short for its content, crushing the Play/Pause button against the bottom edge (140px → 176px, spacing bumped to `Theme.spaceMd`).

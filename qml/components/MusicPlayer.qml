@@ -235,15 +235,15 @@ Item {
             }
         }
 
-        // Bottom 30%: Navigation Control Panel
+        // Bottom Navigation Control Panel
         GlassPanel {
             Layout.fillWidth: true
-            Layout.preferredHeight: 140
+            Layout.preferredHeight: 176
 
             Column {
                 anchors.centerIn: parent
                 width: parent.width * 0.85
-                spacing: Theme.spaceSm
+                spacing: Theme.spaceMd
 
                 // 1. Track Info (Centered) & Scan Button (Right)
                 Item {

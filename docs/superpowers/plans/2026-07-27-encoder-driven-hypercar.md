@@ -1,5 +1,8 @@
 # Encoder-Driven Hypercar Scene Implementation Plan
 
+> **Status:** Superseded by `docs/superpowers/plans/2026-07-28-arrow-road-visual.md`.
+> This document is retained as a historical record of the earlier hypercar direction.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Replace the dashed perspective-road scene with a mock-driven, encoder-ready 3D hypercar scene on one continuous road without lane markings.

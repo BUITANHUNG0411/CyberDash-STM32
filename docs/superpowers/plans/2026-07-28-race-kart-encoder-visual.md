@@ -1,5 +1,8 @@
 # Race Kart Encoder Visual Implementation Plan
 
+> **Status:** Superseded by `docs/superpowers/plans/2026-07-28-arrow-road-visual.md`.
+> This plan is kept only as historical context for the brief race-kart branch that was replaced by the centered arrow scene.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Replace the current hypercar-like drawing with a cheaper, race-kart-style vector vehicle that visibly bo cua đua xe while preserving the encoder-driven MVVM boundary.

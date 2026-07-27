@@ -238,7 +238,7 @@ Historical detail is preserved in [tasks_board.md](docs/tasks_board.md).
 | 16 | CenterHub and neon map | Complete |
 | 17 | Pre-Feature Baseline Repair | Software implementation and full verification complete; physical field validation pending |
 
-Phase 17 repaired the parser/mapper boundary, made serial fallback transitions deterministic, moved scrubber and volume normalization into C++, removed the remaining QML `Math` helpers, synchronized active documentation, and completed the pre-feature build/test/lint/smoke verification matrix. Physical STM32/USB-TTL field validation remains pending.
+Phase 17 repaired the parser/mapper boundary, made serial fallback transitions deterministic, moved scrubber and volume normalization into C++, removed the remaining QML `Math` helpers, isolated test-only music persistence, hardened map progress to remain finite in `[0, 1)`, synchronized active documentation, and completed the pre-feature build/test/lint/smoke verification matrix. Physical STM32/USB-TTL field validation remains pending.
 
 ## Contribution Rules
 

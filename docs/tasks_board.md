@@ -132,5 +132,6 @@
 - [x] Synchronize active project documentation with the committed implementation and preserve corrected historical context.
 - [x] Complete the full pre-feature verification matrix and record its fresh evidence (Task 5).
 - [x] Close the formal Task 5 review with in-scope C++ lint cleanup, direct Qt 6.11.1 `qmllint` triage, and a fresh full verification matrix.
-- [x] Close final branch-review follow-ups: direct connected-state fallback/reconnect regressions, finite map invariants, test-safe music persistence, and documentation truth fixes.
+- [x] Close final branch-review follow-ups: direct connected-state fallback/reconnect regressions, test-safe music persistence, finite map invariants including tiny-route division overflow, and documentation/review-skill truth fixes (`4307a4d`, `1d863df`).
+- [x] Complete the final re-review with no remaining high-confidence Critical or Important findings; rerun configure, build, CTest 3/3, Zero-JS, module `qmllint`, range diff hygiene, and the 8-second offscreen smoke check.
 - [ ] Field-validate the serial pipeline with physical STM32 hardware.

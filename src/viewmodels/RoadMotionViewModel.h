@@ -69,4 +69,5 @@ private:
     QTimer m_staleTimer;
     qreal m_forwardSpeed = 0.0;
     qreal m_curvature = 0.0;
+    qreal m_lateralOffset = 0.0;
 };

@@ -18,6 +18,8 @@ constexpr double kHorizonY = 0.14;
 constexpr double kRoadHeight = 0.82;
 constexpr double kMinimumX = -0.10;
 constexpr double kMaximumX = 1.10;
+constexpr double kLateralOffsetScale = 0.20;
+constexpr double kMaximumLateralOffset = 0.35;
 
 const QList<int> kGeometryRoles{
     RoadMotionViewModel::LeftNearXRole,
@@ -137,7 +139,15 @@ void RoadMotionViewModel::updateWheelMotion(double leftWheelSpeed,
         + (targetCurvature - static_cast<double>(m_curvature)) * alpha;
 
     bool geometryChanged =
-        updatePublishedMotion(speed, smoothedCurvature);
+    updatePublishedMotion(speed, smoothedCurvature);
+    if (speed > 0.0) {
+        m_lateralOffset = std::clamp(
+            static_cast<double>(m_lateralOffset)
+                - static_cast<double>(m_curvature)
+                    * speed * elapsedSeconds * kLateralOffsetScale,
+            -kMaximumLateralOffset,
+            kMaximumLateralOffset);
+    }
     if (speed > 0.0) {
         advanceSegments(elapsedSeconds);
         geometryChanged = true;
@@ -152,6 +162,7 @@ void RoadMotionViewModel::resetRoad()
 {
     m_staleTimer.stop();
     updatePublishedMotion(0.0, 0.0);
+    m_lateralOffset = 0.0;
     initializeSegments();
     publishGeometry();
 }
@@ -267,7 +278,7 @@ double RoadMotionViewModel::projectedCenter(double depth) const
 {
     const double clampedDepth = std::clamp(depth, 0.0, 1.0);
     return std::clamp(
-        0.5
+        0.5 + static_cast<double>(m_lateralOffset) * clampedDepth
             - static_cast<double>(m_curvature)
                 * clampedDepth * clampedDepth * 0.30,
         kMinimumX,

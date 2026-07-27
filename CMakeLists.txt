@@ -30,6 +30,7 @@ qt_add_executable(${PROJECT_NAME}
     src/services/SerialTelemetryParser.cpp
     src/services/TelemetryMapper.cpp
     src/services/MusicScanner.cpp
+    src/services/MockWheelTelemetryService.cpp
 )
 
 set_source_files_properties(qml/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
@@ -49,6 +50,7 @@ qt_add_qml_module(${PROJECT_NAME}
         qml/components/NeonIconButton.qml
         qml/components/RangeTripCard.qml
         qml/components/NeonMapView.qml
+        qml/components/PerspectiveRoadView.qml
         qml/components/CenterHub.qml
         qml/screens/DashboardScreen.qml
     RESOURCES
@@ -85,6 +87,8 @@ qt_add_qml_module(${PROJECT_NAME}
         src/viewmodels/TripComputerViewModel.cpp
         src/viewmodels/MapViewModel.h
         src/viewmodels/MapViewModel.cpp
+        src/viewmodels/RoadMotionViewModel.h
+        src/viewmodels/RoadMotionViewModel.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}

@@ -20,6 +20,9 @@ QtObject {
     property color glassPanelBase: ThemeController.isNight ? "#40151D26" : "#8CE8F0F8"
     property color glassPanelBorder: ThemeController.isNight ? "#802A3B4C" : "#80FFFFFF"
     property color trackInactive: ThemeController.isNight ? "#40FFFFFF" : "#401A2530"
+    property color roadSurface: ThemeController.isNight ? "#CC111A24" : "#DDE5EBF0"
+    property color roadLaneMarker: ThemeController.isNight ? "#E6FFFFFF" : "#CC1A2530"
+    property color roadHorizonGlow: ThemeController.isNight ? "#4066FCF1" : "#3000857C"
 
     property color tickLitMajor: ThemeController.isNight ? "#FFB3CC" : "#D81B60"
     property color tickLitMinor: ThemeController.isNight ? "#FFFFFF" : "#0E8F88"
@@ -41,6 +44,9 @@ QtObject {
     Behavior on glassPanelBase { ColorAnimation { duration: durationTheme } }
     Behavior on glassPanelBorder { ColorAnimation { duration: durationTheme } }
     Behavior on trackInactive { ColorAnimation { duration: durationTheme } }
+    Behavior on roadSurface { ColorAnimation { duration: durationTheme } }
+    Behavior on roadLaneMarker { ColorAnimation { duration: durationTheme } }
+    Behavior on roadHorizonGlow { ColorAnimation { duration: durationTheme } }
     Behavior on tickLitMajor { ColorAnimation { duration: durationTheme } }
     Behavior on tickLitMinor { ColorAnimation { duration: durationTheme } }
     Behavior on tickDimMajor { ColorAnimation { duration: durationTheme } }

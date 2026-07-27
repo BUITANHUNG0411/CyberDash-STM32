@@ -1,5 +1,6 @@
 #include "services/SerialService.h"
 #include "services/SimulatorService.h"
+#include "services/MockWheelTelemetryService.h"
 #include "services/TelemetryMapper.h"
 #include "viewmodels/VehicleStatusViewModel.h"
 #include "viewmodels/MusicPlayerViewModel.h"
@@ -8,6 +9,7 @@
 #include "viewmodels/DriveModeViewModel.h"
 #include "viewmodels/TripComputerViewModel.h"
 #include "viewmodels/MapViewModel.h"
+#include "viewmodels/RoadMotionViewModel.h"
 #include <QElapsedTimer>
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
@@ -20,6 +22,7 @@ int main(int argc, char *argv[]) {
   VehicleStatusViewModel vm;
   TripComputerViewModel tripVm;
   MapViewModel mapVm;
+  RoadMotionViewModel roadMotionVm;
   QObject::connect(&tripVm, &TripComputerViewModel::tripChanged, &mapVm,
                    [&tripVm, &mapVm]() { mapVm.updateDistance(tripVm.odometerKm()); });
   QElapsedTimer tripClock;
@@ -28,6 +31,12 @@ int main(int argc, char *argv[]) {
   // Setup both services
   SimulatorService simulatorService;
   SerialService serialService("/dev/ttyUSB0");
+  MockWheelTelemetryService mockWheelTelemetry;
+  QObject::connect(
+      &mockWheelTelemetry,
+      &MockWheelTelemetryService::wheelTelemetryUpdated,
+      &roadMotionVm,
+      &RoadMotionViewModel::updateWheelMotion);
 
   bool isHardwareConnected = false;
 
@@ -83,6 +92,7 @@ int main(int argc, char *argv[]) {
   engine.rootContext()->setContextProperty("DriveMode", &driveModeVm);
   engine.rootContext()->setContextProperty("TripComputer", &tripVm);
   engine.rootContext()->setContextProperty("MapModel", &mapVm);
+  engine.rootContext()->setContextProperty("RoadMotion", &roadMotionVm);
 
   QObject::connect(&themeVm, &ThemeViewModel::windowMoveRequested, &engine, [&engine]() {
       const auto rootObjects = engine.rootObjects();
@@ -101,6 +111,7 @@ int main(int argc, char *argv[]) {
   engine.loadFromModule("com.showcase", "Main");
 
   themeVm.startBootSequence();
+  mockWheelTelemetry.start();
 
   return app.exec();
 }

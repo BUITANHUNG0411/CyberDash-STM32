@@ -172,6 +172,21 @@ private slots:
         QVERIFY(model.curvature() < 0.0);
     }
 
+    void turnCarriesLateralRoadOffsetIntoStraight()
+    {
+        RoadMotionViewModel model;
+
+        model.updateWheelMotion(0.65, 1.0, 100);
+        for (int i = 0; i < 100; ++i) {
+            model.updateWheelMotion(1.0, 1.0, 100);
+        }
+
+        const double farCenter = model.data(
+            model.index(23, 0),
+            RoadMotionViewModel::CenterFarXRole).toDouble();
+        QVERIFY(farCenter < 0.499);
+    }
+
     void equalOrStoppedWheelsDoNotCurve()
     {
         RoadMotionViewModel model;

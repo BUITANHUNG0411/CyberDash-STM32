@@ -3,7 +3,7 @@ import QtQuick.Controls.Basic
 import com.showcase
 
 /*
- * Hub trung tâm lướt được (Car mode): Music ⇄ Map.
+ * Hub trung tâm lướt được (Car mode): Music ⇄ Road.
  * SwipeView giữ children tĩnh sống mãi — MusicPlayer không bao giờ bị hủy.
  */
 Item {
@@ -15,7 +15,7 @@ Item {
         clip: true
 
         MusicPlayer {}
-        NeonMapView {}
+        PerspectiveRoadView {}
     }
 
     PageIndicator {

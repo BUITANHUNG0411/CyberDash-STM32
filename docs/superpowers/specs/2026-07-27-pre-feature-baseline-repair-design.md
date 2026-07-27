@@ -138,4 +138,3 @@ Historical plans and specs remain immutable records except for metadata needed t
 - Core Markdown documents contain no known contradiction with the verified repository.
 - The missing inspiration reference is resolved.
 - Build, tests, QML checks, and smoke launch have fresh recorded evidence.
-

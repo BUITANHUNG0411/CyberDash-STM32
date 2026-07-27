@@ -43,6 +43,11 @@ flowchart LR
 
 The `isHardwareConnected` gate ensures simulator updates are accepted only while serial is disconnected and serial updates only after a valid frame establishes the connection. A source switch restarts the trip clock so disconnected time is not integrated as distance.
 
+`MapViewModel` accepts only a finite positive route length; invalid constructor
+input falls back to the 2 km default. Distance updates must be finite and
+nonnegative; invalid values reset progress to route start. Its published
+`routeProgress` therefore remains finite and within `[0, 1)`.
+
 ## 3. Parser and Mapper Boundaries
 
 `SerialTelemetryParser` owns byte buffering, newline framing, field conversion, and checksum validation. It accepts only a complete `TEL` line and clears an oversized buffer after it grows beyond 4096 bytes. In protocol notation, its checksum is exactly:

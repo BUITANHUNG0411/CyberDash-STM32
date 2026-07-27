@@ -52,10 +52,16 @@ Every `Q_PROPERTY` and `Q_INVOKABLE` must document:
 - The **property binding flow** to QML.
 - The **thread of operation** (must be GUI thread).
 
-### 2. SimulatorService / SerialService Duality
-Explicitly document how `SimulatorService` (QTimer-based) and `SerialService` (QSerialPort-based) share the same interface.
-- Note **thread affinity** (SerialService must handle UART I/O off-thread).
-- Note **UART frame format**: Length-prefixed `\n`-terminated ASCII, 115200 8N1, toward STM32F103C8T6.
+### 2. SimulatorService / SerialService Convergence
+Explicitly document how `SimulatorService` (QTimer-based full-dashboard telemetry)
+and `SerialService` (QSerialPort-based raw wire telemetry) converge at the
+`VehicleStatusViewModel` boundary through `main.cpp` and `TelemetryMapper`; they
+do not expose one shared full-dashboard signal.
+- Note **thread affinity**: `SerialService` performs bounded, non-blocking
+  `readyRead` parsing on the GUI thread. Only `MusicScanner` is required to run
+  off-thread.
+- Note **UART frame format**: newline-delimited `TEL` ASCII records such as
+  `TEL,118,11.8,0;129\n`, 115200 8N1, toward STM32F103C8T6.
 
 ### 3. Memory and Lifecycle Annotations
 For `QTimer` or `QSerialPort` instances:

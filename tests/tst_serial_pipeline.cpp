@@ -87,20 +87,39 @@ private slots:
         QCOMPARE(value.temperature, 57);
     }
 
-    void resourceErrorEmitsDisconnectedOnce()
+    void connectedResourceErrorPublishesDisconnected()
     {
         SerialService service(QStringLiteral("/definitely/not/a/serial/port"));
         QSignalSpy spy(&service, &SerialService::connectionStatusChanged);
 
         QVERIFY(QMetaObject::invokeMethod(
+            &service, "processIncomingBytes", Qt::DirectConnection,
+            Q_ARG(QByteArray, QByteArray("TEL,118,11.8,0;129\n"))));
+        QCOMPARE(spy.size(), 1);
+        QVERIFY(spy.takeFirst().first().toBool());
+
+        QVERIFY(QMetaObject::invokeMethod(
             &service, "handleError", Qt::DirectConnection,
             Q_ARG(QSerialPort::SerialPortError, QSerialPort::ResourceError)));
-        QCOMPARE(spy.count(), 1);
+        QCOMPARE(spy.size(), 1);
         QCOMPARE(spy.takeFirst().at(0).toBool(), false);
+    }
+
+    void connectedWatchdogPublishesDisconnected()
+    {
+        SerialService service(QStringLiteral("/definitely/not/a/serial/port"));
+        QSignalSpy spy(&service, &SerialService::connectionStatusChanged);
+
+        QVERIFY(QMetaObject::invokeMethod(
+            &service, "processIncomingBytes", Qt::DirectConnection,
+            Q_ARG(QByteArray, QByteArray("TEL,118,11.8,0;129\n"))));
+        QCOMPARE(spy.size(), 1);
+        QVERIFY(spy.takeFirst().first().toBool());
 
         QVERIFY(QMetaObject::invokeMethod(&service, "handleWatchdogTimeout",
                                           Qt::DirectConnection));
-        QCOMPARE(spy.count(), 0);
+        QCOMPARE(spy.size(), 1);
+        QCOMPARE(spy.takeFirst().first().toBool(), false);
     }
 
     void validBytesEmitRawTelemetry()
@@ -112,12 +131,12 @@ private slots:
         QVERIFY(QMetaObject::invokeMethod(
             &service, "processIncomingBytes", Qt::DirectConnection,
             Q_ARG(QByteArray, QByteArray("TEL,118,11.8,0;129\n"))));
-        QCOMPARE(telemetrySpy.count(), 1);
+        QCOMPARE(telemetrySpy.size(), 1);
         const QList<QVariant> arguments = telemetrySpy.takeFirst();
         QCOMPARE(arguments.at(0).toInt(), 118);
         QCOMPARE(arguments.at(1).toDouble(), 11.8);
         QCOMPARE(arguments.at(2).toInt(), 0);
-        QCOMPARE(connectionSpy.count(), 1);
+        QCOMPARE(connectionSpy.size(), 1);
         QVERIFY(connectionSpy.takeFirst().at(0).toBool());
     }
 
@@ -135,12 +154,12 @@ private slots:
         QVERIFY(QMetaObject::invokeMethod(
             &service, "processIncomingBytes", Qt::DirectConnection,
             Q_ARG(QByteArray, QByteArray("8,0;129\n"))));
-        QCOMPARE(telemetrySpy.count(), 0);
+        QCOMPARE(telemetrySpy.size(), 0);
 
         QVERIFY(QMetaObject::invokeMethod(
             &service, "processIncomingBytes", Qt::DirectConnection,
             Q_ARG(QByteArray, QByteArray("TEL,118,11.8,0;129\n"))));
-        QCOMPARE(telemetrySpy.count(), 1);
+        QCOMPARE(telemetrySpy.size(), 1);
     }
 
     void successfulSilentOpenPublishesInitialDisconnectedState()
@@ -150,15 +169,31 @@ private slots:
         bool disconnectedBeforeOpen = false;
         service.beforeOpen = [&connectionSpy, &disconnectedBeforeOpen]() {
             disconnectedBeforeOpen =
-                connectionSpy.count() == 1
+                connectionSpy.size() == 1
                 && !connectionSpy.first().first().toBool();
         };
 
         service.startService();
 
         QVERIFY(disconnectedBeforeOpen);
-        QCOMPARE(connectionSpy.count(), 1);
+        QCOMPARE(connectionSpy.size(), 1);
         QCOMPARE(connectionSpy.first().first().toBool(), false);
+    }
+
+    void successfulReconnectStaysDisconnectedUntilValidFrame()
+    {
+        ControlledOpenSerialService service;
+        QSignalSpy connectionSpy(&service, &SerialService::connectionStatusChanged);
+
+        QVERIFY(QMetaObject::invokeMethod(&service, "tryReconnect",
+                                          Qt::DirectConnection));
+        QCOMPARE(connectionSpy.size(), 0);
+
+        QVERIFY(QMetaObject::invokeMethod(
+            &service, "processIncomingBytes", Qt::DirectConnection,
+            Q_ARG(QByteArray, QByteArray("TEL,118,11.8,0;129\n"))));
+        QCOMPARE(connectionSpy.size(), 1);
+        QVERIFY(connectionSpy.takeFirst().first().toBool());
     }
 
     void stopClearsPartialFrameAndPublishesDisconnectedState()
@@ -170,26 +205,26 @@ private slots:
         QVERIFY(QMetaObject::invokeMethod(
             &service, "processIncomingBytes", Qt::DirectConnection,
             Q_ARG(QByteArray, QByteArray("TEL,118,11.8,0;129\n"))));
-        QCOMPARE(telemetrySpy.count(), 1);
-        QCOMPARE(connectionSpy.count(), 1);
+        QCOMPARE(telemetrySpy.size(), 1);
+        QCOMPARE(connectionSpy.size(), 1);
         QVERIFY(connectionSpy.takeFirst().first().toBool());
 
         QVERIFY(QMetaObject::invokeMethod(
             &service, "processIncomingBytes", Qt::DirectConnection,
             Q_ARG(QByteArray, QByteArray("TEL,118,11."))));
         service.stopService();
-        QCOMPARE(connectionSpy.count(), 1);
+        QCOMPARE(connectionSpy.size(), 1);
         QCOMPARE(connectionSpy.takeFirst().first().toBool(), false);
 
         QVERIFY(QMetaObject::invokeMethod(
             &service, "processIncomingBytes", Qt::DirectConnection,
             Q_ARG(QByteArray, QByteArray("8,0;129\n"))));
-        QCOMPARE(telemetrySpy.count(), 1);
+        QCOMPARE(telemetrySpy.size(), 1);
 
         QVERIFY(QMetaObject::invokeMethod(
             &service, "processIncomingBytes", Qt::DirectConnection,
             Q_ARG(QByteArray, QByteArray("TEL,118,11.8,0;129\n"))));
-        QCOMPARE(telemetrySpy.count(), 2);
+        QCOMPARE(telemetrySpy.size(), 2);
     }
 };
 

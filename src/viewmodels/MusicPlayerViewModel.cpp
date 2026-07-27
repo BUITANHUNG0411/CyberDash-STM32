@@ -12,8 +12,12 @@ constexpr char kOrgName[] = "QtStmAutomotiveSimulator";
 constexpr char kAppName[] = "QtStmAutomotiveSimulator";
 }
 
-MusicPlayerViewModel::MusicPlayerViewModel(QObject *parent, bool multimediaEnabled)
-    : QAbstractListModel(parent), m_scanner(new MusicScanner()),
+MusicPlayerViewModel::MusicPlayerViewModel(QObject *parent,
+                                           bool multimediaEnabled,
+                                           bool persistenceEnabled)
+    : QAbstractListModel(parent),
+      m_persistenceEnabled(persistenceEnabled),
+      m_scanner(new MusicScanner()),
       m_settings(QSettings::IniFormat, QSettings::UserScope, kOrgName, kAppName)
 {
     if (multimediaEnabled) {
@@ -36,8 +40,10 @@ MusicPlayerViewModel::MusicPlayerViewModel(QObject *parent, bool multimediaEnabl
     connect(m_saveTimer, &QTimer::timeout, this, &MusicPlayerViewModel::onPeriodicSaveTimeout);
 
     // Restore resume point
-    m_lastIndex = m_settings.value("music/lastIndex", -1).toInt();
-    m_lastPos = m_settings.value("music/lastPositionMs", 0).toLongLong();
+    if (m_persistenceEnabled) {
+        m_lastIndex = m_settings.value("music/lastIndex", -1).toInt();
+        m_lastPos = m_settings.value("music/lastPositionMs", 0).toLongLong();
+    }
 
     // Setup Scanner Thread
     m_scanner->moveToThread(&m_scannerThread);
@@ -492,6 +498,10 @@ void MusicPlayerViewModel::updatePlaybackState()
 
 void MusicPlayerViewModel::saveResumeNow()
 {
+    if (!m_persistenceEnabled) {
+        return;
+    }
+
     m_settings.setValue("music/lastIndex", m_currentIndex);
     m_settings.setValue("music/lastPositionMs", m_player ? m_player->position() : m_positionMs);
     m_settings.sync();
@@ -500,6 +510,10 @@ void MusicPlayerViewModel::saveResumeNow()
 
 void MusicPlayerViewModel::scheduleResumeSave()
 {
+    if (!m_persistenceEnabled) {
+        return;
+    }
+
     qint64 cur = m_player ? m_player->position() : m_positionMs;
     if (std::abs(cur - m_lastSavedPosition) >= kSavePositionDeltaMs) {
         m_saveTimer->start();

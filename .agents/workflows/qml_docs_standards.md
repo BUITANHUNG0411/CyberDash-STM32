@@ -116,8 +116,8 @@ animates, and typesets only:
 - Document functions only when they are C++ `Q_INVOKABLE` calls forwarded
   from the component — never document inline `function` blocks as the
   project's source code does not contain them.
-- Treat the **vehicle-mode state machine** (Bike → Scooter → HMI → Digital
-  Car) as part of the documentation's first-class vocabulary. Each
+- Treat the **vehicle-mode state machine** (Car → Bike → Scooter → Car) as
+  part of the documentation's first-class vocabulary. Each
   component's `states` group and `Transitions` should be explained in
   terms of which vehicle mode they target.
 - For type-fluid typography and animation behaviour, reference the

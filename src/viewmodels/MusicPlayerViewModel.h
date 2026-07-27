@@ -50,7 +50,9 @@ public:
         CoverArtRole
     };
 
-    explicit MusicPlayerViewModel(QObject *parent = nullptr, bool multimediaEnabled = true);
+    explicit MusicPlayerViewModel(QObject *parent = nullptr,
+                                  bool multimediaEnabled = true,
+                                  bool persistenceEnabled = true);
     ~MusicPlayerViewModel() override;
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
@@ -154,6 +156,7 @@ private:
     int m_lastIndex = -1;
     qint64 m_lastPos = 0;
     bool m_resumePending = false;
+    bool m_persistenceEnabled = true;
     bool m_scrubberDragging = false;
     float m_scrubberRatio = 0.0f;
 

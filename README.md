@@ -236,9 +236,9 @@ Historical detail is preserved in [tasks_board.md](docs/tasks_board.md).
 | 14 | Vehicle morphing | Complete |
 | 15 | Drive modes and trip computer | Complete |
 | 16 | CenterHub and neon map | Complete |
-| 17 | Pre-Feature Baseline Repair | Implementation complete; full verification pending |
+| 17 | Pre-Feature Baseline Repair | Software implementation and full verification complete; physical field validation pending |
 
-Phase 17 repaired the parser/mapper boundary, made serial fallback transitions deterministic, moved scrubber and volume normalization into C++, removed the remaining QML `Math` helpers, and synchronized active documentation. The complete pre-feature build/test/smoke verification matrix remains a separate pending step.
+Phase 17 repaired the parser/mapper boundary, made serial fallback transitions deterministic, moved scrubber and volume normalization into C++, removed the remaining QML `Math` helpers, synchronized active documentation, and completed the pre-feature build/test/lint/smoke verification matrix. Physical STM32/USB-TTL field validation remains pending.
 
 ## Contribution Rules
 

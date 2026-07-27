@@ -1,5 +1,7 @@
 #include <QtTest>
 #include <QCoreApplication>
+#include <QSettings>
+#include <QTemporaryDir>
 #include "viewmodels/MusicPlayerViewModel.h"
 
 using namespace MusicEnums;
@@ -13,8 +15,33 @@ public:
     ~TestMusicPlayback() {}
 
 private slots:
+    void initTestCase() {
+        QVERIFY(m_settingsDirectory.isValid());
+        QSettings::setPath(QSettings::IniFormat, QSettings::UserScope,
+                           m_settingsDirectory.path());
+    }
+
+    void disabledPersistenceDoesNotWriteSettings_test() {
+        QSettings settings(QSettings::IniFormat, QSettings::UserScope,
+                           QStringLiteral("QtStmAutomotiveSimulator"),
+                           QStringLiteral("QtStmAutomotiveSimulator"));
+        settings.setValue(QStringLiteral("music/lastIndex"), 42);
+        settings.setValue(QStringLiteral("music/lastPositionMs"), 12345);
+        settings.sync();
+
+        {
+            MusicPlayerViewModel vm(nullptr, false, false);
+            vm.saveResume();
+        }
+
+        settings.sync();
+        QCOMPARE(settings.value(QStringLiteral("music/lastIndex")).toInt(), 42);
+        QCOMPARE(settings.value(QStringLiteral("music/lastPositionMs")).toLongLong(),
+                 12345);
+    }
+
     void cycleRepeat_test() {
-        MusicPlayerViewModel vm(nullptr, false);
+        MusicPlayerViewModel vm(nullptr, false, false);
         QSignalSpy repeatSpy(&vm, &MusicPlayerViewModel::repeatModeChanged);
 
         // Off -> One -> All -> Off
@@ -30,7 +57,7 @@ private slots:
     }
 
     void toggleShuffle_test() {
-        MusicPlayerViewModel vm(nullptr, false);
+        MusicPlayerViewModel vm(nullptr, false, false);
         QSignalSpy shuffleSpy(&vm, &MusicPlayerViewModel::shuffleModeChanged);
 
         QCOMPARE(vm.shuffleMode(), false);
@@ -43,7 +70,7 @@ private slots:
     }
 
     void volume_clamp_test() {
-        MusicPlayerViewModel vm(nullptr, false);
+        MusicPlayerViewModel vm(nullptr, false, false);
         QSignalSpy volSpy(&vm, &MusicPlayerViewModel::volumeChanged);
 
         vm.setVolume(-0.5f);
@@ -61,7 +88,7 @@ private slots:
     }
 
     void volume_from_position_clamps_test() {
-        MusicPlayerViewModel vm(nullptr, false);
+        MusicPlayerViewModel vm(nullptr, false, false);
 
         vm.setVolumeFromPosition(-10.0, 100.0);
         QCOMPARE(vm.volume(), 0.0f);
@@ -71,14 +98,14 @@ private slots:
     }
 
     void volume_from_position_normalizes_test() {
-        MusicPlayerViewModel vm(nullptr, false);
+        MusicPlayerViewModel vm(nullptr, false, false);
 
         vm.setVolumeFromPosition(25.0, 100.0);
         QCOMPARE(vm.volume(), 0.25f);
     }
 
     void volume_from_position_ignores_nonpositive_width_test() {
-        MusicPlayerViewModel vm(nullptr, false);
+        MusicPlayerViewModel vm(nullptr, false, false);
         vm.setVolume(0.4f);
 
         vm.setVolumeFromPosition(20.0, 0.0);
@@ -89,7 +116,7 @@ private slots:
     }
 
     void seek_ratio_test() {
-        MusicPlayerViewModel vm(nullptr, false);
+        MusicPlayerViewModel vm(nullptr, false, false);
         // No media loaded -> duration() == 0 -> seek is a no-op (must not crash).
         vm.seek(0.5f);
         vm.seekMs(1000);
@@ -99,7 +126,7 @@ private slots:
     }
 
     void playbackState_reporting_test() {
-        MusicPlayerViewModel vm(nullptr, false);
+        MusicPlayerViewModel vm(nullptr, false, false);
         // Default state is Stopped (no loading, not playing).
         QCOMPARE(vm.playbackState(), PlaybackState::Stopped);
         // volume default 1.0, shuffle off, repeat off validated indirectly here
@@ -109,7 +136,7 @@ private slots:
     }
 
     void scrubber_clamps_and_tracks_test() {
-        MusicPlayerViewModel vm(nullptr, false);
+        MusicPlayerViewModel vm(nullptr, false, false);
         QSignalSpy spy(&vm, &MusicPlayerViewModel::scrubberStateChanged);
 
         vm.beginScrub(150.0, 100.0);
@@ -121,16 +148,19 @@ private slots:
 
         vm.endScrub();
         QCOMPARE(vm.scrubberDragging(), false);
-        QVERIFY(spy.count() >= 3);
+        QVERIFY(spy.size() >= 3);
     }
 
     void scrubber_ignores_zero_width_test() {
-        MusicPlayerViewModel vm(nullptr, false);
+        MusicPlayerViewModel vm(nullptr, false, false);
 
         vm.beginScrub(20.0, 0.0);
         QCOMPARE(vm.scrubberDragging(), true);
         QCOMPARE(vm.scrubberRatio(), 0.0f);
     }
+
+private:
+    QTemporaryDir m_settingsDirectory;
 };
 
 QTEST_MAIN(TestMusicPlayback)

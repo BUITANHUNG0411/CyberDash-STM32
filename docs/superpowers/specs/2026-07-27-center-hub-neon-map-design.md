@@ -31,7 +31,9 @@ swap invariance, `-Wconversion`-clean C++17.
   justified because SwipeView's statically declared children are instantiated once
   and NEVER destroyed, preserving the "MusicPlayer must stay alive" decision from
   Phase 14) containing two static children: `MusicPlayer` and `NeonMapView`.
-- `PageIndicator` (bottom-center, dots tinted `Theme.accentCyan` / `Theme.trackInactive`)
+- `PageIndicator` (top-center, dots tinted `Theme.accentCyan` / `Theme.trackInactive`);
+  this matches the approved implementation and keeps the dots clear of the
+  bottom playback controls.
   bound to the SwipeView's `count`/`currentIndex`.
 - Swipe gesture is native; `currentIndex` is view-local state (same precedent as the
   MusicPlayer PathView's `currentIndex`). No new ViewModel for the page index (YAGNI).

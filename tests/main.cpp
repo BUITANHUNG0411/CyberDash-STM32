@@ -1,5 +1,7 @@
 #include <QtTest>
 #include <QCoreApplication>
+#include <cmath>
+#include <limits>
 #include "viewmodels/VehicleStatusViewModel.h"
 #include "viewmodels/ThemeViewModel.h"
 #include "viewmodels/VehicleModeViewModel.h"
@@ -365,6 +367,40 @@ private slots:
         MapViewModel map(2.0);
         map.updateDistance(2.5); // wraps past 1.0 -> 0.25
         QCOMPARE(map.routeProgress(), 0.25);
+    }
+
+    void testMapInvalidRouteLengthsUseSafeDefault() {
+        const double invalidLengths[] = {
+            0.0,
+            -2.0,
+            (std::numeric_limits<double>::infinity)(),
+            std::numeric_limits<double>::quiet_NaN()
+        };
+
+        for (double routeLength : invalidLengths) {
+            MapViewModel map(routeLength);
+            map.updateDistance(0.5);
+            QVERIFY(std::isfinite(map.routeProgress()));
+            QCOMPARE(map.routeProgress(), 0.25);
+        }
+    }
+
+    void testMapInvalidDistancesResetToRouteStart() {
+        MapViewModel map(2.0);
+        map.updateDistance(0.5);
+        QCOMPARE(map.routeProgress(), 0.25);
+
+        const double invalidDistances[] = {
+            -1.0,
+            (std::numeric_limits<double>::infinity)(),
+            std::numeric_limits<double>::quiet_NaN()
+        };
+
+        for (double distance : invalidDistances) {
+            map.updateDistance(distance);
+            QVERIFY(std::isfinite(map.routeProgress()));
+            QCOMPARE(map.routeProgress(), 0.0);
+        }
     }
 };
 

@@ -132,4 +132,5 @@
 - [x] Synchronize active project documentation with the committed implementation and preserve corrected historical context.
 - [x] Complete the full pre-feature verification matrix and record its fresh evidence (Task 5).
 - [x] Close the formal Task 5 review with in-scope C++ lint cleanup, direct Qt 6.11.1 `qmllint` triage, and a fresh full verification matrix.
+- [x] Close final branch-review follow-ups: direct connected-state fallback/reconnect regressions, finite map invariants, test-safe music persistence, and documentation truth fixes.
 - [ ] Field-validate the serial pipeline with physical STM32 hardware.

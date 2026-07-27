@@ -43,9 +43,9 @@ Car mode uses `CenterHub.qml`, a `SwipeView` containing static Music and Encoder
 
 - `MusicPlayer` preserves its lifetime while the user views the road.
 - `EncoderDriveView` renders `EncoderDriveViewModel`'s finite normalized road paths as one continuous road with no lane divider.
-- `HypercarView` is retained as the component filename but now draws a small race kart with exposed tires, cockpit, frame, and steering front wheels entirely with Qt Quick vector shapes.
-- C++-owned lateral offset, yaw, and front-wheel steer move the kart while C++-owned curvature bends the road; the response is straight below 5% relative wheel-speed difference, gentle from 5% through 20%, and strong above 20%. Strong turns should visibly yaw the kart into the turn, steer the front wheels, and amplify the horizon bend, while the near road only shifts subtly so it remains visually calm around the kart.
-- Road surface, horizon glow, race-kart body/frame/tire colors, and the page indicator use centralized `Theme` tokens.
+- `HypercarView` is retained as the component filename but now draws a centered vector arrow entirely with Qt Quick vector shapes.
+- C++-owned road direction and curvature drive the arrow while C++-owned curvature bends the road; the response is straight below 5% relative wheel-speed difference, gentle from 5% through 20%, and strong above 20%. Strong turns should visibly rotate the arrow with the road direction and amplify the horizon bend, while the near road only shifts subtly so it remains visually calm around the arrow.
+- Road surface, horizon glow, arrow colors, and the page indicator use centralized `Theme` tokens.
 
 The road is a driving-state visualization, not a geographic map. Do not add a street grid,
 route loop, GPS marker, tile provider, lane divider, or QML-side steering math. Turn
@@ -102,6 +102,6 @@ QML may use bindings, ternaries, declarative states, and a single direct call to
 - **Blur or glow freezes:** inspect `MultiEffect.source` for recursive parent capture and replace it with a sibling source.
 - **Text animation warns or jumps:** animate a numeric backing property and bind `Text.text` to its display value.
 - **Swipe or scrub drags the window:** restrict the window `DragHandler` to the top drag strip.
-- **Road looks like a top-down map:** preserve horizon convergence, near-field widening, the rear-view race kart, and one-road composition.
+- **Road looks like a top-down map:** preserve horizon convergence, near-field widening, the centered arrow, and one-road composition.
 - **A dashed divider reappears:** remove it; the Phase 19 scene intentionally uses one uninterrupted road surface.
 - **Road or pose logic appears in QML:** move it to `EncoderDriveViewModel` and expose only finite geometry/state properties.

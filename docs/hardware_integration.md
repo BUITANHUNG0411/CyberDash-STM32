@@ -99,9 +99,9 @@ is expected when the source is replaced.
 `abs(right - left) / mean(left, right)`: below 5% is straight, 5% through 20% is gentle,
 and above 20% is a strong turn. Right faster than left means the vehicle turns left; left
 faster than right means it turns right. Firmware and the host adapter must preserve those
-semantics rather than compensating in QML. The presentation lets the race kart yaw into the
-detected turn, steers its front wheels from C++-owned turn state, and amplifies the horizon
-bend; the near road shifts only subtly to avoid a distracting whole-road slide.
+semantics rather than compensating in QML. The presentation lets the road-direction arrow rotate
+with the detected turn and amplifies the horizon bend; the near road shifts only subtly to avoid
+a distracting whole-road slide.
 
 PWM duty cycle is an actuator command, not a measurement of wheel motion. Differences in load,
 traction, motor constants, battery voltage, and closed-loop response mean PWM values cannot prove
@@ -115,5 +115,5 @@ curvature; PWM may be retained only as diagnostic/command telemetry.
 - **Repeated reconnects:** check device permissions, the `/dev/ttyUSB0` path, baud settings, firmware line endings, and checksum output.
 - **Stale partial frame after unplug:** ensure every failure path reuses `stopService()`, which clears the parser.
 - **UI stays on hardware after silence:** confirm the 500 ms watchdog is running after open and after every valid frame.
-- **Race-kart turn disagrees with the robot:** validate encoder polarity, left/right channel assignment, counts-per-revolution, and sampling interval before changing `EncoderDriveViewModel` or QML.
+- **Arrow turn disagrees with the robot:** validate encoder polarity, left/right channel assignment, counts-per-revolution, and sampling interval before changing `EncoderDriveViewModel` or QML.
 - **Only PWM is available:** keep the road on mock data until measured wheel feedback exists; do not label PWM comparison as encoder motion.

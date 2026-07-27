@@ -14,7 +14,7 @@ A Qt Quick automotive dashboard with Car, Bike, and Scooter layouts, C++-owned s
 - Day/night themes and ECO/NORMAL/SPORT accent palettes.
 - Tick-lit double-arch gauges, glass panels, telltales, boot choreography, and dip transitions.
 - Car-mode CenterHub with persistent Music and Encoder Drive pages.
-- A seven-stage mock drives C++-owned race-kart pose and one continuous road with no lane divider through an encoder-compatible boundary; strong turns now appear within the first demo loop, the kart yaws into the turn, its front wheels steer, and the horizon bends harder while the near field only shifts subtly.
+- A seven-stage mock drives C++-owned road curvature and one continuous road with no lane divider through an encoder-compatible boundary; strong turns now appear within the first demo loop, and a centered arrow rotates with the road direction while the horizon bends harder and the near field only shifts subtly.
 - C++ `QMediaPlayer`, C++-owned scrubber state, and worker-thread music scanning.
 - Implemented serial parser, telemetry mapper, watchdog, reconnect, and simulator fallback.
 - Four deterministic Qt Test/CTest targets.
@@ -34,7 +34,7 @@ A Qt Quick automotive dashboard with Car, Bike, and Scooter layouts, C++-owned s
 | `VehicleMode` | Car/Bike/Scooter state |
 | `DriveMode` | NORMAL/SPORT/ECO state |
 | `TripComputer` | Odometer, trip, average speed, formatted displays |
-| `EncoderDrive` | Race-kart pose, front-wheel steer, turn state, speed, and continuous-road paths derived from left/right wheel motion |
+| `EncoderDrive` | Road direction, turn state, speed, and continuous-road paths derived from left/right wheel motion |
 
 The transport contracts are deliberately different:
 
@@ -214,7 +214,7 @@ The current canonical reference is the preview at the top of this README. `qml/T
 - ECO is green, NORMAL is cyan/teal, and SPORT is orange; warning red stays distinct.
 - `DashboardScreen` supports Car, Bike, and Scooter states.
 - The Car CenterHub contains Music and Encoder Drive pages.
-- `EncoderDriveView` renders one continuous C++-generated road with no lane divider, while `HypercarView` now renders a small vector race kart whose lateral offset, body yaw, and front-wheel steering respond to left/right wheel-speed differences. Strong encoder differences produce a pronounced kart yaw plus a larger horizon bend; the near road shifts only slightly so the scene does not feel like the whole road is sliding away.
+- `EncoderDriveView` renders one continuous C++-generated road with no lane divider, while `HypercarView` now renders a centered vector arrow that rotates with the road direction. Strong encoder differences produce a pronounced turn angle plus a larger horizon bend; the near road shifts only slightly so the scene does not feel like the whole road is sliding away.
 - Vehicle changes use the fade/scale dip transition.
 - Every `MultiEffect` captures a sibling source; recursive `source: parent` is forbidden.
 
@@ -245,13 +245,13 @@ Historical detail is preserved in [tasks_board.md](docs/tasks_board.md).
 | 16 | CenterHub and neon map | Complete |
 | 17 | Pre-Feature Baseline Repair | Software implementation and full verification complete; physical field validation pending |
 | 18 | Perspective road visualizer | Historical; superseded by Phase 19 |
-| 19 | Encoder-driven race-kart scene | Software implementation and verification complete; physical encoder firmware integration pending |
+| 19 | Encoder-driven arrow-road scene | Software implementation and verification complete; physical encoder firmware integration pending |
 
 Phase 17 repaired the parser/mapper boundary, made serial fallback transitions deterministic, moved scrubber and volume normalization into C++, removed the remaining QML `Math` helpers, isolated test-only music persistence, hardened map progress to remain finite in `[0, 1)`, synchronized active documentation, and completed the pre-feature build/test/lint/smoke verification matrix. Physical STM32/USB-TTL field validation remains pending.
 
 Phase 18 is retained as historical context and is superseded by Phase 19.
 
-Phase 19 replaces the retired sliced/dashed-road runtime with `MockWheelTelemetryService -> EncoderDriveViewModel -> EncoderDriveView/HypercarView`. The mock cycles through seven straight, gentle-left/right, and strong-left/right stages with shorter default demo timing so a clear strong turn appears within roughly the first ten seconds. C++ classifies relative wheel-speed difference below 5% as straight, 5% through 20% as gentle, and above 20% as a strong turn; it publishes bounded vehicle pose, front-wheel steering, and finite normalized road paths. QML renders one continuous road with no lane divider and a small vector race kart: the kart yaws into the active turn, its front wheels visibly steer, the horizon bend is amplified, and the near road shifts only subtly to avoid a distracting sliding-road feel. A future adapter may feed measured left/right encoder motion through the same boundary without changing QML. Commanded PWM is not encoder feedback or odometry.
+Phase 19 replaces the retired sliced/dashed-road runtime with `MockWheelTelemetryService -> EncoderDriveViewModel -> EncoderDriveView/HypercarView`. The mock cycles through seven straight, gentle-left/right, and strong-left/right stages with shorter default demo timing so a clear strong turn appears within roughly the first ten seconds. C++ classifies relative wheel-speed difference below 5% as straight, 5% through 20% as gentle, and above 20% as a strong turn; it publishes bounded road direction and finite normalized road paths. QML renders one continuous road with no lane divider and a centered vector arrow: the arrow rotates with the active turn direction, the horizon bend is amplified, and the near road shifts only subtly to avoid a distracting sliding-road feel. A future adapter may feed measured left/right encoder motion through the same boundary without changing QML. Commanded PWM is not encoder feedback or odometry.
 
 ## Contribution Rules
 

@@ -32,13 +32,10 @@ QtObject {
     property color hypercarTailLamp: ThemeController.isNight ? "#FF4E63" : "#C51F36"
     property color hypercarShadow: ThemeController.isNight ? "#B802070C" : "#6607131A"
     property color hypercarHighlight: ThemeController.isNight ? "#B89DEFFF" : "#CC007A75"
-    property color raceKartBody: ThemeController.isNight ? "#FF7A00" : "#D45F00"
-    property color raceKartFrame: ThemeController.isNight ? "#9DEFFF" : "#007A75"
-    property color raceKartSeat: ThemeController.isNight ? "#111A24" : "#253B48"
-    property color raceKartTire: ThemeController.isNight ? "#05080C" : "#111820"
-    property color raceKartWheelHub: ThemeController.isNight ? "#66FCF1" : "#DDE7EE"
-    property color raceKartShadow: ThemeController.isNight ? "#C002070C" : "#6607131A"
-    property color raceKartHighlight: ThemeController.isNight ? "#B89DEFFF" : "#CC007A75"
+    property color arrowBody: ThemeController.isNight ? "#66FCF1" : "#00857C"
+    property color arrowFrame: ThemeController.isNight ? "#DDE7EE" : "#1A2530"
+    property color arrowShadow: ThemeController.isNight ? "#C002070C" : "#6607131A"
+    property color arrowHighlight: ThemeController.isNight ? "#B89DEFFF" : "#CC007A75"
 
     property color tickLitMajor: ThemeController.isNight ? "#FFB3CC" : "#D81B60"
     property color tickLitMinor: ThemeController.isNight ? "#FFFFFF" : "#0E8F88"
@@ -70,13 +67,10 @@ QtObject {
     Behavior on hypercarTailLamp { ColorAnimation { duration: durationTheme } }
     Behavior on hypercarShadow { ColorAnimation { duration: durationTheme } }
     Behavior on hypercarHighlight { ColorAnimation { duration: durationTheme } }
-    Behavior on raceKartBody { ColorAnimation { duration: durationTheme } }
-    Behavior on raceKartFrame { ColorAnimation { duration: durationTheme } }
-    Behavior on raceKartSeat { ColorAnimation { duration: durationTheme } }
-    Behavior on raceKartTire { ColorAnimation { duration: durationTheme } }
-    Behavior on raceKartWheelHub { ColorAnimation { duration: durationTheme } }
-    Behavior on raceKartShadow { ColorAnimation { duration: durationTheme } }
-    Behavior on raceKartHighlight { ColorAnimation { duration: durationTheme } }
+    Behavior on arrowBody { ColorAnimation { duration: durationTheme } }
+    Behavior on arrowFrame { ColorAnimation { duration: durationTheme } }
+    Behavior on arrowShadow { ColorAnimation { duration: durationTheme } }
+    Behavior on arrowHighlight { ColorAnimation { duration: durationTheme } }
     Behavior on tickLitMajor { ColorAnimation { duration: durationTheme } }
     Behavior on tickLitMinor { ColorAnimation { duration: durationTheme } }
     Behavior on tickDimMajor { ColorAnimation { duration: durationTheme } }

@@ -404,6 +404,23 @@ private slots:
         QVERIFY(model.roadCurvature() > 0.0);
     }
 
+    void roadDirectionAndYawStayAligned()
+    {
+        EncoderDriveViewModel leftTurn;
+        leftTurn.updateWheelMotion(0.55, 1.00, 100);
+
+        QCOMPARE(leftTurn.turnState(), EncoderDriveViewModel::TurningLeft);
+        QVERIFY(leftTurn.vehicleYawDegrees() < 0.0);
+        QVERIFY(leftTurn.roadCurvature() < 0.0);
+
+        EncoderDriveViewModel rightTurn;
+        rightTurn.updateWheelMotion(1.00, 0.55, 100);
+
+        QCOMPARE(rightTurn.turnState(), EncoderDriveViewModel::TurningRight);
+        QVERIFY(rightTurn.vehicleYawDegrees() > 0.0);
+        QVERIFY(rightTurn.roadCurvature() > 0.0);
+    }
+
     void sustainedTurnReturnsSmoothlyToStraight()
     {
         EncoderDriveViewModel model;

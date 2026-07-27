@@ -14,7 +14,7 @@
 | `VehicleMode` | `VehicleModeViewModel` | Car, Bike, and Scooter state |
 | `DriveMode` | `DriveModeViewModel` | NORMAL, SPORT, and ECO state |
 | `TripComputer` | `TripComputerViewModel` | Odometer, trip, and average speed |
-| `EncoderDrive` | `EncoderDriveViewModel` | Race-kart pose, front-wheel steer, turn state, speed, and finite continuous-road path geometry |
+| `EncoderDrive` | `EncoderDriveViewModel` | Road direction, turn state, speed, and finite continuous-road path geometry |
 
 `SimulatorService`, `SerialService`, `MockWheelTelemetryService`, and `QElapsedTimer` are also stack-owned in `main.cpp`. QObject parent ownership covers each service's internal timers and serial port.
 
@@ -49,18 +49,17 @@ gentle right, strong left, straight, and strong right. Its default stage timing 
 mock demonstration rather than hardware realism, so a clear strong-turn sample appears within
 roughly the first ten seconds. Each accepted sample contains normalized left/right wheel motion
 and a bounded elapsed interval. `EncoderDriveViewModel` converts their mean into forward speed
-and their signed relative difference into turn state, lateral offset, yaw, front-wheel steer,
-curvature, and finite normalized `roadPath`/`roadEdgePath` strings.
+and their signed relative difference into turn state, yaw, curvature, and finite normalized
+`roadPath`/`roadEdgePath` strings.
 
 The relative difference is `abs(right - left) / mean(left, right)`: below 5% is straight,
 5% through 20% is a gentle turn, and above 20% is a strong turn. A faster right wheel produces
 a left turn; a faster left wheel produces a right turn. Invalid/non-finite samples are
 sanitized, elapsed intervals are capped, and stale input decays speed, yaw, and curvature back
 toward straight. `EncoderDriveView` and `HypercarView` are passive: they render the C++ pose and
-paths as one continuous road with no lane divider and a small vector race kart. Strong turns
-now produce pronounced same-direction kart yaw, visible front-wheel steering, and a larger
-horizon bend, while the near road shifts only subtly so the scene does not feel like the entire
-road is sliding.
+paths as one continuous road with no lane divider and a centered vector arrow. Strong turns now
+produce a pronounced arrow rotation and a larger horizon bend, while the near road shifts only
+subtly so the scene does not feel like the entire road is sliding.
 
 This signal boundary is intentionally encoder-compatible: a future hardware adapter may emit
 measured left/right wheel motion with the same semantics and replace the mock source without
@@ -117,5 +116,5 @@ Every ViewModel inherits `QObject`, declares `Q_OBJECT`, exposes observable stat
 - **Partial data survives a disconnect:** all stop, resource-error, and watchdog paths must call `SerialTelemetryParser::clear()`.
 - **UI freezes during scanning:** confirm only `MusicScanner` performs `QDirIterator` work and that it remains on its worker thread.
 - **QML contains interaction math:** move it into a ViewModel invokable/property and leave only a direct call or binding in QML.
-- **Kart pose does not settle after input disappears:** confirm the `EncoderDriveViewModel` stale-input timer is active and receives accepted samples.
+- **Arrow rotation does not settle after input disappears:** confirm the `EncoderDriveViewModel` stale-input timer is active and receives accepted samples.
 - **Hardware road direction is wrong:** compare measured left/right encoder channel semantics at the adapter boundary; do not compensate by adding math to QML.

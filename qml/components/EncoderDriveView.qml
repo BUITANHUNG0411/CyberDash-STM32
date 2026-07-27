@@ -95,22 +95,8 @@ Rectangle {
         }
     }
 
-    Item {
-        width: Theme.encoderVehicleWidth
-        height: Theme.encoderVehicleHeight
-
-        anchors {
-            bottom: parent.bottom
-            bottomMargin: Theme.encoderVehicleBottomMargin
-            horizontalCenter: parent.horizontalCenter
-        }
-
-        HypercarView {
-            lateralOffset: EncoderDrive.vehicleLateralOffset
-                           * Theme.encoderVehicleTravel
-            yawDegrees: EncoderDrive.vehicleYawDegrees
-            frontWheelSteerDegrees: EncoderDrive.frontWheelSteerDegrees
-            scale: Theme.encoderVehicleScale
-        }
+    HypercarView {
+        directionDegrees: EncoderDrive.vehicleYawDegrees
+        scale: Theme.encoderVehicleScale
     }
 }

@@ -1,5 +1,8 @@
 # Design Spec: Day/Night Theme + Startup Animation
 
+> **Status:** Historical design spec retained for the earlier day/night and boot-sequence phase.
+> The current active focus is the encoder-driven arrow-road scene.
+
 > **Date**: 2026-07-26
 > **Status**: Approved by user (brainstorming session)
 > **Phase**: 13 (next after Functional Telltale Bar)

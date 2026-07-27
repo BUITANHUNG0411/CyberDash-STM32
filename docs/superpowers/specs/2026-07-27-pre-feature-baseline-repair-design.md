@@ -1,5 +1,8 @@
 # Design Spec: Pre-Feature Baseline Repair
 
+> **Status:** Historical repair spec retained after the baseline cleanup was completed.
+> The current active focus is the encoder-driven arrow-road scene.
+
 > **AI Context**: Defines the bounded repair required to make runtime behavior, tests, and project documentation agree before new feature development begins.
 
 **Date**: 2026-07-27

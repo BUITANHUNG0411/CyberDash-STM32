@@ -1,5 +1,8 @@
 # Pre-Feature Baseline Repair Implementation Plan
 
+> **Status:** Historical repair plan retained for reference after the baseline was restored.
+> The current active focus is the encoder-driven arrow-road scene.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Restore a verified baseline in which runtime behavior, automated tests, Zero-JavaScript policy, and project documentation agree.

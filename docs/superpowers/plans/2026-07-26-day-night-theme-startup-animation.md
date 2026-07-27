@@ -1,5 +1,8 @@
 # Day/Night Theme + Startup Animation Implementation Plan
 
+> **Status:** Historical plan retained for the earlier day/night and startup-animation phase.
+> The current active focus is the encoder-driven arrow-road scene.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Add a C++-driven Day/Night theme toggle (Light Glassmorphism day variant) and an automotive boot sequence (telltale self-test → gauge sweep → content fade-in) to the CyberDash cluster.

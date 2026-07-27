@@ -1,6 +1,6 @@
 # Vibe Coding Documentation Standards
 
-> **AI Context**: This file defines the Markdown structure standards (as of 2026) for the entire project to ensure Antigravity AI Agents can parse and ingest context with absolute precision.
+> **AI Context**: Tool-neutral Markdown structure standards for active project guides and historical workflow artifacts, designed for reliable parsing by AI agents and human contributors.
 
 ## 1. Structure for Active Guides
 Every active guide in `docs/` MUST adhere to the following format:

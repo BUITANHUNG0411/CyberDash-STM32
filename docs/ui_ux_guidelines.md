@@ -79,9 +79,9 @@ Vehicle morphing uses the dip transition: fade and scale both arches down, apply
 ## 6. MultiEffect Safety
 
 > [!WARNING]
-> A `MultiEffect` source must be a sibling item that does not contain the effect. Never use `source: parent` when the parent contains that same `MultiEffect`; it creates recursive capture and frozen accumulated frames.
+> A `MultiEffect` source must not contain that effect. Never capture an ancestor such as `source: parent` when it creates recursive capture and frozen accumulated frames. Prefer a non-recursive sibling source.
 
-Hidden sibling sources are used for the music backdrop, icons, glowing text, gauge ticks, and map route bloom.
+Hide a sibling source when it exists solely as an input to the effect, as with the music backdrop and some icon/text sources. A visible sibling is correct when the original must also render; gauge ticks and the map route are valid visible sources for their bloom effects.
 
 ## 7. Zero JavaScript
 

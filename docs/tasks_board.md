@@ -69,7 +69,7 @@
 - [x] Run comprehensive Architecture Audit based on `AGENTS.md` and `Zero-JS` rule.
 - [x] Fix Critical Multi-Threading Bugs (MusicPlayer UB, Rescan Leak).
 - [x] Fix SerialService Watchdog Reconnect.
-- [x] Strip all imperative JS logic from `NeonTickGauge.qml` and `MusicPlayer.qml`.
+- [x] Run the Phase 10 Zero-JS cleanup in `NeonTickGauge.qml` and `MusicPlayer.qml`; its then-current scan did not cover every `Math` helper or handler/control-flow variant, so repository-wide completion is recorded in Phase 17.
 - [x] Identify the SerialService MVVM leak; the actual extraction of serial derivation into `TelemetryMapper` and `main.cpp` was completed during Phase 17.
 - [x] Implement proper SerialService write-back (`STOP`) and Checksum protocol validation.
 - [x] Clean up the orphaned `CircularGauge.qml` and obsolete `QML_ELEMENT` usage. `GlassPanel.qml` and `MockScenarioEngine::setScenario` remain implemented, active project interfaces and were not deleted.
@@ -104,7 +104,7 @@
 - [x] Introduce QML `States`/`Transitions` in `DashboardScreen`: root `state` bound to `VehicleMode.vehicleMode`; "dip" transition (fade+scale both arches → `PropertyAction` swap → OutBack rise) masks Repeater tick relabeling.
 - [x] Scooter: speed max 120, right gauge rebound to `vm.battery` (0–100, no redline); Bike: speed max 60, right arch shows large battery %, music player + bottom bar hidden.
 - [x] Fix latent `EnergyBlocks` zero implicit size (invisible inside `Column`).
-- [x] Verify: Zero-JS grep clean, build 0 warnings, all ctest pass (19 viewmodel tests), 8s smoke clean, per-mode screenshots (car/bike/scooter, both themes) confirmed bezel identical across modes.
+- [x] Historical Phase 14 verification: its then-current Zero-JS grep reported clean but did not cover every `Math` helper or handler/control-flow variant; build, 19 viewmodel tests, 8s smoke, and per-mode screenshots were recorded. Repository-wide Zero-JS completion is recorded in Phase 17.
 
 ## Phase 15: Drive Modes + Trip Computer
 - [x] Sync `AGENTS.md` decision log with Phase 13/14 architecture (One-VM-per-Concern, Centralized Theme Ternaries, Boot Choreography, Dip Transition, MultiEffect Sibling Source rule).
@@ -113,14 +113,14 @@
 - [x] Wire `QElapsedTimer` in `main.cpp` telemetry lambdas (`tripClock.restart()` returns elapsed ms); clock restart on telemetry source switch.
 - [x] Theme.qml: `accentCyan` extended to 6 variants (ECO green / NORMAL cyan / SPORT orange × night/day) — existing singleton `Behavior` cross-fades the whole cluster; SPORT is orange, not red, to stay distinguishable from `warningRed`.
 - [x] DashboardScreen: third top-bar cycle button (icon = next mode), `gearSubText` bound to `DriveMode.driveModeLabel` (scooter "BATT %" override preserved), bottom-center `TRIP x.x km · ODO y km` line with click-to-reset MouseArea.
-- [x] Verify: Zero-JS grep clean, build 0 warnings, all ctest pass (28 viewmodel tests), 8s smoke clean, screenshots across drive modes × themes.
+- [x] Historical Phase 15 verification: its then-current Zero-JS grep reported clean but did not cover every `Math` helper or handler/control-flow variant; build, 28 viewmodel tests, 8s smoke, and drive-mode/theme screenshots were recorded. Repository-wide Zero-JS completion is recorded in Phase 17.
 
 ## Phase 16: Center Hub (Music ⇄ Map) + Neon Map
 - [x] Implement `MapViewModel` (TDD): `routeProgress` (0..1, fmod wrap) from odometer over an injectable `routeLengthKm` (default 2.0), context property `MapModel`, fed from `TripComputerViewModel::tripChanged` in `main.cpp`.
 - [x] Create `NeonMapView.qml`: Shapes-drawn neon map (street grid + grey side streets + accent-colored route loop with sibling-source MultiEffect bloom) in a 400×360 design space auto-scaled to fit; marker arrow positioned/rotated by `PathInterpolator { progress: MapModel.routeProgress }`; TRIP label reuses `TripComputer.tripDisplay`.
 - [x] Create `CenterHub.qml`: `SwipeView` (first QtQuick.Controls usage — static children never destroyed, MusicPlayer stays alive) with Music + Map pages and a custom neon `PageIndicator`.
 - [x] DashboardScreen: center panel hosts `CenterHub`; Phase-14 scooter/bike states retarget `musicPlayer` → `centerHub`; scooterCard/bike behavior unchanged (hub is Car-mode only).
-- [x] Verify: Zero-JS grep clean, build 0 warnings, all ctest pass (31 viewmodel tests), 8s smoke clean, screenshots of both hub pages (marker advances with real odometer distance).
+- [x] Historical Phase 16 verification: its then-current Zero-JS grep reported clean but did not cover every `Math` helper or handler/control-flow variant; build, 31 viewmodel tests, 8s smoke, and both hub-page screenshots were recorded. Repository-wide Zero-JS completion is recorded in Phase 17.
 
 ## Phase 17: Pre-Feature Baseline Repair
 - [x] Extract newline framing and checksum validation into `SerialTelemetryParser`, including partial-frame retention and the 4096-byte buffer boundary.

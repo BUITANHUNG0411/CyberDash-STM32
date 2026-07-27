@@ -78,7 +78,7 @@ private slots:
             QVERIFY(std::isfinite(left));
             QVERIFY(std::isfinite(right));
             const double delta = std::abs(left - previousLeft);
-            QVERIFY2(delta <= 0.175 + 1.0e-12,
+            QVERIFY2(delta <= 0.225 + 1.0e-12,
                      qPrintable(QStringLiteral("left=%1 previous=%2 delta=%3")
                                     .arg(left, 0, 'g', 17)
                                     .arg(previousLeft, 0, 'g', 17)

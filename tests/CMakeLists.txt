@@ -80,3 +80,18 @@ target_link_libraries(tst_road_motion
 )
 
 add_test(NAME tst_road_motion COMMAND tst_road_motion)
+
+qt_add_executable(tst_encoder_drive
+    tst_encoder_drive.cpp
+    ../src/services/MockWheelTelemetryService.cpp
+)
+
+target_include_directories(tst_encoder_drive PRIVATE ../src)
+
+target_link_libraries(tst_encoder_drive
+    PRIVATE
+    Qt6::Core
+    Qt6::Test
+)
+
+add_test(NAME tst_encoder_drive COMMAND tst_encoder_drive)

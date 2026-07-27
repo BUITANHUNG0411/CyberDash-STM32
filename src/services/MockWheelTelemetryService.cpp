@@ -10,12 +10,14 @@ constexpr qint64 kDefaultTransitionDurationMs = 1000;
 constexpr std::chrono::milliseconds kDefaultTimerInterval{33};
 constexpr std::chrono::milliseconds kMaximumTimerInterval{100};
 constexpr qint64 kMaximumAdvanceMs = 100;
-constexpr int kStageCount = 4;
-constexpr std::array<WheelMotionTarget, kStageCount> kDefaultTargets{{
-    {1.0, 1.0},
-    {0.65, 1.0},
-    {1.0, 1.0},
-    {1.0, 0.65}
+constexpr std::array<WheelMotionTarget, 7> kDefaultTargets{{
+    {1.00, 1.00},
+    {0.90, 1.00},
+    {1.00, 1.00},
+    {1.00, 0.90},
+    {0.55, 1.00},
+    {1.00, 1.00},
+    {1.00, 0.55}
 }};
 }
 
@@ -38,9 +40,11 @@ MockWheelTelemetryService::MockWheelTelemetryService(
     }
     m_config.timerInterval =
         (std::min)(m_config.timerInterval, kMaximumTimerInterval);
-    for (std::size_t index = 0; index < m_config.targets.size(); ++index) {
+    const std::size_t stageCount = m_config.targets.size();
+    for (std::size_t index = 0; index < stageCount; ++index) {
         WheelMotionTarget &target = m_config.targets[index];
-        const WheelMotionTarget fallback = kDefaultTargets[index];
+        const WheelMotionTarget fallback =
+            kDefaultTargets[index % stageCount];
         target.left = std::isfinite(target.left)
             ? std::clamp(target.left, 0.0, 1.0)
             : fallback.left;
@@ -95,22 +99,26 @@ void MockWheelTelemetryService::advance(qint64 elapsedMs)
 WheelMotionTarget
 MockWheelTelemetryService::targetForStage(int stage) const
 {
-    return m_config.targets.at(static_cast<std::size_t>(stage));
+    const int stageCount = static_cast<int>(m_config.targets.size());
+    const int normalizedStage = stage % stageCount;
+    return m_config.targets.at(static_cast<std::size_t>(normalizedStage));
 }
 
 WheelMotionTarget
 MockWheelTelemetryService::previousTargetForStage(int stage) const
 {
-    const int previousStage = stage == 0 ? kStageCount - 1 : stage - 1;
+    const int stageCount = static_cast<int>(m_config.targets.size());
+    const int previousStage = stage == 0 ? stageCount - 1 : stage - 1;
     return targetForStage(previousStage);
 }
 
 void MockWheelTelemetryService::advanceStageClock(qint64 elapsedMs)
 {
+    const int stageCount = static_cast<int>(m_config.targets.size());
     m_stageElapsedMs += elapsedMs;
     while (m_stageElapsedMs >= m_config.stageDurationMs) {
         m_stageElapsedMs -= m_config.stageDurationMs;
-        m_stage = (m_stage + 1) % kStageCount;
+        m_stage = (m_stage + 1) % stageCount;
         if (m_stage == 0) {
             m_completedCycle = true;
         }

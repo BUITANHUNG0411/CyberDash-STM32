@@ -131,4 +131,5 @@
 - [x] Register and pass the three focused targets reported by Tasks 1–3: `tst_viewmodels`, `tst_music_playback`, and `tst_serial_pipeline`.
 - [x] Synchronize active project documentation with the committed implementation and preserve corrected historical context.
 - [x] Complete the full pre-feature verification matrix and record its fresh evidence (Task 5).
+- [x] Close the formal Task 5 review with in-scope C++ lint cleanup, direct Qt 6.11.1 `qmllint` triage, and a fresh full verification matrix.
 - [ ] Field-validate the serial pipeline with physical STM32 hardware.

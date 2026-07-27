@@ -152,10 +152,10 @@ private slots:
         QSignalSpy spy(&theme, &ThemeViewModel::windowMoveRequested);
 
         theme.handleWindowDragActive(false);
-        QCOMPARE(spy.count(), 0);
+        QCOMPARE(spy.size(), 0);
 
         theme.handleWindowDragActive(true);
-        QCOMPARE(spy.count(), 1);
+        QCOMPARE(spy.size(), 1);
     }
 
     void testBootSequence() {

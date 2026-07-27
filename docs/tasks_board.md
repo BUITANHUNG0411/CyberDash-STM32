@@ -137,7 +137,7 @@
 - [x] Complete the final re-review with no remaining high-confidence Critical or Important findings; rerun configure, build, CTest 3/3, Zero-JS, module `qmllint`, range diff hygiene, and the 8-second offscreen smoke check.
 - [ ] Field-validate the serial pipeline with physical STM32 hardware.
 
-## Phase 18: Mock-Driven Perspective Road Visualizer
+## Phase 18: Mock-Driven Perspective Road Visualizer (Historical; Superseded by Phase 19)
 - [x] Replace the generic neon route loop with one pseudo-3D road and a fixed vehicle marker.
 - [x] Implement `MockWheelTelemetryService` with deterministic straight → left → straight → right stages, injected targets, bounded intervals, and idempotent lifecycle behavior.
 - [x] Implement `RoadMotionViewModel` as a fixed 24-row `QAbstractListModel` with C++-owned speed, curvature, perspective geometry, phase recycling, accumulated lateral offset, input sanitization, and stale-input stop.
@@ -148,3 +148,13 @@
 - [x] Synchronize active Markdown while preserving Phase 16 as historical context.
 - [x] Complete and record the fresh Phase 18 configure/build/CTest/Zero-JS/QML-lint/smoke verification matrix.
 - [ ] Replace mock wheel input with field-validated, measured left/right encoder telemetry; do not substitute commanded PWM for motion feedback.
+
+## Phase 19: Encoder-Driven Hypercar Scene
+- [x] Expand `MockWheelTelemetryService` to the seven-stage straight/gentle/strong scenario with bounded interpolation and elapsed time.
+- [x] Implement `EncoderDriveViewModel` with exact 5%/20% turn bands, sign-correct bounded pose, finite normalized continuous-road paths, and stale decay.
+- [x] Expose `EncoderDrive` to passive `EncoderDriveView`/`HypercarView`; render one road with no lane divider and retire the Phase 18 sliced/dashed-road runtime.
+- [x] Register `tst_encoder_drive` and retire `tst_road_motion`.
+- [x] Complete the repository Zero-JS scan and project `qt-cpp-review`/`qt-qml-review` workflows with no unresolved Critical or Important finding.
+- [x] Synchronize all active Markdown with the Phase 19 runtime.
+- [x] Complete and record the fresh configure/build/CTest 4/4/lint/diff/smoke verification matrix.
+- [ ] Integrate and field-validate physical STM32 left/right encoder firmware; commanded PWM remains prohibited as encoder feedback or odometry.

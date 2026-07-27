@@ -86,13 +86,20 @@ No checksummed outbound `SET` protocol is implemented in the current host code; 
 
 Parser, mapper, and no-hardware connection transitions have deterministic automated coverage in `tst_serial_pipeline`. Live STM32 wiring, firmware compatibility, unplug/replug behavior, motor control, and encoder feedback still require field validation.
 
-## 8. Perspective-Road Encoder Boundary
+## 8. Encoder-Drive Hardware Boundary
 
-The current road visualization is intentionally mock-first. `MockWheelTelemetryService` emits
-normalized left/right wheel motion plus elapsed time to `RoadMotionViewModel`. A future hardware
-adapter should decode two measured encoder channels, normalize them to the same `[0, 1]` motion
-contract, preserve left/right identity, and emit bounded elapsed intervals through that boundary.
-No QML change is expected when the source is replaced.
+The current encoder-drive visualization is intentionally mock-first.
+`MockWheelTelemetryService` emits seven staged normalized left/right wheel-motion targets plus
+elapsed time to `EncoderDriveViewModel`. A future hardware adapter should decode two measured
+encoder channels, normalize them to the same `[0, 1]` motion contract, preserve left/right
+identity, and emit bounded elapsed intervals through that boundary. No ViewModel or QML change
+is expected when the source is replaced.
+
+`EncoderDriveViewModel` classifies the relative wheel-speed difference
+`abs(right - left) / mean(left, right)`: below 5% is straight, 5% through 20% is gentle,
+and above 20% is a strong turn. Right faster than left means the vehicle turns left; left
+faster than right means it turns right. Firmware and the host adapter must preserve those
+semantics rather than compensating in QML.
 
 PWM duty cycle is an actuator command, not a measurement of wheel motion. Differences in load,
 traction, motor constants, battery voltage, and closed-loop response mean PWM values cannot prove
@@ -106,5 +113,5 @@ curvature; PWM may be retained only as diagnostic/command telemetry.
 - **Repeated reconnects:** check device permissions, the `/dev/ttyUSB0` path, baud settings, firmware line endings, and checksum output.
 - **Stale partial frame after unplug:** ensure every failure path reuses `stopService()`, which clears the parser.
 - **UI stays on hardware after silence:** confirm the 500 ms watchdog is running after open and after every valid frame.
-- **Road turn disagrees with the robot:** validate encoder polarity, left/right channel assignment, counts-per-revolution, and sampling interval before changing curvature logic.
+- **Hypercar turn disagrees with the robot:** validate encoder polarity, left/right channel assignment, counts-per-revolution, and sampling interval before changing `EncoderDriveViewModel` or QML.
 - **Only PWM is available:** keep the road on mock data until measured wheel feedback exists; do not label PWM comparison as encoder motion.

@@ -39,17 +39,19 @@ Use declarative `State`, `PropertyChanges`, and `Transition`. The Car state rema
 
 ## 4. CenterHub
 
-Car mode uses `CenterHub.qml`, a `SwipeView` containing static Music and Perspective Road pages:
+Car mode uses `CenterHub.qml`, a `SwipeView` containing static Music and Encoder Drive pages:
 
 - `MusicPlayer` preserves its lifetime while the user views the road.
-- `PerspectiveRoadView` renders the fixed 24-row C++ `RoadMotion` model.
-- The vehicle arrow stays fixed near the bottom; the single road scrolls toward the viewer and bends only when the wheel-motion difference indicates a turn.
-- Road surfaces, lane markers, horizon glow, and the page indicator use centralized `Theme` tokens.
+- `EncoderDriveView` renders `EncoderDriveViewModel`'s finite normalized road paths as one continuous road with no lane divider.
+- `HypercarView` draws the rear of a low, wide hypercar entirely with Qt Quick vector shapes.
+- C++-owned lateral offset and yaw move the car while C++-owned curvature bends the road; the response is straight below 5% relative wheel-speed difference, gentle from 5% through 20%, and strong above 20%.
+- Road surface, horizon glow, hypercar body/glass/lamp colors, and the page indicator use centralized `Theme` tokens.
 
 The road is a driving-state visualization, not a geographic map. Do not add a street grid,
-route loop, GPS marker, tile provider, or QML-side steering math. Perspective slice geometry,
-curvature, phase recycling, and lateral accumulation belong to `RoadMotionViewModel`; QML
-may only bind model roles to `Shape` paths and presentation properties.
+route loop, GPS marker, tile provider, lane divider, or QML-side steering math. Turn
+classification, curvature, vehicle pose, stale decay, and normalized path construction belong
+to `EncoderDriveViewModel`; QML may only bind C++ properties to `Shape` paths and presentation
+properties.
 
 Do not put window-drag handlers over this interactive region; the top drag strip must not steal gestures from `SwipeView`, `PathView`, or the scrubber.
 
@@ -100,5 +102,6 @@ QML may use bindings, ternaries, declarative states, and a single direct call to
 - **Blur or glow freezes:** inspect `MultiEffect.source` for recursive parent capture and replace it with a sibling source.
 - **Text animation warns or jumps:** animate a numeric backing property and bind `Text.text` to its display value.
 - **Swipe or scrub drags the window:** restrict the window `DragHandler` to the top drag strip.
-- **Road looks like a top-down map:** preserve the fixed bottom vehicle, horizon convergence, widening near slices, and one-road composition.
-- **Road turn logic appears in QML:** move it to `RoadMotionViewModel` and expose only geometry/state roles.
+- **Road looks like a top-down map:** preserve horizon convergence, near-field widening, the rear-view hypercar, and one-road composition.
+- **A dashed divider reappears:** remove it; the Phase 19 scene intentionally uses one uninterrupted road surface.
+- **Road or pose logic appears in QML:** move it to `EncoderDriveViewModel` and expose only finite geometry/state properties.

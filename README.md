@@ -2,19 +2,19 @@
 
 > **AI Context**: Repository overview for the C++17/Qt 6.8 Neon Cyberpunk dashboard, its verified software interfaces, deterministic tests, and pending hardware field validation.
 
-A Qt Quick automotive dashboard with Car, Bike, and Scooter layouts, C++-owned state, music and perspective-road pages, and STM32F103C8T6 telemetry over UART. The application falls back to an in-process simulator whenever serial telemetry is unavailable.
+A Qt Quick automotive dashboard with Car, Bike, and Scooter layouts, C++-owned state, music and encoder-drive pages, and STM32F103C8T6 telemetry over UART. The application falls back to an in-process simulator whenever serial telemetry is unavailable.
 
 ![Dashboard preview](resources/media/dashboard-preview.png)
 
 ## Features
 
 - Strict MVVM: seven C++ ViewModels are exposed to passive QML.
-- Zero-JS policy: stateful interaction and domain logic live in C++; the repository-wide forbidden-pattern scan is clean at the Phase 18 implementation baseline.
+- Zero-JS policy: stateful interaction and domain logic live in C++; the Phase 19 repository scan finds only comment text.
 - Car, Bike, and Scooter layouts driven by declarative QML states.
 - Day/night themes and ECO/NORMAL/SPORT accent palettes.
 - Tick-lit double-arch gauges, glass panels, telltales, boot choreography, and dip transitions.
-- Car-mode CenterHub with persistent Music and Perspective Road pages.
-- Mock left/right wheel telemetry drives a fixed-vehicle, scrolling single-road visualization through an encoder-compatible C++ boundary.
+- Car-mode CenterHub with persistent Music and Encoder Drive pages.
+- A seven-stage mock drives C++-owned hypercar pose and one continuous road with no lane divider through an encoder-compatible boundary.
 - C++ `QMediaPlayer`, C++-owned scrubber state, and worker-thread music scanning.
 - Implemented serial parser, telemetry mapper, watchdog, reconnect, and simulator fallback.
 - Four deterministic Qt Test/CTest targets.
@@ -34,7 +34,7 @@ A Qt Quick automotive dashboard with Car, Bike, and Scooter layouts, C++-owned s
 | `VehicleMode` | Car/Bike/Scooter state |
 | `DriveMode` | NORMAL/SPORT/ECO state |
 | `TripComputer` | Odometer, trip, average speed, formatted displays |
-| `RoadMotion` | Fixed-size perspective-road geometry derived from left/right wheel motion |
+| `EncoderDrive` | Hypercar pose, turn state, speed, and continuous-road paths derived from left/right wheel motion |
 
 The transport contracts are deliberately different:
 
@@ -47,9 +47,9 @@ flowchart LR
     Mapper --> Gate
     Gate --> Vehicle[VehicleStatusViewModel]
     Gate --> Trip[TripComputerViewModel]
-    MockWheel[MockWheelTelemetryService<br/>left/right mock motion] --> Road[RoadMotionViewModel]
-    Vehicle --> QML[QML view]
-    Road --> QML
+    MockWheel[MockWheelTelemetryService<br/>seven-stage left/right mock motion] --> Drive[EncoderDriveViewModel]
+    Vehicle --> DashboardQML[Dashboard QML view]
+    Drive --> EncoderQML[EncoderDriveView / HypercarView]
 ```
 
 `SimulatorService::telemetryUpdated(...)` supplies all dashboard fields. `SerialService::rawTelemetryUpdated(...)` supplies only parsed wire values. `TelemetryMapper::fromSerial(...)` derives dashboard fields outside the transport, and `main.cpp` updates the shared ViewModel surface. QML never selects a telemetry source.
@@ -78,7 +78,7 @@ CyberDash-STM32/
 │   └── viewmodels/
 │       ├── DriveModeViewModel.{h,cpp}
 │       ├── MusicPlayerViewModel.{h,cpp}
-│       ├── RoadMotionViewModel.{h,cpp}
+│       ├── EncoderDriveViewModel.{h,cpp}
 │       ├── ThemeViewModel.{h,cpp}
 │       ├── TripComputerViewModel.{h,cpp}
 │       ├── VehicleModeViewModel.{h,cpp}
@@ -95,7 +95,8 @@ CyberDash-STM32/
 │   │   ├── NeonIcon.qml
 │   │   ├── NeonIconButton.qml
 │   │   ├── NeonTickGauge.qml
-│   │   ├── PerspectiveRoadView.qml
+│   │   ├── EncoderDriveView.qml
+│   │   ├── HypercarView.qml
 │   │   └── RangeTripCard.qml
 │   └── screens/
 │       └── DashboardScreen.qml
@@ -108,7 +109,7 @@ CyberDash-STM32/
 │   ├── CMakeLists.txt
 │   ├── main.cpp
 │   ├── tst_music_playback.cpp
-│   ├── tst_road_motion.cpp
+│   ├── tst_encoder_drive.cpp
 │   └── tst_serial_pipeline.cpp
 ├── docs/
 │   ├── DOCUMENTATION_STANDARDS.md
@@ -150,7 +151,7 @@ CTest registers exactly four targets:
 | `tst_viewmodels` | Vehicle telemetry properties; theme/boot; vehicle and drive modes; trip computer |
 | `tst_music_playback` | Playback state controls and C++ scrubber clamping/drag state; CTest supplies `QT_QPA_PLATFORM=offscreen` |
 | `tst_serial_pipeline` | Parser, checksum, buffering, mapper, and no-hardware connection transitions |
-| `tst_road_motion` | Mock wheel stages, elapsed-time clamps, perspective geometry, turn direction, accumulated offset, recycling, and stale-input stop |
+| `tst_encoder_drive` | Seven-stage mock sequencing and interpolation; typed service-to-ViewModel wiring; exact 5%/20% turn bands; pose sign, finite normalized road paths, elapsed-time bounds, invalid input, and stale decay |
 
 Run the deterministic baseline:
 
@@ -212,8 +213,8 @@ The current canonical reference is the preview at the top of this README. `qml/T
 - Day/night theme state comes from `ThemeController`.
 - ECO is green, NORMAL is cyan/teal, and SPORT is orange; warning red stays distinct.
 - `DashboardScreen` supports Car, Bike, and Scooter states.
-- The Car CenterHub contains Music and Perspective Road pages.
-- The vehicle arrow stays fixed near the bottom while C++-generated road slices move toward the viewer and bend from left/right wheel-speed differences.
+- The Car CenterHub contains Music and Encoder Drive pages.
+- `EncoderDriveView` renders one continuous C++-generated road with no lane divider, while `HypercarView` renders a rear-view vector hypercar whose lateral offset and yaw respond to left/right wheel-speed differences.
 - Vehicle changes use the fade/scale dip transition.
 - Every `MultiEffect` captures a sibling source; recursive `source: parent` is forbidden.
 
@@ -243,11 +244,14 @@ Historical detail is preserved in [tasks_board.md](docs/tasks_board.md).
 | 15 | Drive modes and trip computer | Complete |
 | 16 | CenterHub and neon map | Complete |
 | 17 | Pre-Feature Baseline Repair | Software implementation and full verification complete; physical field validation pending |
-| 18 | Perspective road visualizer | Mock-driven software implementation complete; physical encoder integration pending |
+| 18 | Perspective road visualizer | Historical; superseded by Phase 19 |
+| 19 | Encoder-driven hypercar scene | Software implementation and verification complete; physical encoder firmware integration pending |
 
 Phase 17 repaired the parser/mapper boundary, made serial fallback transitions deterministic, moved scrubber and volume normalization into C++, removed the remaining QML `Math` helpers, isolated test-only music persistence, hardened map progress to remain finite in `[0, 1)`, synchronized active documentation, and completed the pre-feature build/test/lint/smoke verification matrix. Physical STM32/USB-TTL field validation remains pending.
 
-Phase 18 replaces the generic neon route loop with a single pseudo-3D road. `MockWheelTelemetryService` currently supplies normalized left/right wheel motion; `RoadMotionViewModel` owns all curvature, forward-motion, recycling, and geometry calculations; passive QML only renders the fixed-size model. A later hardware adapter may feed measured encoder motion into the same boundary without changing QML. Commanded PWM alone is not accepted as odometry or wheel-speed feedback.
+Phase 18 is retained as historical context and is superseded by Phase 19.
+
+Phase 19 replaces the retired sliced/dashed-road runtime with `MockWheelTelemetryService -> EncoderDriveViewModel -> EncoderDriveView/HypercarView`. The mock cycles through seven straight, gentle-left/right, and strong-left/right stages. C++ classifies relative wheel-speed difference below 5% as straight, 5% through 20% as gentle, and above 20% as a strong turn; it publishes bounded vehicle pose and finite normalized road paths. QML renders one continuous road with no lane divider and a rear-view vector hypercar. A future adapter may feed measured left/right encoder motion through the same boundary without changing QML. Commanded PWM is not encoder feedback or odometry.
 
 ## Contribution Rules
 

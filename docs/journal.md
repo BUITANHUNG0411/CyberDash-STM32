@@ -4,7 +4,17 @@
 
 ## 2026-07-27
 
-### Phase 18: Mock-Driven Perspective Road Visualizer
+### Phase 19: Encoder-Driven Hypercar Scene
+- **Runtime contract:** `MockWheelTelemetryService -> EncoderDriveViewModel -> EncoderDriveView/HypercarView` replaces the Phase 18 sliced/dashed-road runtime. The service cycles through seven straight, gentle-left/right, and strong-left/right stages; C++ publishes speed, turn state, bounded pose, and finite normalized road paths.
+- **Response bands:** Relative wheel-speed difference below 5% is straight, 5% through 20% is gentle, and above 20% is a strong turn. A faster right wheel means left turn; a faster left wheel means right turn. Stale or invalid input decays the scene toward a stopped, straight state.
+- **Passive vector view:** QML draws one continuous road with no lane divider and a rear-view vector hypercar. Steering classification, path construction, lateral offset, and yaw remain in C++.
+- **Fresh verification:** `cmake -S . -B build` and `cmake --build build -j2` exited 0; configuration reported only the non-blocking optional `WrapVulkanHeaders` probe unavailable. `ctest --test-dir build --output-on-failure` passed all 4/4 registered targets in 0.41 seconds: `tst_viewmodels`, `tst_music_playback`, `tst_serial_pipeline`, and `tst_encoder_drive`.
+- **Zero-JS and lint evidence:** The exact repository scan returned seven matches, all single-line comments and zero executable matches. `python3 .agents/skills/qt-qml-review/references/lint-scripts/qt_qml_lint.py all qml` and `/usr/lib/qt6/bin/qmllint --module com.showcase -I build` both exited 0 without diagnostics. `git diff --check` was clean.
+- **Smoke evidence:** `timeout 8s env QT_QPA_PLATFORM=offscreen ./build/QtStmAutomotiveSimulator` reached the event loop and exited 124 as expected. Its only output was the known host PulseAudio `pa_write()` warning; there was no QML load, type, binding, or runtime error.
+- **Focused reviews:** The project `qt-cpp-review` and `qt-qml-review` workflows covered the Task 1–4 change range. No Critical or Important defect remained. Five non-blocking maintainability/performance advisories remain for future work: explicit `Q_DISABLE_COPY_MOVE`, duplicated mock defaults, path-string serialization frequency, Shape path update cost, and continuously retargeted pose animations.
+- **Hardware remains open:** Physical STM32 left/right encoder firmware integration and field validation remain unchecked. Commanded PWM is an actuator command and is prohibited as encoder feedback or odometry.
+
+### Phase 18: Mock-Driven Perspective Road Visualizer (Historical; Superseded by Phase 19)
 - **Product correction:** The generic route-loop map was not a credible representation of a future two-motor robot. It has been replaced by one pseudo-3D road moving beneath a fixed vehicle marker; the road bends only when left/right wheel motion differs.
 - **Source boundary:** `MockWheelTelemetryService` currently produces a deterministic straight → left → straight → right sequence. Its normalized left/right samples and accepted elapsed time feed `RoadMotionViewModel`. This boundary is designed so a future encoder adapter can replace the mock without changing the ViewModel or QML.
 - **Motion model:** `RoadMotionViewModel` owns forward speed, bounded curvature, fixed 24-row perspective geometry, phase recycling, and accumulated lateral offset. Input intervals are capped, non-finite/extreme data are sanitized, unchanged/stopped states avoid full-model churn, and stale input stops motion.

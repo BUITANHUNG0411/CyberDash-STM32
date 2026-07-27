@@ -1,5 +1,8 @@
 # Design Spec: Center Hub (Music ⇄ Map) + Neon Map
 
+> **Status:** Superseded by the later encoder-driven arrow-road and center-hub replacements.
+> This document is retained as historical context for the earlier center-hub map design.
+
 > **Date**: 2026-07-27
 > **Status**: Approved by user (brainstorming session)
 > **Phase**: 16 (next after Drive Modes + Trip Computer)

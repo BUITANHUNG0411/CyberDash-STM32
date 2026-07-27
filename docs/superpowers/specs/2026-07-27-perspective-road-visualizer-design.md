@@ -1,5 +1,8 @@
 # Design Spec: Perspective Single-Road Visualizer
 
+> **Status:** Superseded by the encoder-driven arrow-road spec and plan set in July 2026.
+> This document is retained as historical context for the earlier perspective-road implementation.
+
 > **AI Context**: Approved Phase 18 design for replacing the route-loop map with a mock-driven, hardware-ready, single-road perspective visualizer.
 > **Date**: 2026-07-27
 > **Status**: Approved by user during brainstorming; implementation not started

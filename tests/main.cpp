@@ -402,6 +402,17 @@ private slots:
             QCOMPARE(map.routeProgress(), 0.0);
         }
     }
+
+    void testMapTinyPositiveRouteLengthCannotOverflowProgress() {
+        MapViewModel map((std::numeric_limits<double>::denorm_min)());
+
+        map.updateDistance(1.0);
+
+        QVERIFY(std::isfinite(map.routeProgress()));
+        QVERIFY(map.routeProgress() >= 0.0);
+        QVERIFY(map.routeProgress() < 1.0);
+        QCOMPARE(map.routeProgress(), 0.0);
+    }
 };
 
 QTEST_MAIN(TestViewModels)

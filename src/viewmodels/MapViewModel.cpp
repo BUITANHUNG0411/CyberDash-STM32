@@ -18,10 +18,14 @@ qreal MapViewModel::routeProgress() const { return m_routeProgress; }
 
 void MapViewModel::updateDistance(double odometerKm)
 {
-    const qreal progress =
-        std::isfinite(odometerKm) && odometerKm >= 0.0
-            ? std::fmod(odometerKm / m_routeLengthKm, 1.0)
-            : 0.0;
+    qreal progress = 0.0;
+    if (std::isfinite(odometerKm) && odometerKm >= 0.0) {
+        const double routePosition = odometerKm / m_routeLengthKm;
+        if (std::isfinite(routePosition)) {
+            progress = std::fmod(routePosition, 1.0);
+        }
+    }
+
     if (qFuzzyCompare(m_routeProgress + 1.0, progress + 1.0)) {
         return;
     }

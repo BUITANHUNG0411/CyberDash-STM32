@@ -277,6 +277,28 @@ private slots:
         }
     }
 
+    void centerLineAlternatesAcrossPartialWrap()
+    {
+        RoadMotionViewModel model;
+
+        model.updateWheelMotion(1.0, 1.0, 100);
+
+        const QModelIndex recycled = model.index(23, 0);
+        const QModelIndex next = model.index(0, 0);
+        QVERIFY(model.data(
+                         recycled,
+                         RoadMotionViewModel::SegmentDepthRole).toDouble()
+                < model.data(
+                         next,
+                         RoadMotionViewModel::SegmentDepthRole).toDouble());
+        QVERIFY(model.data(
+                         recycled,
+                         RoadMotionViewModel::CenterLineVisibleRole).toBool()
+                != model.data(
+                         next,
+                         RoadMotionViewModel::CenterLineVisibleRole).toBool());
+    }
+
     void rowsRecycleWithoutChangingModelSize()
     {
         RoadMotionViewModel model;

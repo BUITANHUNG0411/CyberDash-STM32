@@ -258,8 +258,12 @@ QVariant RoadMotionViewModel::roleData(const Segment &segment,
         return nearCenter;
     case CenterFarXRole:
         return farCenter;
-    case CenterLineVisibleRole:
-        return (static_cast<quint64>(row) + segment.generation) % 2U == 0U;
+    case CenterLineVisibleRole: {
+        const quint64 absoluteOrdinal =
+            static_cast<quint64>(row)
+            + segment.generation * static_cast<quint64>(kSegmentCount);
+        return absoluteOrdinal % 2U == 0U;
+    }
     case SegmentOpacityRole:
         return 0.20 + farDepth * 0.80;
     case SegmentDepthRole:

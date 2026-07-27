@@ -2,7 +2,7 @@
 
 > **AI Context**: Approved replacement design for the Phase 18 perspective-road scene. It uses deterministic mock encoder input now and preserves a C++ boundary for a later STM32 encoder adapter.
 > **Date**: 2026-07-27
-> **Status**: Approved by user during brainstorming; implementation not started
+> **Status**: Implemented and verified in Phase 19; the filename is retained for build stability although the renderer is now a centered arrow.
 > **Phase**: 19
 
 ## 1. Understanding Summary
@@ -156,6 +156,6 @@ The implementation also runs configure, full build, CTest, the repository Zero-J
 
 ## 10. Documentation and Migration
 
-The implementation retires `PerspectiveRoadView.qml`, `RoadMotionViewModel`, and road-slice test/wiring only after replacement tests pass. Active architecture, UI, hardware, testing, task-board, journal, README, and `AGENTS.md` documentation change from the old dash-road wording to the encoder-driven arrow-road contract. Historical Phase 18 artifacts remain historical evidence and receive only a superseded note where necessary.
+The implementation retired `PerspectiveRoadView.qml`, `RoadMotionViewModel`, and road-slice test/wiring after the replacement tests passed. Active architecture, UI, hardware, testing, task-board, journal, README, and `AGENTS.md` documentation now describe the encoder-driven arrow-road contract. Historical Phase 18 artifacts remain historical evidence and receive only a superseded note where necessary.
 
 The pre-existing uncommitted change in `qml/components/PerspectiveRoadView.qml` is treated as user-owned. It must be inspected and resolved deliberately before any file replacement; it is never silently overwritten.

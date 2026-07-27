@@ -2,6 +2,9 @@
 
 > **AI Context**: File này dùng để AI ghi chép lại các quyết định kỹ thuật quan trọng và lý do đằng sau chúng theo trình tự thời gian. Đọc file này giúp AI khôi phục lại "trí nhớ" về bối cảnh dự án.
 
+> [!IMPORTANT]
+> Phase 19 and the active guides (`AGENTS.md`, `README.md`, and the current `docs/*.md`) are the source of truth for present behavior. Older Phase 16–18 entries below are historical evidence only; retired class names and map implementations must not be reintroduced.
+
 ## 2026-07-27
 
 ### Phase 19: Encoder-Driven Arrow Road Scene

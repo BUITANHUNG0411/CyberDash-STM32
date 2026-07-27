@@ -1,11 +1,16 @@
-# Music Player UI Design Specification
+# Music Player UI and Backend Design
+
+> **AI Context**: Active design and implementation contract for the MusicPlayer QML view, MusicPlayerViewModel, and asynchronous MusicScanner pipeline.
+
+> [!IMPORTANT]
+> QML remains a passive view. Playback, scanning, scrubber state, normalization, and seek requests belong to the C++ ViewModel/service layer.
 
 ## Understanding Summary
 - **What is being built:** A Music Player UI component (`MusicPlayer.qml`) for the QtStmAutomotiveSimulator.
 - **Why it exists:** To provide multimedia playback visualization inside the automotive dashboard.
 - **Who it is for:** The driver/user interacting with the digital instrument cluster.
 - **Key constraints:** Strict adherence to the "Neon Cyberpunk" aesthetic, zero JavaScript logic in QML, pure declarative bindings.
-- **Explicit non-goals:** Backend C++ audio logic is out of scope for this phase. This is purely UI visualization.
+- **Current boundary:** `MusicPlayerViewModel` owns playback and scrubber behavior; `MusicScanner` performs library discovery on its worker thread. QML only binds state and forwards direct invokable calls.
 
 ## Assumptions
 - **Performance:** 3D Cover Flow animation relies on QML `PathView` with property bindings (`scale`, `z`, `opacity`) to ensure 60 FPS on embedded targets without the overhead of a true 3D engine.
@@ -36,14 +41,14 @@
 
 ---
 
-## Backend C++ Specification (Phase 2)
+## Backend C++ Specification
 
-### Understanding Summary
+### Current implementation
 - **What is being built:** A C++ backend (`MusicScanner` and `MusicPlayerViewModel`) for the music player.
 - **Why it exists:** To scan local `.mp3`/`.flac` files and feed real data to the UI without blocking the main thread.
 - **Who it is for:** Users interacting with the Qt Automotive Dashboard.
-- **Key constraints:** Zero JS in QML, strict MVVM architecture, non-blocking UI (Threaded), C++17/20 standard.
-- **Explicit non-goals:** Full-fledged media management, network streaming, or complex playlist creation.
+- **Key constraints:** Zero JS in QML, strict MVVM architecture, non-blocking UI (threaded), and the repository C++17 standard.
+- **Out of scope:** Network streaming, full media-management workflows, and complex playlist authoring.
 
 ### Assumptions
 - The default scanning path is the OS standard `Music` directory (`QStandardPaths::MusicLocation`).
@@ -80,3 +85,10 @@
 #### 4. Testing Strategy
 - Create a mock directory with dummy `.mp3` files in `tests/`.
 - Verify `MusicScanner` signal emission counts via QTest.
+
+## Troubleshooting
+
+- **Cover flow is empty:** confirm `MusicScanner` completed on its worker thread and that `MusicPlayerViewModel` received `songFound` before the model is rendered.
+- **Playback controls do nothing:** verify the QML handler forwards a direct `MusicViewModel` invokable and that the ViewModel exposes a valid current media source.
+- **Scrubbing jumps or seeks repeatedly:** keep pointer state and normalization in `MusicPlayerViewModel`; QML should only forward coordinates and lifecycle calls.
+- **The UI freezes during a scan:** ensure `QDirIterator` runs only in `MusicScanner`'s worker thread and that model row insertion returns to the GUI thread.

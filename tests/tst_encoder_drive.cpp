@@ -53,6 +53,22 @@ private slots:
         QCOMPARE(sample.at(2).toLongLong(), 20);
     }
 
+    void mockSignalFeedsEncoderScene()
+    {
+        MockWheelTelemetryService mock;
+        EncoderDriveViewModel scene;
+        QObject::connect(
+            &mock,
+            &MockWheelTelemetryService::wheelTelemetryUpdated,
+            &scene,
+            &EncoderDriveViewModel::updateWheelMotion);
+
+        mock.advance(50);
+
+        QVERIFY(scene.forwardSpeed() > 0.0);
+        QVERIFY(!scene.roadPath().isEmpty());
+    }
+
     void mockVisitsGentleAndStrongStages()
     {
         MockWheelTelemetryConfig config;

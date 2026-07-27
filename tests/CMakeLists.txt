@@ -65,22 +65,6 @@ target_link_libraries(tst_serial_pipeline
 
 add_test(NAME tst_serial_pipeline COMMAND tst_serial_pipeline)
 
-qt_add_executable(tst_road_motion
-    tst_road_motion.cpp
-    ../src/services/MockWheelTelemetryService.cpp
-    ../src/viewmodels/RoadMotionViewModel.cpp
-)
-
-target_include_directories(tst_road_motion PRIVATE ../src)
-
-target_link_libraries(tst_road_motion
-    PRIVATE
-    Qt6::Core
-    Qt6::Test
-)
-
-add_test(NAME tst_road_motion COMMAND tst_road_motion)
-
 qt_add_executable(tst_encoder_drive
     tst_encoder_drive.cpp
     ../src/services/MockWheelTelemetryService.cpp

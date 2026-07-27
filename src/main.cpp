@@ -9,7 +9,6 @@
 #include "viewmodels/DriveModeViewModel.h"
 #include "viewmodels/EncoderDriveViewModel.h"
 #include "viewmodels/TripComputerViewModel.h"
-#include "viewmodels/RoadMotionViewModel.h"
 #include <QElapsedTimer>
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
@@ -22,7 +21,6 @@ int main(int argc, char *argv[]) {
   VehicleStatusViewModel vm;
   TripComputerViewModel tripVm;
   EncoderDriveViewModel encoderDriveVm;
-  RoadMotionViewModel roadMotionVm;
   QElapsedTimer tripClock;
   tripClock.start();
 
@@ -30,11 +28,6 @@ int main(int argc, char *argv[]) {
   SimulatorService simulatorService;
   SerialService serialService("/dev/ttyUSB0");
   MockWheelTelemetryService mockWheelTelemetry;
-  QObject::connect(
-      &mockWheelTelemetry,
-      &MockWheelTelemetryService::wheelTelemetryUpdated,
-      &roadMotionVm,
-      &RoadMotionViewModel::updateWheelMotion);
   QObject::connect(
       &mockWheelTelemetry,
       &MockWheelTelemetryService::wheelTelemetryUpdated,
@@ -95,7 +88,6 @@ int main(int argc, char *argv[]) {
   engine.rootContext()->setContextProperty("DriveMode", &driveModeVm);
   engine.rootContext()->setContextProperty("TripComputer", &tripVm);
   engine.rootContext()->setContextProperty("EncoderDrive", &encoderDriveVm);
-  engine.rootContext()->setContextProperty("RoadMotion", &roadMotionVm);
 
   QObject::connect(&themeVm, &ThemeViewModel::windowMoveRequested, &engine, [&engine]() {
       const auto rootObjects = engine.rootObjects();

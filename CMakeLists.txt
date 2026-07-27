@@ -87,8 +87,6 @@ qt_add_qml_module(${PROJECT_NAME}
         src/viewmodels/TripComputerViewModel.cpp
         src/viewmodels/EncoderDriveViewModel.h
         src/viewmodels/EncoderDriveViewModel.cpp
-        src/viewmodels/RoadMotionViewModel.h
-        src/viewmodels/RoadMotionViewModel.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}

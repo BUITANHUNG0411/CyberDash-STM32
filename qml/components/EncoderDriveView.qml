@@ -109,6 +109,7 @@ Rectangle {
             lateralOffset: EncoderDrive.vehicleLateralOffset
                            * Theme.encoderVehicleTravel
             yawDegrees: EncoderDrive.vehicleYawDegrees
+            frontWheelSteerDegrees: EncoderDrive.frontWheelSteerDegrees
             scale: Theme.encoderVehicleScale
         }
     }

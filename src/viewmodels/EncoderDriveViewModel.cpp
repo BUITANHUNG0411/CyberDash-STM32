@@ -14,6 +14,7 @@ constexpr double kMaximumResponseRatio = 0.75;
 constexpr double kResponsePerSecond = 6.5;
 constexpr double kMaximumLateralOffset = 0.48;
 constexpr double kMaximumYawDegrees = 22.0;
+constexpr double kMaximumFrontWheelSteerDegrees = 34.0;
 constexpr double kMaximumRoadCurvature = 1.05;
 constexpr double kHorizonY = 0.16;
 constexpr double kNearY = 0.98;
@@ -60,6 +61,11 @@ qreal EncoderDriveViewModel::vehicleLateralOffset() const
 qreal EncoderDriveViewModel::vehicleYawDegrees() const
 {
     return m_vehicleYawDegrees;
+}
+
+qreal EncoderDriveViewModel::frontWheelSteerDegrees() const
+{
+    return m_frontWheelSteerDegrees;
 }
 
 qreal EncoderDriveViewModel::roadCurvature() const
@@ -125,6 +131,8 @@ void EncoderDriveViewModel::updateWheelMotion(double leftMotion,
         visualDirection * response * kMaximumLateralOffset;
     const double targetYawDegrees =
         visualDirection * response * kMaximumYawDegrees;
+    const double targetFrontWheelSteerDegrees =
+        visualDirection * response * kMaximumFrontWheelSteerDegrees;
     const double targetRoadCurvature =
         visualDirection * response * kMaximumRoadCurvature;
 
@@ -141,6 +149,12 @@ void EncoderDriveViewModel::updateWheelMotion(double leftMotion,
                - static_cast<double>(m_vehicleYawDegrees)) * alpha,
         -kMaximumYawDegrees,
         kMaximumYawDegrees));
+    const qreal nextFrontWheelSteerDegrees = static_cast<qreal>(std::clamp(
+        static_cast<double>(m_frontWheelSteerDegrees)
+            + (targetFrontWheelSteerDegrees
+               - static_cast<double>(m_frontWheelSteerDegrees)) * alpha,
+        -kMaximumFrontWheelSteerDegrees,
+        kMaximumFrontWheelSteerDegrees));
     const qreal nextRoadCurvature = static_cast<qreal>(std::clamp(
         static_cast<double>(m_roadCurvature)
             + (targetRoadCurvature
@@ -159,6 +173,10 @@ void EncoderDriveViewModel::updateWheelMotion(double leftMotion,
     if (differs(m_vehicleYawDegrees, nextYawDegrees)) {
         m_vehicleYawDegrees = nextYawDegrees;
         emit vehicleYawDegreesChanged();
+    }
+    if (differs(m_frontWheelSteerDegrees, nextFrontWheelSteerDegrees)) {
+        m_frontWheelSteerDegrees = nextFrontWheelSteerDegrees;
+        emit frontWheelSteerDegreesChanged();
     }
     bool roadGeometryChanged = false;
     if (differs(m_roadCurvature, nextRoadCurvature)) {
@@ -199,6 +217,12 @@ void EncoderDriveViewModel::handleStaleTimeout()
         m_vehicleYawDegrees = nextYawDegrees;
         emit vehicleYawDegreesChanged();
     }
+    const qreal nextFrontWheelSteerDegrees =
+        decayToStraight(m_frontWheelSteerDegrees);
+    if (differs(m_frontWheelSteerDegrees, nextFrontWheelSteerDegrees)) {
+        m_frontWheelSteerDegrees = nextFrontWheelSteerDegrees;
+        emit frontWheelSteerDegreesChanged();
+    }
 
     bool roadGeometryChanged = false;
     const qreal nextRoadCurvature = decayToStraight(m_roadCurvature);
@@ -216,6 +240,7 @@ void EncoderDriveViewModel::handleStaleTimeout()
     }
     if (!qFuzzyIsNull(m_forwardSpeed)
         || !qFuzzyIsNull(m_vehicleYawDegrees)
+        || !qFuzzyIsNull(m_frontWheelSteerDegrees)
         || !qFuzzyIsNull(m_roadCurvature)) {
         m_staleTimer->start();
     }

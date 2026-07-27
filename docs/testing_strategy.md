@@ -20,7 +20,7 @@
 | `tst_viewmodels` | `VehicleStatusViewModel` property READ/WRITE/NOTIFY behavior; theme and boot state; vehicle/drive mode cycles; trip integration |
 | `tst_music_playback` | Repeat/shuffle/volume/seek/playback state and C++-owned scrubber clamping/drag state; multimedia-disabled construction for deterministic tests |
 | `tst_serial_pipeline` | Parser framing/checksum/buffer boundaries; raw-to-dashboard mapper; initial, valid-frame, stop, resource-error, and parser-reset connection transitions |
-| `tst_encoder_drive` | Seven-stage mock targets/interpolation and lifecycle; default demo timing; typed mock-to-ViewModel wiring; exact 5%/20% turn bands; turn sign, pronounced strong-turn hypercar pose, finite normalized road paths, elapsed-time caps, invalid input, and stale decay |
+| `tst_encoder_drive` | Seven-stage mock targets/interpolation and lifecycle; default demo timing; typed mock-to-ViewModel wiring; exact 5%/20% turn bands; turn sign, pronounced strong-turn race-kart pose, C++ front-wheel steering, finite normalized road paths, elapsed-time caps, invalid input, and stale decay |
 
 CTest configures `QT_QPA_PLATFORM=offscreen` and a 20-second timeout for `tst_music_playback`, so the multimedia-facing test is deterministic in a headless environment. The serial tests use controlled/no-hardware paths and do not require an attached STM32.
 
@@ -32,7 +32,7 @@ CTest configures `QT_QPA_PLATFORM=offscreen` and a 20-second timeout for `tst_mu
 - Connection tests must cover initial disconnected publication, valid-frame connection, idempotent resource errors, stop behavior, and partial-frame clearing.
 - Music interaction tests must cover scrubber normalization, clamping, zero-width input, drag state, and signal emission.
 - Encoder-drive tests must use injected elapsed time and prove the exact response bands: below 5% straight, 5% through 20% gentle, and above 20% strong, with faster-right meaning left turn and faster-left meaning right turn.
-- Encoder-drive tests must prove invalid/extreme values cannot publish non-finite pose or path values, elapsed work is bounded, strong turns produce pronounced vehicle yaw and road curvature, the near road shifts less than the horizon, and stale input decays toward straight.
+- Encoder-drive tests must prove invalid/extreme values cannot publish non-finite pose or path values, elapsed work is bounded, strong turns produce pronounced vehicle yaw, C++ front-wheel steer, and road curvature, the near road shifts less than the horizon, and stale input decays toward straight.
 - Mock-wheel tests must cover all seven deterministic stages, interpolation, injected targets, repeated start/stop safety, the accepted elapsed-time ceiling, and the default demo timing that reaches a strong turn within roughly ten seconds.
 - QML interaction handlers remain direct invokable calls; no QML-local scrubber state or math.
 

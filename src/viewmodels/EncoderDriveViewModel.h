@@ -12,6 +12,8 @@ class EncoderDriveViewModel final : public QObject
                    NOTIFY vehicleLateralOffsetChanged)
     Q_PROPERTY(qreal vehicleYawDegrees READ vehicleYawDegrees
                    NOTIFY vehicleYawDegreesChanged)
+    Q_PROPERTY(qreal frontWheelSteerDegrees READ frontWheelSteerDegrees
+                   NOTIFY frontWheelSteerDegreesChanged)
     Q_PROPERTY(qreal roadCurvature READ roadCurvature NOTIFY roadCurvatureChanged)
     Q_PROPERTY(QString roadPath READ roadPath NOTIFY roadPathChanged)
     Q_PROPERTY(QString roadEdgePath READ roadEdgePath NOTIFY roadEdgePathChanged)
@@ -32,6 +34,7 @@ public:
     qreal forwardSpeed() const;
     qreal vehicleLateralOffset() const;
     qreal vehicleYawDegrees() const;
+    qreal frontWheelSteerDegrees() const;
     qreal roadCurvature() const;
     QString roadPath() const;
     QString roadEdgePath() const;
@@ -46,6 +49,7 @@ signals:
     void forwardSpeedChanged();
     void vehicleLateralOffsetChanged();
     void vehicleYawDegreesChanged();
+    void frontWheelSteerDegreesChanged();
     void roadCurvatureChanged();
     void roadPathChanged();
     void roadEdgePathChanged();
@@ -74,6 +78,7 @@ private:
     qreal m_forwardSpeed = 0.0;
     qreal m_vehicleLateralOffset = 0.0;
     qreal m_vehicleYawDegrees = 0.0;
+    qreal m_frontWheelSteerDegrees = 0.0;
     qreal m_roadCurvature = 0.0;
     QString m_roadPath;
     QString m_roadEdgePath;

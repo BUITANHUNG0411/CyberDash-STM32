@@ -1,4 +1,4 @@
-# Design Spec: Encoder-Driven Hypercar Scene
+# Design Spec: Encoder-Driven Race Kart Scene
 
 > **AI Context**: Approved replacement design for the Phase 18 perspective-road scene. It uses deterministic mock encoder input now and preserves a C++ boundary for a later STM32 encoder adapter.
 > **Date**: 2026-07-27
@@ -9,7 +9,7 @@
 
 - Replace the current Perspective Road runtime feature rather than restoring the older generic map.
 - Render one continuous pseudo-3D road with no centre dash, lane divider, GPS, map, route loop, button, or user-controlled steering.
-- Render a lightweight rear three-quarter cyberpunk hypercar with a chase camera; it remains near the lower screen area, moves and yaws with the turn, and stays smaller than the road scene so the road reads clearly.
+- Render a lightweight rear three-quarter race kart with a chase camera; it remains near the lower screen area, moves and yaws with the turn, steers its front wheels, and stays smaller than the road scene so the road reads clearly.
 - Use normalized left/right encoder motion with three response bands: straight below 5% difference, gentle drift from 5% through 20%, and a visible continuous turn above 20%.
 - In the gentle band both vehicle pose and road geometry respond subtly. In the turn band both continue to follow the current encoder difference, then smoothly return to straight when the difference subsides.
 - Begin with a deterministic automatic mock sequence: straight, gentle left, straight, gentle right, clear left turn, straight, clear right turn, then repeat.
@@ -42,7 +42,7 @@ The scene is a driving-state visualization for an encoder-equipped two-motor veh
 |---|---|---|
 | Create an encoder-driving scene ViewModel | Extend `RoadMotionViewModel`; move behavior to QML | A dedicated concern keeps the old dash-segment model out of the new scene and preserves MVVM/Zero-JS boundaries. |
 | Use a continuous C++-generated road path | Fixed trapezoid/dashed segments; shader | One road surface directly satisfies the no-lanes requirement and is straightforward to validate as a bounded C++ output. |
-| Use a vector hypercar view | Raster image; Qt Quick 3D mesh | Vector geometry supports the cyberpunk silhouette while meeting the 60 FPS target without new runtime dependencies. |
+| Use a vector race-kart view | Raster image; Qt Quick 3D mesh | Vector geometry supports exposed tires, cockpit, frame, and visible steering while meeting the 60 FPS target without new runtime dependencies. |
 | Use percentage bands | Fixed encoder-count thresholds; two-state turn | The percentage rule adapts to forward speed and expresses the approved straight/gentle/turn behavior. |
 | Preserve Git history with forward changes | Destructive reset | The user requested a new replacement feature; commits remain recoverable and the implementation removes obsolete runtime wiring explicitly. |
 
@@ -50,7 +50,7 @@ The scene is a driving-state visualization for an encoder-equipped two-motor veh
 
 ### 4.1 Chosen: `EncoderDriveViewModel` and passive vector scene
 
-`EncoderDriveViewModel` owns the measured-motion interpretation and publishes vehicle pose plus road path properties. `EncoderDriveView.qml` consumes those properties only, while `HypercarView.qml` draws the vehicle silhouette.
+`EncoderDriveViewModel` owns the measured-motion interpretation and publishes vehicle pose, front-wheel steering, plus road path properties. `EncoderDriveView.qml` consumes those properties only, while `HypercarView.qml` draws the vehicle silhouette.
 
 This is the chosen approach because it isolates a hardware-facing driving-scene concern, permits focused C++ tests, and does not retain the dashed-road abstractions that made the previous scene read as lane-marked.
 
@@ -60,7 +60,7 @@ Reusing the existing model would reduce file count, but it couples vehicle pose 
 
 ### 4.3 Rejected: add a real 3D engine or model asset
 
-Qt Quick 3D or a textured mesh could increase realism, but it adds dependency, asset, and performance risks without improving the encoder contract. The approved first iteration needs a convincing vector hypercar, not physical rendering.
+Qt Quick 3D or a textured mesh could increase realism, but it adds dependency, asset, and performance risks without improving the encoder contract. The approved iteration needs a readable vector race kart, not physical rendering.
 
 ## 5. Architecture and Data Flow
 
@@ -96,7 +96,7 @@ direction = sign(rightMotion - leftMotion)
 |---:|---|
 | `< 0.05` | Straight: yaw, lateral drift, and road curvature decay toward zero. |
 | `0.05–0.20` | Gentle: bounded small pose offset/yaw and low road curvature in `direction`, with the near road staying visually calm. |
-| `> 0.20` | Turn: larger bounded curvature and pronounced vehicle yaw continue while the difference persists; the horizon bend is amplified and the near road shifts only subtly. |
+| `> 0.20` | Turn: larger bounded curvature, pronounced vehicle yaw, and visible front-wheel steering continue while the difference persists; the horizon bend is amplified and the near road shifts only subtly. |
 
 The sign convention is explicit and tested: faster right motion produces a left visual bend/yaw, while faster left motion produces a right visual bend/yaw. Smoothing is elapsed-time based, clamps long gaps, and avoids a discontinuity at either threshold. At stale timeout, forward motion goes to zero and transient yaw/curvature ease back toward straight while the last accumulated vehicle offset remains visible. The near road is intentionally subtle rather than fixed; most apparent road motion belongs to the horizon.
 
@@ -114,7 +114,8 @@ The ViewModel exposes only C++-owned observable state:
 |---|---|
 | `forwardSpeed` | Normalized accepted forward motion. |
 | `vehicleLateralOffset` | Bounded horizontal car displacement in the chase frame. |
-| `vehicleYawDegrees` | Bounded car yaw for gentle drift or active turn. |
+| `vehicleYawDegrees` | Bounded kart yaw for gentle drift or active turn. |
+| `frontWheelSteerDegrees` | Bounded front-wheel steering angle for the race-kart visual. |
 | `roadPath` | Valid normalized SVG path for the continuous filled road surface. |
 | `roadEdgePath` | Valid normalized SVG path for the two road-edge strokes. |
 | `roadCurvature` | Bounded signed road bend for presentation-only binding. |
@@ -128,7 +129,7 @@ The QML scene uses `Shape`/`PathSvg` bindings for a single asphalt ribbon and it
 
 ### 7.4 `HypercarView.qml`
 
-The car is a reusable passive vector component with a rear three-quarter hypercar silhouette: low wide body, cabin and rear glass, partial wheels, small spoiler, rear bumper, neon tail lamps, highlight surfaces, and contact shadow. It is intentionally scaled smaller than the road scene so the road stays prominent. It uses theme tokens and safe sibling-source glow where glow is needed. QML transforms bind to the ViewModel pose; no image asset or interaction is required.
+The file name is retained for build stability, but the component now renders a passive rear-view race kart: exposed tires, small chassis, frame rails, cockpit/seat, steering-wheel hint, front wheels that bind to C++ steering state, and a contact shadow. It is intentionally scaled smaller than the road scene so the road stays prominent. It uses theme tokens and safe sibling-source glow where glow is needed. QML transforms bind to the ViewModel pose and front-wheel steering; no image asset or interaction is required.
 
 ## 8. Failure Handling and Edge Cases
 
@@ -147,7 +148,7 @@ TDD precedes each production change. `tst_encoder_drive` replaces road-specific 
 - default demo timing that reaches a clear strong turn within roughly ten seconds;
 - exact threshold boundaries below 5%, at 5%, at 20%, and above 20%;
 - small-difference co-response of vehicle pose and road curvature;
-- pronounced strong-turn yaw/curvature with a subtle near-road shift and larger horizon bend;
+- pronounced strong-turn yaw/curvature/front-wheel steering with a subtle near-road shift and larger horizon bend;
 - sustained large-difference turn and smooth return to straight;
 - direction-sign consistency, maximum clamps, invalid/extreme inputs, elapsed-time caps, stale stop, and no-change signal behavior;
 - finite/bounded path output and valid turn-state transitions.
@@ -156,6 +157,6 @@ The implementation also runs configure, full build, CTest, the repository Zero-J
 
 ## 10. Documentation and Migration
 
-The implementation retires `PerspectiveRoadView.qml`, `RoadMotionViewModel`, and road-slice test/wiring only after replacement tests pass. Active architecture, UI, hardware, testing, task-board, journal, README, and `AGENTS.md` documentation change from the old dash-road wording to the encoder-driven hypercar contract. Historical Phase 18 artifacts remain historical evidence and receive only a superseded note where necessary.
+The implementation retires `PerspectiveRoadView.qml`, `RoadMotionViewModel`, and road-slice test/wiring only after replacement tests pass. Active architecture, UI, hardware, testing, task-board, journal, README, and `AGENTS.md` documentation change from the old dash-road wording to the encoder-driven race-kart contract. Historical Phase 18 artifacts remain historical evidence and receive only a superseded note where necessary.
 
 The pre-existing uncommitted change in `qml/components/PerspectiveRoadView.qml` is treated as user-owned. It must be inspected and resolved deliberately before any file replacement; it is never silently overwritten.

@@ -149,11 +149,12 @@
 - [x] Complete and record the fresh Phase 18 configure/build/CTest/Zero-JS/QML-lint/smoke verification matrix.
 - [ ] Replace mock wheel input with field-validated, measured left/right encoder telemetry; do not substitute commanded PWM for motion feedback.
 
-## Phase 19: Encoder-Driven Hypercar Scene
+## Phase 19: Encoder-Driven Race Kart Scene
 - [x] Expand `MockWheelTelemetryService` to the seven-stage straight/gentle/strong scenario with bounded interpolation and elapsed time.
 - [x] Implement `EncoderDriveViewModel` with exact 5%/20% turn bands, sign-correct bounded pose, finite normalized continuous-road paths, and stale decay.
-- [x] Tune the mock demo and C++ visual response so strong encoder differences produce a pronounced same-direction car yaw plus a larger horizon bend while the near road shifts only subtly.
+- [x] Tune the mock demo and C++ visual response so strong encoder differences produce a pronounced same-direction kart yaw plus a larger horizon bend while the near road shifts only subtly.
 - [x] Expose `EncoderDrive` to passive `EncoderDriveView`/`HypercarView`; render one road with no lane divider and retire the Phase 18 sliced/dashed-road runtime.
+- [x] Replace the hypercar-like vector body with a cheaper race-kart visual and C++-owned front-wheel steering so strong turns read like track cornering.
 - [x] Register `tst_encoder_drive` and retire `tst_road_motion`.
 - [x] Complete the repository Zero-JS scan and project `qt-cpp-review`/`qt-qml-review` workflows with no unresolved Critical or Important finding.
 - [x] Synchronize all active Markdown with the Phase 19 runtime.

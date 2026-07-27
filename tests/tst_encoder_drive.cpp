@@ -362,6 +362,37 @@ private slots:
         QVERIFY(horizonShift > nearShift * 3.0);
     }
 
+    void frontWheelSteerFollowsEncoderTurn()
+    {
+        EncoderDriveViewModel gentleModel;
+        gentleModel.updateWheelMotion(0.90, 1.00, 100);
+        QVERIFY(gentleModel.frontWheelSteerDegrees() < 0.0);
+
+        EncoderDriveViewModel strongModel;
+        QSignalSpy steerSpy(
+            &strongModel,
+            &EncoderDriveViewModel::frontWheelSteerDegreesChanged);
+        strongModel.updateWheelMotion(0.55, 1.00, 100);
+        const qreal strongSteer = strongModel.frontWheelSteerDegrees();
+
+        QCOMPARE(strongModel.turnState(), EncoderDriveViewModel::TurningLeft);
+        QCOMPARE(steerSpy.size(), 1);
+        QVERIFY(strongSteer < 0.0);
+        QVERIFY(std::abs(strongSteer)
+                >= std::abs(gentleModel.frontWheelSteerDegrees()) * 8.0);
+        QVERIFY(std::abs(strongSteer)
+                > std::abs(strongModel.vehicleYawDegrees()));
+
+        QVERIFY(QMetaObject::invokeMethod(
+            &strongModel, "handleStaleTimeout", Qt::DirectConnection));
+        QVERIFY(strongModel.frontWheelSteerDegrees() < 0.0);
+        QVERIFY(strongModel.frontWheelSteerDegrees() > strongSteer);
+
+        EncoderDriveViewModel rightModel;
+        rightModel.updateWheelMotion(1.00, 0.55, 100);
+        QVERIFY(rightModel.frontWheelSteerDegrees() > 0.0);
+    }
+
     void oppositeWheelDifferenceTurnsRight()
     {
         EncoderDriveViewModel model;
@@ -467,6 +498,8 @@ private slots:
         QVERIFY(std::abs(model.vehicleLateralOffset()) <= 1.0);
         QVERIFY(std::isfinite(model.vehicleYawDegrees()));
         QVERIFY(std::abs(model.vehicleYawDegrees()) <= 20.0);
+        QVERIFY(std::isfinite(model.frontWheelSteerDegrees()));
+        QVERIFY(std::abs(model.frontWheelSteerDegrees()) <= 40.0);
         QVERIFY(std::isfinite(model.roadCurvature()));
         QVERIFY(std::abs(model.roadCurvature()) <= 1.0);
         verifyFiniteNormalizedPath(model.roadPath());
@@ -482,6 +515,7 @@ private slots:
         QCOMPARE(model.forwardSpeed(), 1.0);
         QCOMPARE(model.vehicleLateralOffset(), 0.0);
         QCOMPARE(model.vehicleYawDegrees(), 0.0);
+        QCOMPARE(model.frontWheelSteerDegrees(), 0.0);
         QCOMPARE(model.roadCurvature(), 0.0);
     }
 
@@ -536,6 +570,8 @@ private slots:
                  cappedModel.vehicleLateralOffset());
         QCOMPARE(oversizedModel.vehicleYawDegrees(),
                  cappedModel.vehicleYawDegrees());
+        QCOMPARE(oversizedModel.frontWheelSteerDegrees(),
+                 cappedModel.frontWheelSteerDegrees());
         QCOMPARE(oversizedModel.roadCurvature(),
                  cappedModel.roadCurvature());
         QCOMPARE(oversizedModel.roadPath(), cappedModel.roadPath());

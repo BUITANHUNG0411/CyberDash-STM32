@@ -79,7 +79,7 @@ Window {
 
             DragHandler {
                 target: null
-                onActiveChanged: active && root.startSystemMove()
+                onActiveChanged: ThemeController.handleWindowDragActive(active)
             }
         }
 

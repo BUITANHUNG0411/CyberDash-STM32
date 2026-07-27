@@ -58,8 +58,8 @@ std::optional<RawSerialTelemetry> SerialTelemetryParser::parseLine(const QString
 
     if (!rpmOk || !batteryOk || !errorOk || !checksumOk
         || !std::isfinite(batteryVoltage)
-        || batteryVoltage < static_cast<double>(std::numeric_limits<int>::min())
-        || batteryVoltage > static_cast<double>(std::numeric_limits<int>::max())) {
+        || batteryVoltage < static_cast<double>((std::numeric_limits<int>::min)())
+        || batteryVoltage > static_cast<double>((std::numeric_limits<int>::max)())) {
         return std::nullopt;
     }
 

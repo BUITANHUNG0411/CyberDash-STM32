@@ -147,6 +147,17 @@ private slots:
         QCOMPARE(spy.count(), 2);
     }
 
+    void testWindowMoveRequestedOnlyWhileDragIsActive() {
+        ThemeViewModel theme;
+        QSignalSpy spy(&theme, &ThemeViewModel::windowMoveRequested);
+
+        theme.handleWindowDragActive(false);
+        QCOMPARE(spy.count(), 0);
+
+        theme.handleWindowDragActive(true);
+        QCOMPARE(spy.count(), 1);
+    }
+
     void testBootSequence() {
         ThemeViewModel theme(10); // 10 ms per sweep leg -> full boot ~20 ms
         QSignalSpy stageSpy(&theme, &ThemeViewModel::bootStageChanged);

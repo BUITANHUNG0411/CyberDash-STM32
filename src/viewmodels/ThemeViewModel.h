@@ -23,12 +23,14 @@ public:
     qreal bootProgress() const;
 
     Q_INVOKABLE void toggleTheme();
+    Q_INVOKABLE void handleWindowDragActive(bool active);
     void startBootSequence();
 
 signals:
     void isNightChanged();
     void bootStageChanged();
     void bootProgressChanged();
+    void windowMoveRequested();
 
 private:
     void setBootStage(int stage);

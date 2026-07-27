@@ -12,6 +12,7 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QWindow>
 
 int main(int argc, char *argv[]) {
   QGuiApplication app(argc, argv);
@@ -82,6 +83,16 @@ int main(int argc, char *argv[]) {
   engine.rootContext()->setContextProperty("DriveMode", &driveModeVm);
   engine.rootContext()->setContextProperty("TripComputer", &tripVm);
   engine.rootContext()->setContextProperty("MapModel", &mapVm);
+
+  QObject::connect(&themeVm, &ThemeViewModel::windowMoveRequested, &engine, [&engine]() {
+      const auto rootObjects = engine.rootObjects();
+      if (rootObjects.isEmpty()) {
+          return;
+      }
+      if (auto *window = qobject_cast<QWindow *>(rootObjects.constFirst())) {
+          window->startSystemMove();
+      }
+  });
 
   QObject::connect(
       &engine, &QQmlApplicationEngine::objectCreationFailed, &app,

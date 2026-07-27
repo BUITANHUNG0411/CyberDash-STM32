@@ -65,7 +65,7 @@ private slots:
         SerialTelemetryParser parser;
         const auto frames = parser.append("TEL,2147483647,0,1;0\n");
         QCOMPARE(frames.size(), 1);
-        QCOMPARE(frames.first().rpm, std::numeric_limits<int>::max());
+        QCOMPARE(frames.first().rpm, (std::numeric_limits<int>::max)());
         QCOMPARE(frames.first().errorCode, 1);
     }
 

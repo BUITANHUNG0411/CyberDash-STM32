@@ -20,6 +20,13 @@ void ThemeViewModel::toggleTheme()
     emit isNightChanged();
 }
 
+void ThemeViewModel::handleWindowDragActive(bool active)
+{
+    if (active) {
+        emit windowMoveRequested();
+    }
+}
+
 void ThemeViewModel::startBootSequence()
 {
     if (m_bootTimeline) {

@@ -12,21 +12,22 @@ constexpr char kOrgName[] = "QtStmAutomotiveSimulator";
 constexpr char kAppName[] = "QtStmAutomotiveSimulator";
 }
 
-MusicPlayerViewModel::MusicPlayerViewModel(QObject *parent)
+MusicPlayerViewModel::MusicPlayerViewModel(QObject *parent, bool multimediaEnabled)
     : QAbstractListModel(parent), m_scanner(new MusicScanner()),
       m_settings(QSettings::IniFormat, QSettings::UserScope, kOrgName, kAppName)
 {
-    // Setup Audio Player
-    m_player = new QMediaPlayer(this);
-    m_audioOutput = new QAudioOutput(this);
-    m_player->setAudioOutput(m_audioOutput);
+    if (multimediaEnabled) {
+        m_player = new QMediaPlayer(this);
+        m_audioOutput = new QAudioOutput(this);
+        m_player->setAudioOutput(m_audioOutput);
 
-    connect(m_player, &QMediaPlayer::playingChanged, this, &MusicPlayerViewModel::isPlayingChanged);
-    connect(m_player, &QMediaPlayer::positionChanged, this, &MusicPlayerViewModel::onPositionChanged);
-    connect(m_player, &QMediaPlayer::durationChanged, this, &MusicPlayerViewModel::onDurationChanged);
-    // New: media status drives isLoading + auto-next + playbackState
-    connect(m_player, &QMediaPlayer::mediaStatusChanged, this, &MusicPlayerViewModel::onMediaStatusChanged);
-    connect(m_player, &QMediaPlayer::errorOccurred, this, &MusicPlayerViewModel::onErrorOccurred);
+        connect(m_player, &QMediaPlayer::playingChanged, this, &MusicPlayerViewModel::isPlayingChanged);
+        connect(m_player, &QMediaPlayer::positionChanged, this, &MusicPlayerViewModel::onPositionChanged);
+        connect(m_player, &QMediaPlayer::durationChanged, this, &MusicPlayerViewModel::onDurationChanged);
+        connect(m_player, &QMediaPlayer::mediaStatusChanged, this, &MusicPlayerViewModel::onMediaStatusChanged);
+        connect(m_player, &QMediaPlayer::errorOccurred, this, &MusicPlayerViewModel::onErrorOccurred);
+        m_audioOutput->setVolume(m_volume);
+    }
 
     // Throttled resume save (1-second single-shot)
     m_saveTimer = new QTimer(this);
@@ -37,9 +38,6 @@ MusicPlayerViewModel::MusicPlayerViewModel(QObject *parent)
     // Restore resume point
     m_lastIndex = m_settings.value("music/lastIndex", -1).toInt();
     m_lastPos = m_settings.value("music/lastPositionMs", 0).toLongLong();
-
-    // Apply initial volume
-    m_audioOutput->setVolume(m_volume);
 
     // Setup Scanner Thread
     m_scanner->moveToThread(&m_scannerThread);
@@ -111,14 +109,16 @@ void MusicPlayerViewModel::setCurrentIndex(int index)
         m_progress = 0.0f;
         emit progressChanged();
 
-        m_player->setSource(QUrl::fromLocalFile(m_songs[m_currentIndex].filePath));
-        m_player->play();
+        if (m_player) {
+            m_player->setSource(QUrl::fromLocalFile(m_songs[m_currentIndex].filePath));
+            m_player->play();
+        }
     }
 }
 
 bool MusicPlayerViewModel::isPlaying() const
 {
-    return m_player->isPlaying();
+    return m_player && m_player->isPlaying();
 }
 
 float MusicPlayerViewModel::progress() const
@@ -172,13 +172,24 @@ qint64 MusicPlayerViewModel::positionMs() const
     return m_positionMs;
 }
 
+bool MusicPlayerViewModel::scrubberDragging() const
+{
+    return m_scrubberDragging;
+}
+
+float MusicPlayerViewModel::scrubberRatio() const
+{
+    return m_scrubberRatio;
+}
+
 // ==== New setters / invokables (Step 1) ====
 void MusicPlayerViewModel::setVolume(float value)
 {
     float clamped = std::clamp(value, 0.0f, 1.0f);
     if (m_volume == clamped) return;
     m_volume = clamped;
-    m_audioOutput->setVolume(m_volume);
+    if (m_audioOutput)
+        m_audioOutput->setVolume(m_volume);
     emit volumeChanged();
 }
 
@@ -216,14 +227,14 @@ void MusicPlayerViewModel::cycleRepeat()
 
 void MusicPlayerViewModel::seek(float ratio)
 {
-    if (m_player->duration() <= 0) return; // no-op when no duration
+    if (!m_player || m_player->duration() <= 0) return; // no-op when no duration
     float clamped = std::clamp(ratio, 0.0f, 1.0f);
     m_player->setPosition(static_cast<qint64>(static_cast<float>(m_player->duration()) * clamped));
 }
 
 void MusicPlayerViewModel::seekMs(qint64 ms)
 {
-    if (m_player->duration() <= 0) return;
+    if (!m_player || m_player->duration() <= 0) return;
     qint64 clamped = std::clamp(ms, static_cast<qint64>(0), m_player->duration());
     m_player->setPosition(clamped);
 }
@@ -241,23 +252,58 @@ void MusicPlayerViewModel::clearError()
     }
 }
 
+void MusicPlayerViewModel::beginScrub(qreal position, qreal width)
+{
+    if (!m_scrubberDragging) {
+        m_scrubberDragging = true;
+        emit scrubberStateChanged();
+    }
+    updateScrub(position, width);
+}
+
+void MusicPlayerViewModel::updateScrub(qreal position, qreal width)
+{
+    if (width <= 0.0)
+        return;
+
+    const float ratio = std::clamp(static_cast<float>(position / width), 0.0f, 1.0f);
+    if (!qFuzzyCompare(m_scrubberRatio, ratio)) {
+        m_scrubberRatio = ratio;
+        emit scrubberStateChanged();
+    }
+    seek(ratio);
+}
+
+void MusicPlayerViewModel::endScrub()
+{
+    if (!m_scrubberDragging)
+        return;
+
+    m_scrubberDragging = false;
+    emit scrubberStateChanged();
+}
+
 // ==== Existing slots ====
 void MusicPlayerViewModel::play(int index)
 {
     if (index != -1 && index != m_currentIndex) {
         setCurrentIndex(index);
-    } else if (m_currentIndex >= 0 && m_currentIndex < m_songs.count()) {
+    } else if (m_player && m_currentIndex >= 0 && m_currentIndex < m_songs.count()) {
         m_player->play();
     }
 }
 
 void MusicPlayerViewModel::pause()
 {
-    m_player->pause();
+    if (m_player)
+        m_player->pause();
 }
 
 void MusicPlayerViewModel::togglePlayPause()
 {
+    if (!m_player)
+        return;
+
     if (m_player->isPlaying()) {
         m_player->pause();
     } else {
@@ -323,7 +369,8 @@ void MusicPlayerViewModel::onScanFinished()
         emit currentIndexChanged();
         m_progress = 0.0f;
         emit progressChanged();
-        m_player->setSource(QUrl::fromLocalFile(m_songs[m_currentIndex].filePath));
+        if (m_player)
+            m_player->setSource(QUrl::fromLocalFile(m_songs[m_currentIndex].filePath));
         // Mark resume pending so we can seek once duration is known
         if (m_lastPos > 0) {
             m_resumePending = true;
@@ -337,7 +384,7 @@ void MusicPlayerViewModel::onPositionChanged(qint64 position)
     m_positionMs = position;
     emit positionChanged();
 
-    if (m_player->duration() > 0) {
+    if (m_player && m_player->duration() > 0) {
         m_progress = static_cast<float>(position) / static_cast<float>(m_player->duration());
         emit progressChanged();
     }
@@ -351,13 +398,13 @@ void MusicPlayerViewModel::onDurationChanged(qint64 duration)
     emit durationChanged();
 
     // Apply pending resume seek once we know the duration
-    if (m_resumePending && duration > 0) {
+    if (m_resumePending && duration > 0 && m_player) {
         m_resumePending = false;
         qint64 clamped = std::clamp(m_lastPos, static_cast<qint64>(0), duration);
         m_player->setPosition(clamped);
     }
 
-    if (duration > 0) {
+    if (duration > 0 && m_player) {
         m_progress = static_cast<float>(m_player->position()) / static_cast<float>(duration);
         emit progressChanged();
     }
@@ -366,6 +413,9 @@ void MusicPlayerViewModel::onDurationChanged(qint64 duration)
 // ==== New internal slots (Step 1) ====
 void MusicPlayerViewModel::onMediaStatusChanged(QMediaPlayer::MediaStatus status)
 {
+    if (!m_player)
+        return;
+
     bool loading = (status == QMediaPlayer::LoadingMedia
                     || status == QMediaPlayer::BufferingMedia
                     || status == QMediaPlayer::StalledMedia);
@@ -418,9 +468,9 @@ void MusicPlayerViewModel::updatePlaybackState()
     MusicEnums::PlaybackState newState;
     if (m_isLoading) {
         newState = MusicEnums::PlaybackState::Loading;
-    } else if (m_player->isPlaying()) {
+    } else if (m_player && m_player->isPlaying()) {
         newState = MusicEnums::PlaybackState::Playing;
-    } else if (m_player->playbackState() == QMediaPlayer::PausedState) {
+    } else if (m_player && m_player->playbackState() == QMediaPlayer::PausedState) {
         newState = MusicEnums::PlaybackState::Paused;
     } else {
         newState = MusicEnums::PlaybackState::Stopped;

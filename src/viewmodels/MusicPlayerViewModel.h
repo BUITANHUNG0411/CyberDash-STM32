@@ -37,6 +37,8 @@ class MusicPlayerViewModel : public QAbstractListModel
     Q_PROPERTY(MusicEnums::RepeatMode repeatMode READ repeatMode WRITE setRepeatMode NOTIFY repeatModeChanged)
     Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
     Q_PROPERTY(qint64 positionMs READ positionMs NOTIFY positionChanged)
+    Q_PROPERTY(bool scrubberDragging READ scrubberDragging NOTIFY scrubberStateChanged)
+    Q_PROPERTY(float scrubberRatio READ scrubberRatio NOTIFY scrubberStateChanged)
 
 public:
     enum SongRoles {
@@ -48,7 +50,7 @@ public:
         CoverArtRole
     };
 
-    explicit MusicPlayerViewModel(QObject *parent = nullptr);
+    explicit MusicPlayerViewModel(QObject *parent = nullptr, bool multimediaEnabled = true);
     ~MusicPlayerViewModel() override;
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
@@ -71,6 +73,8 @@ public:
     MusicEnums::RepeatMode repeatMode() const;
     qint64 duration() const;
     qint64 positionMs() const;
+    bool scrubberDragging() const;
+    float scrubberRatio() const;
 
 public slots:
     void play(int index = -1);
@@ -87,6 +91,9 @@ public slots:
     Q_INVOKABLE void cycleRepeat();
     Q_INVOKABLE void clearError();
     Q_INVOKABLE void saveResume();
+    Q_INVOKABLE void beginScrub(qreal position, qreal width);
+    Q_INVOKABLE void updateScrub(qreal position, qreal width);
+    Q_INVOKABLE void endScrub();
 
     void setVolume(float value);
     void setShuffleMode(bool enabled);
@@ -120,6 +127,7 @@ signals:
     void durationChanged();
     void positionChanged();
     void playbackError(const QString& message);
+    void scrubberStateChanged();
 
 private:
     void updatePlaybackState();
@@ -145,12 +153,14 @@ private:
     int m_lastIndex = -1;
     qint64 m_lastPos = 0;
     bool m_resumePending = false;
+    bool m_scrubberDragging = false;
+    float m_scrubberRatio = 0.0f;
 
     QThread m_scannerThread;
     MusicScanner* m_scanner;
 
-    QMediaPlayer* m_player;
-    QAudioOutput* m_audioOutput;
+    QMediaPlayer* m_player = nullptr;
+    QAudioOutput* m_audioOutput = nullptr;
 
     QTimer* m_saveTimer;
     QSettings m_settings;

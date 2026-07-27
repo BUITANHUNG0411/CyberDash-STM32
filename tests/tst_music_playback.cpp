@@ -14,7 +14,7 @@ public:
 
 private slots:
     void cycleRepeat_test() {
-        MusicPlayerViewModel vm;
+        MusicPlayerViewModel vm(nullptr, false);
         QSignalSpy repeatSpy(&vm, &MusicPlayerViewModel::repeatModeChanged);
 
         // Off -> One -> All -> Off
@@ -30,7 +30,7 @@ private slots:
     }
 
     void toggleShuffle_test() {
-        MusicPlayerViewModel vm;
+        MusicPlayerViewModel vm(nullptr, false);
         QSignalSpy shuffleSpy(&vm, &MusicPlayerViewModel::shuffleModeChanged);
 
         QCOMPARE(vm.shuffleMode(), false);
@@ -43,7 +43,7 @@ private slots:
     }
 
     void volume_clamp_test() {
-        MusicPlayerViewModel vm;
+        MusicPlayerViewModel vm(nullptr, false);
         QSignalSpy volSpy(&vm, &MusicPlayerViewModel::volumeChanged);
 
         vm.setVolume(-0.5f);
@@ -61,7 +61,7 @@ private slots:
     }
 
     void seek_ratio_test() {
-        MusicPlayerViewModel vm;
+        MusicPlayerViewModel vm(nullptr, false);
         // No media loaded -> duration() == 0 -> seek is a no-op (must not crash).
         vm.seek(0.5f);
         vm.seekMs(1000);
@@ -71,13 +71,37 @@ private slots:
     }
 
     void playbackState_reporting_test() {
-        MusicPlayerViewModel vm;
+        MusicPlayerViewModel vm(nullptr, false);
         // Default state is Stopped (no loading, not playing).
         QCOMPARE(vm.playbackState(), PlaybackState::Stopped);
         // volume default 1.0, shuffle off, repeat off validated indirectly here
         QCOMPARE(vm.volume(), 1.0f);
         QCOMPARE(vm.shuffleMode(), false);
         QCOMPARE(vm.repeatMode(), RepeatMode::Off);
+    }
+
+    void scrubber_clamps_and_tracks_test() {
+        MusicPlayerViewModel vm(nullptr, false);
+        QSignalSpy spy(&vm, &MusicPlayerViewModel::scrubberStateChanged);
+
+        vm.beginScrub(150.0, 100.0);
+        QCOMPARE(vm.scrubberDragging(), true);
+        QCOMPARE(vm.scrubberRatio(), 1.0f);
+
+        vm.updateScrub(-10.0, 100.0);
+        QCOMPARE(vm.scrubberRatio(), 0.0f);
+
+        vm.endScrub();
+        QCOMPARE(vm.scrubberDragging(), false);
+        QVERIFY(spy.count() >= 3);
+    }
+
+    void scrubber_ignores_zero_width_test() {
+        MusicPlayerViewModel vm(nullptr, false);
+
+        vm.beginScrub(20.0, 0.0);
+        QCOMPARE(vm.scrubberDragging(), true);
+        QCOMPARE(vm.scrubberRatio(), 0.0f);
     }
 };
 

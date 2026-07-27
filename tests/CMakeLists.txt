@@ -43,6 +43,10 @@ target_link_libraries(tst_music_playback
 )
 
 add_test(NAME tst_music_playback COMMAND tst_music_playback)
+set_tests_properties(tst_music_playback PROPERTIES
+    ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
+    TIMEOUT 20
+)
 
 qt_add_executable(tst_serial_pipeline
     tst_serial_pipeline.cpp

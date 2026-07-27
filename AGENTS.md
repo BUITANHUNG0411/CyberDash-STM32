@@ -68,11 +68,12 @@ A scalable, highly interactive Qt 6 / QML PC application simulating a digital au
 | **Centralized Theme Ternaries** | `Theme.qml` color tokens are ternaries on chrome VMs (`ThemeController.isNight`, …) with `Behavior { ColorAnimation }` declared INSIDE the singleton — the whole app cross-fades with zero per-component changes. |
 | **C++-Driven Boot Choreography** | Startup sequence (`bootStage`/`bootProgress`) is a `QSequentialAnimationGroup` timeline in `ThemeViewModel`; QML only binds ternaries (telltale self-test → gauge sweep → content fade-in). |
 | **Dip Transition Masking** | Layout morphs use a sequential transition: fade+scale both arches to 0 → `PropertyAction` applies swaps while invisible → OutBack rise. Only `opacity`/`scale` are ever animated (never width/height on complex subtrees). |
-| **MultiEffect Sibling Source** | NEVER capture an ancestor that contains the same `MultiEffect` (for example `source: parent`) because recursive capture freezes accumulated frames. Use a non-recursive sibling source; hide it only when it exists solely as the effect input. Visible gauge-tick and map-route siblings are valid sources. |
+| **MultiEffect Sibling Source** | NEVER capture an ancestor that contains the same `MultiEffect` (for example `source: parent`) because recursive capture freezes accumulated frames. Use a non-recursive sibling source; hide it only when it exists solely as the effect input. Visible gauge-tick and road-edge siblings are valid sources. |
+| **Encoder-Compatible Perspective Road** | `PerspectiveRoadView` renders a fixed vehicle over one moving pseudo-3D road. All geometry comes from `RoadMotionViewModel`, currently fed by deterministic `MockWheelTelemetryService` left/right motion. Future hardware must supply measured encoder motion through the same boundary; commanded PWM is not odometry. |
 
 ## 6. Project Layout (Do not deviate without reason)
 ```text
-src/viewmodels/   src/services/  (flat: SimulatorService, SerialService, SerialTelemetryParser, TelemetryMapper, MockScenarioEngine, MusicScanner)
+src/viewmodels/   src/services/  (flat: SimulatorService, SerialService, SerialTelemetryParser, TelemetryMapper, MockScenarioEngine, MockWheelTelemetryService, MusicScanner)
 qml/components/   qml/screens/   resources/   docs/   .agents/
 ```
 

@@ -86,6 +86,19 @@ No checksummed outbound `SET` protocol is implemented in the current host code; 
 
 Parser, mapper, and no-hardware connection transitions have deterministic automated coverage in `tst_serial_pipeline`. Live STM32 wiring, firmware compatibility, unplug/replug behavior, motor control, and encoder feedback still require field validation.
 
+## 8. Perspective-Road Encoder Boundary
+
+The current road visualization is intentionally mock-first. `MockWheelTelemetryService` emits
+normalized left/right wheel motion plus elapsed time to `RoadMotionViewModel`. A future hardware
+adapter should decode two measured encoder channels, normalize them to the same `[0, 1]` motion
+contract, preserve left/right identity, and emit bounded elapsed intervals through that boundary.
+No QML change is expected when the source is replaced.
+
+PWM duty cycle is an actuator command, not a measurement of wheel motion. Differences in load,
+traction, motor constants, battery voltage, and closed-loop response mean PWM values cannot prove
+which wheel moved farther or slower. Use encoder counts or derived measured wheel speed for road
+curvature; PWM may be retained only as diagnostic/command telemetry.
+
 ## Troubleshooting
 
 - **Frame rejected:** include the terminating newline and recompute the checksum using the truncated integer part of battery voltage.
@@ -93,3 +106,5 @@ Parser, mapper, and no-hardware connection transitions have deterministic automa
 - **Repeated reconnects:** check device permissions, the `/dev/ttyUSB0` path, baud settings, firmware line endings, and checksum output.
 - **Stale partial frame after unplug:** ensure every failure path reuses `stopService()`, which clears the parser.
 - **UI stays on hardware after silence:** confirm the 500 ms watchdog is running after open and after every valid frame.
+- **Road turn disagrees with the robot:** validate encoder polarity, left/right channel assignment, counts-per-revolution, and sampling interval before changing curvature logic.
+- **Only PWM is available:** keep the road on mock data until measured wheel feedback exists; do not label PWM comparison as encoder motion.

@@ -39,11 +39,17 @@ Use declarative `State`, `PropertyChanges`, and `Transition`. The Car state rema
 
 ## 4. CenterHub
 
-Car mode uses `CenterHub.qml`, a `SwipeView` containing static Music and Map pages:
+Car mode uses `CenterHub.qml`, a `SwipeView` containing static Music and Perspective Road pages:
 
-- `MusicPlayer` preserves its lifetime while the user views the map.
-- `NeonMapView` binds route-marker position to C++ `MapModel.routeProgress`.
-- The page indicator and route use `Theme.accentCyan`, so drive-mode changes propagate.
+- `MusicPlayer` preserves its lifetime while the user views the road.
+- `PerspectiveRoadView` renders the fixed 24-row C++ `RoadMotion` model.
+- The vehicle arrow stays fixed near the bottom; the single road scrolls toward the viewer and bends only when the wheel-motion difference indicates a turn.
+- Road surfaces, lane markers, horizon glow, and the page indicator use centralized `Theme` tokens.
+
+The road is a driving-state visualization, not a geographic map. Do not add a street grid,
+route loop, GPS marker, tile provider, or QML-side steering math. Perspective slice geometry,
+curvature, phase recycling, and lateral accumulation belong to `RoadMotionViewModel`; QML
+may only bind model roles to `Shape` paths and presentation properties.
 
 Do not put window-drag handlers over this interactive region; the top drag strip must not steal gestures from `SwipeView`, `PathView`, or the scrubber.
 
@@ -81,7 +87,7 @@ Vehicle morphing uses the dip transition: fade and scale both arches down, apply
 > [!WARNING]
 > A `MultiEffect` source must not contain that effect. Never capture an ancestor such as `source: parent` when it creates recursive capture and frozen accumulated frames. Prefer a non-recursive sibling source.
 
-Hide a sibling source when it exists solely as an input to the effect, as with the music backdrop and some icon/text sources. A visible sibling is correct when the original must also render; gauge ticks and the map route are valid visible sources for their bloom effects.
+Hide a sibling source when it exists solely as an input to the effect, as with the music backdrop and some icon/text sources. A visible sibling is correct when the original must also render; gauge ticks and road edges are valid visible sources for their bloom effects.
 
 ## 7. Zero JavaScript
 
@@ -94,3 +100,5 @@ QML may use bindings, ternaries, declarative states, and a single direct call to
 - **Blur or glow freezes:** inspect `MultiEffect.source` for recursive parent capture and replace it with a sibling source.
 - **Text animation warns or jumps:** animate a numeric backing property and bind `Text.text` to its display value.
 - **Swipe or scrub drags the window:** restrict the window `DragHandler` to the top drag strip.
+- **Road looks like a top-down map:** preserve the fixed bottom vehicle, horizon convergence, widening near slices, and one-road composition.
+- **Road turn logic appears in QML:** move it to `RoadMotionViewModel` and expose only geometry/state roles.

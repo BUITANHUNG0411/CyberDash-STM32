@@ -116,6 +116,7 @@
 - [x] Historical Phase 15 verification: its then-current Zero-JS grep reported clean but did not cover every `Math` helper or handler/control-flow variant; build, 28 viewmodel tests, 8s smoke, and drive-mode/theme screenshots were recorded. Repository-wide Zero-JS completion is recorded in Phase 17.
 
 ## Phase 16: Center Hub (Music ⇄ Map) + Neon Map
+- [x] Historical implementation retained for traceability; the runtime neon map was superseded by Phase 18.
 - [x] Implement `MapViewModel` (TDD): `routeProgress` (0..1, fmod wrap) from odometer over an injectable `routeLengthKm` (default 2.0), context property `MapModel`, fed from `TripComputerViewModel::tripChanged` in `main.cpp`.
 - [x] Create `NeonMapView.qml`: Shapes-drawn neon map (street grid + grey side streets + accent-colored route loop with sibling-source MultiEffect bloom) in a 400×360 design space auto-scaled to fit; marker arrow positioned/rotated by `PathInterpolator { progress: MapModel.routeProgress }`; TRIP label reuses `TripComputer.tripDisplay`.
 - [x] Create `CenterHub.qml`: `SwipeView` (first QtQuick.Controls usage — static children never destroyed, MusicPlayer stays alive) with Music + Map pages and a custom neon `PageIndicator`.
@@ -135,3 +136,15 @@
 - [x] Close final branch-review follow-ups: direct connected-state fallback/reconnect regressions, test-safe music persistence, finite map invariants including tiny-route division overflow, and documentation/review-skill truth fixes (`4307a4d`, `1d863df`).
 - [x] Complete the final re-review with no remaining high-confidence Critical or Important findings; rerun configure, build, CTest 3/3, Zero-JS, module `qmllint`, range diff hygiene, and the 8-second offscreen smoke check.
 - [ ] Field-validate the serial pipeline with physical STM32 hardware.
+
+## Phase 18: Mock-Driven Perspective Road Visualizer
+- [x] Replace the generic neon route loop with one pseudo-3D road and a fixed vehicle marker.
+- [x] Implement `MockWheelTelemetryService` with deterministic straight → left → straight → right stages, injected targets, bounded intervals, and idempotent lifecycle behavior.
+- [x] Implement `RoadMotionViewModel` as a fixed 24-row `QAbstractListModel` with C++-owned speed, curvature, perspective geometry, phase recycling, accumulated lateral offset, input sanitization, and stale-input stop.
+- [x] Expose `RoadMotion` to passive QML and render it in `PerspectiveRoadView.qml`; retire `MapViewModel`, `MapModel`, `NeonMapView`, and `routeProgress`.
+- [x] Add and register `tst_road_motion` with 17 focused behavior tests covering the mock source and road-motion invariants.
+- [x] Close the final review's center-dash parity finding with a RED/GREEN partial-wrap regression and absolute segment ordinal.
+- [x] Complete focused C++/QML reviews with no remaining high-confidence defect in the Phase 18 implementation.
+- [x] Synchronize active Markdown while preserving Phase 16 as historical context.
+- [x] Complete and record the fresh Phase 18 configure/build/CTest/Zero-JS/QML-lint/smoke verification matrix.
+- [ ] Replace mock wheel input with field-validated, measured left/right encoder telemetry; do not substitute commanded PWM for motion feedback.

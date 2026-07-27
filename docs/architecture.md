@@ -14,9 +14,9 @@
 | `VehicleMode` | `VehicleModeViewModel` | Car, Bike, and Scooter state |
 | `DriveMode` | `DriveModeViewModel` | NORMAL, SPORT, and ECO state |
 | `TripComputer` | `TripComputerViewModel` | Odometer, trip, and average speed |
-| `MapModel` | `MapViewModel` | Route progress derived from odometer distance |
+| `RoadMotion` | `RoadMotionViewModel` | Fixed-size perspective-road geometry and normalized wheel-motion state |
 
-`SimulatorService`, `SerialService`, and `QElapsedTimer` are also stack-owned in `main.cpp`. QObject parent ownership covers each service's internal timers and serial port.
+`SimulatorService`, `SerialService`, `MockWheelTelemetryService`, and `QElapsedTimer` are also stack-owned in `main.cpp`. QObject parent ownership covers each service's internal timers and serial port.
 
 ## 2. Telemetry Contracts
 
@@ -35,18 +35,27 @@ flowchart LR
     Mapper --> Main
     Main --> Status[VehicleStatusViewModel]
     Main --> Trip[TripComputerViewModel]
-    Trip --> Map[MapViewModel]
+    MockWheel[MockWheelTelemetryService] -->|left/right normalized motion + elapsed ms| Road[RoadMotionViewModel]
     Status --> QML[Passive QML view]
     Trip --> QML
-    Map --> QML
+    Road --> QML
 ```
 
 The `isHardwareConnected` gate ensures simulator updates are accepted only while serial is disconnected and serial updates only after a valid frame establishes the connection. A source switch restarts the trip clock so disconnected time is not integrated as distance.
 
-`MapViewModel` accepts only a finite positive route length; invalid constructor
-input falls back to the 2 km default. Distance updates must be finite and
-nonnegative; invalid values reset progress to route start. Its published
-`routeProgress` therefore remains finite and within `[0, 1)`.
+The road pipeline is independent of dashboard odometer integration. `MockWheelTelemetryService`
+currently emits a deterministic straight → left → straight → right sequence. Each accepted
+sample contains normalized left/right wheel motion and a bounded elapsed interval.
+`RoadMotionViewModel` converts their mean into forward speed and their difference into
+bounded curvature. It exposes a fixed 24-row `QAbstractListModel`; QML renders those rows
+without calculating road geometry. The vehicle remains fixed while row phase and accumulated
+lateral offset make the road move beneath it. Invalid/non-finite samples are sanitized, large
+elapsed intervals are clamped, and stale input stops forward motion.
+
+This signal boundary is intentionally encoder-compatible: a future hardware adapter may emit
+measured left/right wheel motion with the same semantics and replace the mock source without
+changing `RoadMotionViewModel` or QML. Motor PWM is a command, not measured motion, and must
+not be treated as encoder feedback.
 
 ## 3. Parser and Mapper Boundaries
 
@@ -68,7 +77,7 @@ TEL,118,11.8,0;129\n
 
 `QSerialPort`, `SerialTelemetryParser`, `TelemetryMapper`, and ViewModel updates run on the GUI thread. `readyRead` work is bounded and non-blocking: read available bytes, split complete lines, validate, emit.
 
-Only media directory scanning runs on a worker thread. `MusicScanner` uses the worker-object pattern with `QThread` and `QDirIterator`; results return to `MusicPlayerViewModel` through queued signals.
+Only media directory scanning runs on a worker thread. `MusicScanner` uses the worker-object pattern with `QThread` and `QDirIterator`; results return to `MusicPlayerViewModel` through queued signals. Mock wheel timers and road-model updates remain bounded GUI-thread work.
 
 > [!WARNING]
 > Do not move a QObject with a parent to another thread, block the GUI thread waiting for serial input, or access QML-owned state from the music scanner worker.
@@ -98,3 +107,5 @@ Every ViewModel inherits `QObject`, declares `Q_OBJECT`, exposes observable stat
 - **Partial data survives a disconnect:** all stop, resource-error, and watchdog paths must call `SerialTelemetryParser::clear()`.
 - **UI freezes during scanning:** confirm only `MusicScanner` performs `QDirIterator` work and that it remains on its worker thread.
 - **QML contains interaction math:** move it into a ViewModel invokable/property and leave only a direct call or binding in QML.
+- **Road keeps moving after input disappears:** confirm the `RoadMotionViewModel` stale-input timer is active and receives accepted samples.
+- **Hardware road direction is wrong:** compare measured left/right encoder channel semantics at the adapter boundary; do not compensate by adding math to QML.

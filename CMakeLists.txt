@@ -27,6 +27,8 @@ qt_add_executable(${PROJECT_NAME}
     src/services/SimulatorService.cpp
     src/services/MockScenarioEngine.cpp
     src/services/SerialService.cpp
+    src/services/SerialTelemetryParser.cpp
+    src/services/TelemetryMapper.cpp
     src/services/MusicScanner.cpp
 )
 

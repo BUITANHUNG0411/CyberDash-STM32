@@ -43,3 +43,20 @@ target_link_libraries(tst_music_playback
 )
 
 add_test(NAME tst_music_playback COMMAND tst_music_playback)
+
+qt_add_executable(tst_serial_pipeline
+    tst_serial_pipeline.cpp
+    ../src/services/SerialTelemetryParser.cpp
+    ../src/services/TelemetryMapper.cpp
+)
+
+target_include_directories(tst_serial_pipeline PRIVATE ../src)
+
+target_link_libraries(tst_serial_pipeline
+    PRIVATE
+    Qt6::Core
+    Qt6::Test
+    Qt6::SerialPort
+)
+
+add_test(NAME tst_serial_pipeline COMMAND tst_serial_pipeline)

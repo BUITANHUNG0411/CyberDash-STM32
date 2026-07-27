@@ -46,6 +46,7 @@ add_test(NAME tst_music_playback COMMAND tst_music_playback)
 
 qt_add_executable(tst_serial_pipeline
     tst_serial_pipeline.cpp
+    ../src/services/SerialService.cpp
     ../src/services/SerialTelemetryParser.cpp
     ../src/services/TelemetryMapper.cpp
 )

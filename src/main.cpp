@@ -1,5 +1,6 @@
 #include "services/SerialService.h"
 #include "services/SimulatorService.h"
+#include "services/TelemetryMapper.h"
 #include "viewmodels/VehicleStatusViewModel.h"
 #include "viewmodels/MusicPlayerViewModel.h"
 #include "viewmodels/ThemeViewModel.h"
@@ -42,12 +43,17 @@ int main(int argc, char *argv[]) {
       }
   });
 
-  // Route telemetry from SerialService
-  QObject::connect(&serialService, &SerialService::telemetryUpdated, [&](double speed, int rpm, const QString &gear, bool isWarning, int battery, int range, int temperature) {
-      if (isHardwareConnected) {
-          vm.updateTelemetry(speed, rpm, gear, isWarning, battery, range, temperature);
-          tripVm.updateSpeed(speed, tripClock.restart()); // restart() returns elapsed ms
+  // Route raw telemetry from SerialService through the shared dashboard mapper.
+  QObject::connect(&serialService, &SerialService::rawTelemetryUpdated,
+                   [&](int rpm, double batteryVoltage, int errorCode) {
+      if (!isHardwareConnected) {
+          return;
       }
+      const DashboardTelemetry data =
+          TelemetryMapper::fromSerial({rpm, batteryVoltage, errorCode});
+      vm.updateTelemetry(data.speed, data.rpm, data.gear, data.warning,
+                         data.battery, data.range, data.temperature);
+      tripVm.updateSpeed(data.speed, tripClock.restart()); // restart() returns elapsed ms
   });
 
   // Route telemetry from SimulatorService

@@ -2,6 +2,7 @@
 
 #include <limits>
 
+#include "services/SerialService.h"
 #include "services/SerialTelemetryParser.h"
 #include "services/TelemetryMapper.h"
 
@@ -65,6 +66,62 @@ private slots:
         QCOMPARE(value.battery, 100);
         QCOMPARE(value.range, 325);
         QCOMPARE(value.temperature, 57);
+    }
+
+    void resourceErrorEmitsDisconnectedOnce()
+    {
+        SerialService service(QStringLiteral("/definitely/not/a/serial/port"));
+        QSignalSpy spy(&service, &SerialService::connectionStatusChanged);
+
+        QVERIFY(QMetaObject::invokeMethod(
+            &service, "handleError", Qt::DirectConnection,
+            Q_ARG(QSerialPort::SerialPortError, QSerialPort::ResourceError)));
+        QCOMPARE(spy.count(), 1);
+        QCOMPARE(spy.takeFirst().at(0).toBool(), false);
+
+        QVERIFY(QMetaObject::invokeMethod(&service, "handleWatchdogTimeout",
+                                          Qt::DirectConnection));
+        QCOMPARE(spy.count(), 0);
+    }
+
+    void validBytesEmitRawTelemetry()
+    {
+        SerialService service(QStringLiteral("/definitely/not/a/serial/port"));
+        QSignalSpy telemetrySpy(&service, &SerialService::rawTelemetryUpdated);
+        QSignalSpy connectionSpy(&service, &SerialService::connectionStatusChanged);
+
+        QVERIFY(QMetaObject::invokeMethod(
+            &service, "processIncomingBytes", Qt::DirectConnection,
+            Q_ARG(QByteArray, QByteArray("TEL,118,11.8,0;129\n"))));
+        QCOMPARE(telemetrySpy.count(), 1);
+        const QList<QVariant> arguments = telemetrySpy.takeFirst();
+        QCOMPARE(arguments.at(0).toInt(), 118);
+        QCOMPARE(arguments.at(1).toDouble(), 11.8);
+        QCOMPARE(arguments.at(2).toInt(), 0);
+        QCOMPARE(connectionSpy.count(), 1);
+        QVERIFY(connectionSpy.takeFirst().at(0).toBool());
+    }
+
+    void disconnectClearsPartialFrame()
+    {
+        SerialService service(QStringLiteral("/definitely/not/a/serial/port"));
+        QSignalSpy telemetrySpy(&service, &SerialService::rawTelemetryUpdated);
+
+        QVERIFY(QMetaObject::invokeMethod(
+            &service, "processIncomingBytes", Qt::DirectConnection,
+            Q_ARG(QByteArray, QByteArray("TEL,118,11."))));
+        QVERIFY(QMetaObject::invokeMethod(
+            &service, "handleError", Qt::DirectConnection,
+            Q_ARG(QSerialPort::SerialPortError, QSerialPort::ResourceError)));
+        QVERIFY(QMetaObject::invokeMethod(
+            &service, "processIncomingBytes", Qt::DirectConnection,
+            Q_ARG(QByteArray, QByteArray("8,0;129\n"))));
+        QCOMPARE(telemetrySpy.count(), 0);
+
+        QVERIFY(QMetaObject::invokeMethod(
+            &service, "processIncomingBytes", Qt::DirectConnection,
+            Q_ARG(QByteArray, QByteArray("TEL,118,11.8,0;129\n"))));
+        QCOMPARE(telemetrySpy.count(), 1);
     }
 };
 

@@ -2,6 +2,8 @@ pragma Singleton
 import QtQuick
 
 QtObject {
+    id: root
+
     // Cyberpunk Color Palette — Night (default) / Day (Light Glassmorphism)
     // Themed tokens are non-readonly because a Behavior cannot attach to a readonly property.
     property color backgroundDeepSpace: ThemeController.isNight ? "#0B0C10" : "#DDE7EE"
@@ -23,6 +25,13 @@ QtObject {
     property color roadSurface: ThemeController.isNight ? "#CC111A24" : "#DDE5EBF0"
     property color roadLaneMarker: ThemeController.isNight ? "#E6FFFFFF" : "#CC1A2530"
     property color roadHorizonGlow: ThemeController.isNight ? "#4066FCF1" : "#3000857C"
+    property color encoderSky: ThemeController.isNight ? "#061126" : "#BDD7E7"
+    property color encoderGround: ThemeController.isNight ? "#071018" : "#9AADB8"
+    property color hypercarBody: ThemeController.isNight ? "#37677E" : "#B7D7E5"
+    property color hypercarGlass: ThemeController.isNight ? "#0B1D2E" : "#416B7C"
+    property color hypercarTailLamp: ThemeController.isNight ? "#FF4E63" : "#C51F36"
+    property color hypercarShadow: ThemeController.isNight ? "#B802070C" : "#6607131A"
+    property color hypercarHighlight: ThemeController.isNight ? "#B89DEFFF" : "#CC007A75"
 
     property color tickLitMajor: ThemeController.isNight ? "#FFB3CC" : "#D81B60"
     property color tickLitMinor: ThemeController.isNight ? "#FFFFFF" : "#0E8F88"
@@ -47,6 +56,13 @@ QtObject {
     Behavior on roadSurface { ColorAnimation { duration: durationTheme } }
     Behavior on roadLaneMarker { ColorAnimation { duration: durationTheme } }
     Behavior on roadHorizonGlow { ColorAnimation { duration: durationTheme } }
+    Behavior on encoderSky { ColorAnimation { duration: durationTheme } }
+    Behavior on encoderGround { ColorAnimation { duration: durationTheme } }
+    Behavior on hypercarBody { ColorAnimation { duration: durationTheme } }
+    Behavior on hypercarGlass { ColorAnimation { duration: durationTheme } }
+    Behavior on hypercarTailLamp { ColorAnimation { duration: durationTheme } }
+    Behavior on hypercarShadow { ColorAnimation { duration: durationTheme } }
+    Behavior on hypercarHighlight { ColorAnimation { duration: durationTheme } }
     Behavior on tickLitMajor { ColorAnimation { duration: durationTheme } }
     Behavior on tickLitMinor { ColorAnimation { duration: durationTheme } }
     Behavior on tickDimMajor { ColorAnimation { duration: durationTheme } }
@@ -87,6 +103,14 @@ QtObject {
     readonly property int spaceLg: 10
     readonly property int spaceXl: 24
     readonly property int spaceXXl: 40
+
+    // Encoder chase scene geometry
+    readonly property real encoderRoadHorizon: 0.16
+    readonly property int encoderVehicleWidth: 260
+    readonly property int encoderVehicleHeight: 230
+    readonly property int encoderVehicleTravel: 56
+    readonly property real encoderVehicleScale: 0.78
+    readonly property int encoderVehicleBottomMargin: 8
 
     // Bezel Geometry
     readonly property real bezelMargin: 20

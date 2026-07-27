@@ -3,11 +3,26 @@
 #include <QObject>
 #include <QTimer>
 
+#include <array>
+#include <chrono>
+
+struct WheelMotionTarget
+{
+    double left = 1.0;
+    double right = 1.0;
+};
+
 struct MockWheelTelemetryConfig
 {
     qint64 stageDurationMs = 4000;
     qint64 transitionDurationMs = 1000;
-    int timerIntervalMs = 33;
+    std::chrono::milliseconds timerInterval = std::chrono::milliseconds{33};
+    std::array<WheelMotionTarget, 4> targets = {{
+        {1.0, 1.0},
+        {0.65, 1.0},
+        {1.0, 1.0},
+        {1.0, 0.65}
+    }};
 };
 
 class MockWheelTelemetryService final : public QObject
@@ -29,13 +44,8 @@ signals:
                                qint64 elapsedMs);
 
 private:
-    struct WheelTarget {
-        double left;
-        double right;
-    };
-
-    WheelTarget targetForStage(int stage) const;
-    WheelTarget previousTargetForStage(int stage) const;
+    WheelMotionTarget targetForStage(int stage) const;
+    WheelMotionTarget previousTargetForStage(int stage) const;
     void advanceStageClock(qint64 elapsedMs);
 
     MockWheelTelemetryConfig m_config;

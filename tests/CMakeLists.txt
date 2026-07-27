@@ -69,6 +69,7 @@ add_test(NAME tst_serial_pipeline COMMAND tst_serial_pipeline)
 qt_add_executable(tst_road_motion
     tst_road_motion.cpp
     ../src/services/MockWheelTelemetryService.cpp
+    ../src/viewmodels/RoadMotionViewModel.cpp
 )
 
 target_include_directories(tst_road_motion PRIVATE ../src)

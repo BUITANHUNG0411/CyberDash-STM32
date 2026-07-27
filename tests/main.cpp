@@ -1,13 +1,10 @@
 #include <QtTest>
 #include <QCoreApplication>
-#include <cmath>
-#include <limits>
 #include "viewmodels/VehicleStatusViewModel.h"
 #include "viewmodels/ThemeViewModel.h"
 #include "viewmodels/VehicleModeViewModel.h"
 #include "viewmodels/DriveModeViewModel.h"
 #include "viewmodels/TripComputerViewModel.h"
-#include "viewmodels/MapViewModel.h"
 
 class TestViewModels : public QObject
 {
@@ -344,75 +341,6 @@ private slots:
         QCOMPARE(trip.odometerKm(), 2.0);
     }
 
-    // --- MapViewModel (Phase 16) ---
-
-    void testMapDefaults() {
-        MapViewModel map;
-        QCOMPARE(map.routeProgress(), 0.0);
-    }
-
-    void testMapProgressAdvances() {
-        MapViewModel map(2.0);
-        QSignalSpy spy(&map, &MapViewModel::routeProgressChanged);
-
-        map.updateDistance(0.5); // 0.5 km on a 2.0 km loop -> 0.25
-        QCOMPARE(map.routeProgress(), 0.25);
-        QCOMPARE(spy.count(), 1);
-
-        map.updateDistance(0.5); // same value -> no re-emit
-        QCOMPARE(spy.count(), 1);
-    }
-
-    void testMapProgressWraps() {
-        MapViewModel map(2.0);
-        map.updateDistance(2.5); // wraps past 1.0 -> 0.25
-        QCOMPARE(map.routeProgress(), 0.25);
-    }
-
-    void testMapInvalidRouteLengthsUseSafeDefault() {
-        const double invalidLengths[] = {
-            0.0,
-            -2.0,
-            (std::numeric_limits<double>::infinity)(),
-            std::numeric_limits<double>::quiet_NaN()
-        };
-
-        for (double routeLength : invalidLengths) {
-            MapViewModel map(routeLength);
-            map.updateDistance(0.5);
-            QVERIFY(std::isfinite(map.routeProgress()));
-            QCOMPARE(map.routeProgress(), 0.25);
-        }
-    }
-
-    void testMapInvalidDistancesResetToRouteStart() {
-        MapViewModel map(2.0);
-        map.updateDistance(0.5);
-        QCOMPARE(map.routeProgress(), 0.25);
-
-        const double invalidDistances[] = {
-            -1.0,
-            (std::numeric_limits<double>::infinity)(),
-            std::numeric_limits<double>::quiet_NaN()
-        };
-
-        for (double distance : invalidDistances) {
-            map.updateDistance(distance);
-            QVERIFY(std::isfinite(map.routeProgress()));
-            QCOMPARE(map.routeProgress(), 0.0);
-        }
-    }
-
-    void testMapTinyPositiveRouteLengthCannotOverflowProgress() {
-        MapViewModel map((std::numeric_limits<double>::denorm_min)());
-
-        map.updateDistance(1.0);
-
-        QVERIFY(std::isfinite(map.routeProgress()));
-        QVERIFY(map.routeProgress() >= 0.0);
-        QVERIFY(map.routeProgress() < 1.0);
-        QCOMPARE(map.routeProgress(), 0.0);
-    }
 };
 
 QTEST_MAIN(TestViewModels)

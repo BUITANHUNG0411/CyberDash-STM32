@@ -49,7 +49,6 @@ qt_add_qml_module(${PROJECT_NAME}
         qml/components/NeonIcon.qml
         qml/components/NeonIconButton.qml
         qml/components/RangeTripCard.qml
-        qml/components/NeonMapView.qml
         qml/components/PerspectiveRoadView.qml
         qml/components/CenterHub.qml
         qml/screens/DashboardScreen.qml
@@ -85,8 +84,6 @@ qt_add_qml_module(${PROJECT_NAME}
         src/viewmodels/DriveModeViewModel.cpp
         src/viewmodels/TripComputerViewModel.h
         src/viewmodels/TripComputerViewModel.cpp
-        src/viewmodels/MapViewModel.h
-        src/viewmodels/MapViewModel.cpp
         src/viewmodels/RoadMotionViewModel.h
         src/viewmodels/RoadMotionViewModel.cpp
 )

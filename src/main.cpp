@@ -8,7 +8,6 @@
 #include "viewmodels/VehicleModeViewModel.h"
 #include "viewmodels/DriveModeViewModel.h"
 #include "viewmodels/TripComputerViewModel.h"
-#include "viewmodels/MapViewModel.h"
 #include "viewmodels/RoadMotionViewModel.h"
 #include <QElapsedTimer>
 #include <QGuiApplication>
@@ -21,10 +20,7 @@ int main(int argc, char *argv[]) {
 
   VehicleStatusViewModel vm;
   TripComputerViewModel tripVm;
-  MapViewModel mapVm;
   RoadMotionViewModel roadMotionVm;
-  QObject::connect(&tripVm, &TripComputerViewModel::tripChanged, &mapVm,
-                   [&tripVm, &mapVm]() { mapVm.updateDistance(tripVm.odometerKm()); });
   QElapsedTimer tripClock;
   tripClock.start();
 
@@ -91,7 +87,6 @@ int main(int argc, char *argv[]) {
   engine.rootContext()->setContextProperty("VehicleMode", &vehicleModeVm);
   engine.rootContext()->setContextProperty("DriveMode", &driveModeVm);
   engine.rootContext()->setContextProperty("TripComputer", &tripVm);
-  engine.rootContext()->setContextProperty("MapModel", &mapVm);
   engine.rootContext()->setContextProperty("RoadMotion", &roadMotionVm);
 
   QObject::connect(&themeVm, &ThemeViewModel::windowMoveRequested, &engine, [&engine]() {

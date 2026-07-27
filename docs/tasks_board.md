@@ -130,5 +130,5 @@
 - [x] Move volume normalization into C++, replace the remaining QML `Math` helpers with ternary bindings, and pass the exact repository-wide Zero-JS scan plus formal changed-line QML re-review (`58dae97`).
 - [x] Register and pass the three focused targets reported by Tasks 1–3: `tst_viewmodels`, `tst_music_playback`, and `tst_serial_pipeline`.
 - [x] Synchronize active project documentation with the committed implementation and preserve corrected historical context.
-- [ ] Complete the full pre-feature verification matrix and record its fresh evidence (Task 5).
+- [x] Complete the full pre-feature verification matrix and record its fresh evidence (Task 5).
 - [ ] Field-validate the serial pipeline with physical STM32 hardware.

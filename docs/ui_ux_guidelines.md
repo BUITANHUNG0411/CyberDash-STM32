@@ -44,7 +44,7 @@ Car mode uses `CenterHub.qml`, a `SwipeView` containing static Music and Encoder
 - `MusicPlayer` preserves its lifetime while the user views the road.
 - `EncoderDriveView` renders `EncoderDriveViewModel`'s finite normalized road paths as one continuous road with no lane divider.
 - `HypercarView` draws the rear of a low, wide hypercar entirely with Qt Quick vector shapes.
-- C++-owned lateral offset and yaw move the car while C++-owned curvature bends the road; the response is straight below 5% relative wheel-speed difference, gentle from 5% through 20%, and strong above 20%.
+- C++-owned lateral offset and yaw move the car while C++-owned curvature bends the road; the response is straight below 5% relative wheel-speed difference, gentle from 5% through 20%, and strong above 20%. Strong turns should visibly yaw the hypercar into the turn and amplify the horizon bend, while the near road only shifts subtly so it remains visually calm around the car.
 - Road surface, horizon glow, hypercar body/glass/lamp colors, and the page indicator use centralized `Theme` tokens.
 
 The road is a driving-state visualization, not a geographic map. Do not add a street grid,

@@ -1,5 +1,6 @@
 #include <QtTest>
 
+#include <array>
 #include <cmath>
 #include <limits>
 
@@ -28,6 +29,42 @@ void verifyFiniteNormalizedPath(const QString &path)
         ++coordinateCount;
     }
     QVERIFY(coordinateCount >= 8);
+}
+
+struct RoadPathCoordinates
+{
+    double horizonLeftX = 0.0;
+    double horizonY = 0.0;
+    double nearLeftX = 0.0;
+    double nearY = 0.0;
+    double nearRightX = 0.0;
+    double horizonRightX = 0.0;
+};
+
+RoadPathCoordinates parseRoadPath(const QString &path)
+{
+    const QRegularExpression coordinatePattern(
+        QStringLiteral(R"((-?\d+\.\d+))"));
+    QRegularExpressionMatchIterator matches =
+        coordinatePattern.globalMatch(path);
+    std::array<double, 8> coordinates{};
+    int index = 0;
+    while (matches.hasNext() && index < static_cast<int>(coordinates.size())) {
+        coordinates[static_cast<std::size_t>(index)] =
+            matches.next().captured(1).toDouble();
+        ++index;
+    }
+    if (index != static_cast<int>(coordinates.size())) {
+        return {};
+    }
+    return {
+        coordinates[0],
+        coordinates[1],
+        coordinates[2],
+        coordinates[3],
+        coordinates[4],
+        coordinates[6],
+    };
 }
 }
 
@@ -67,6 +104,25 @@ private slots:
 
         QVERIFY(scene.forwardSpeed() > 0.0);
         QVERIFY(!scene.roadPath().isEmpty());
+    }
+
+    void defaultMockReachesStrongTurnWithinTenSeconds()
+    {
+        MockWheelTelemetryService mock;
+        EncoderDriveViewModel scene;
+        QObject::connect(
+            &mock,
+            &MockWheelTelemetryService::wheelTelemetryUpdated,
+            &scene,
+            &EncoderDriveViewModel::updateWheelMotion);
+
+        for (int sample = 0; sample < 96; ++sample) {
+            mock.advance(100);
+        }
+
+        QCOMPARE(scene.turnState(), EncoderDriveViewModel::TurningLeft);
+        QVERIFY(std::abs(scene.vehicleYawDegrees()) >= 10.0);
+        QVERIFY(std::abs(scene.roadCurvature()) >= 0.50);
     }
 
     void mockVisitsGentleAndStrongStages()
@@ -278,6 +334,34 @@ private slots:
         QCOMPARE(curvatureSpy.size(), 1);
     }
 
+    void strongTurnCreatesPronouncedVehicleAndRoadCue()
+    {
+        EncoderDriveViewModel gentleModel;
+        gentleModel.updateWheelMotion(0.90, 1.00, 100);
+
+        EncoderDriveViewModel strongModel;
+        const RoadPathCoordinates straight =
+            parseRoadPath(strongModel.roadPath());
+        strongModel.updateWheelMotion(0.55, 1.00, 100);
+        const RoadPathCoordinates curved =
+            parseRoadPath(strongModel.roadPath());
+
+        const double horizonShift =
+            std::abs(curved.horizonLeftX - straight.horizonLeftX);
+        const double nearShift =
+            std::abs(curved.nearLeftX - straight.nearLeftX);
+
+        QCOMPARE(strongModel.turnState(), EncoderDriveViewModel::TurningLeft);
+        QVERIFY(std::abs(strongModel.vehicleYawDegrees()) >= 10.0);
+        QVERIFY(std::abs(strongModel.roadCurvature()) >= 0.50);
+        QVERIFY(std::abs(strongModel.vehicleYawDegrees())
+                >= std::abs(gentleModel.vehicleYawDegrees()) * 8.0);
+        QVERIFY(std::abs(strongModel.roadCurvature())
+                >= std::abs(gentleModel.roadCurvature()) * 8.0);
+        QVERIFY(nearShift > 0.0);
+        QVERIFY(horizonShift > nearShift * 3.0);
+    }
+
     void oppositeWheelDifferenceTurnsRight()
     {
         EncoderDriveViewModel model;
@@ -341,6 +425,27 @@ private slots:
         QCOMPARE(stoppedRoadSpy.size(), 0);
         QCOMPARE(stoppedEdgeSpy.size(), 0);
         QCOMPARE(stoppedSpeedSpy.size(), 0);
+    }
+
+    void roadNearEdgeMovesSubtlyWhileHorizonBends()
+    {
+        EncoderDriveViewModel model;
+        const RoadPathCoordinates straight = parseRoadPath(model.roadPath());
+
+        model.updateWheelMotion(0.55, 1.00, 100);
+        const RoadPathCoordinates curved = parseRoadPath(model.roadPath());
+
+        const double horizonShift =
+            std::abs(curved.horizonLeftX - straight.horizonLeftX);
+        const double nearShift =
+            std::abs(curved.nearLeftX - straight.nearLeftX);
+
+        QVERIFY(nearShift > 0.0);
+        QVERIFY(horizonShift > nearShift * 3.0);
+        QVERIFY(std::abs(curved.nearRightX - straight.nearRightX)
+                <= nearShift + 0.001);
+        QVERIFY(curved.horizonLeftX < straight.horizonLeftX);
+        QVERIFY(curved.horizonRightX < straight.horizonRightX);
     }
 
     void invalidAndExtremeSamplesStayBounded()

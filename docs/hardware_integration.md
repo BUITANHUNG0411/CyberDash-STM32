@@ -99,7 +99,9 @@ is expected when the source is replaced.
 `abs(right - left) / mean(left, right)`: below 5% is straight, 5% through 20% is gentle,
 and above 20% is a strong turn. Right faster than left means the vehicle turns left; left
 faster than right means it turns right. Firmware and the host adapter must preserve those
-semantics rather than compensating in QML.
+semantics rather than compensating in QML. The presentation lets the car yaw into the detected
+turn and amplifies the horizon bend; the near road shifts only subtly to avoid a distracting
+whole-road slide.
 
 PWM duty cycle is an actuator command, not a measurement of wheel motion. Differences in load,
 traction, motor constants, battery voltage, and closed-loop response mean PWM values cannot prove

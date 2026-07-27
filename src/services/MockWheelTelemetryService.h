@@ -14,8 +14,8 @@ struct WheelMotionTarget
 
 struct MockWheelTelemetryConfig
 {
-    qint64 stageDurationMs = 4000;
-    qint64 transitionDurationMs = 1000;
+    qint64 stageDurationMs = 2200;
+    qint64 transitionDurationMs = 800;
     std::chrono::milliseconds timerInterval = std::chrono::milliseconds{33};
     std::array<WheelMotionTarget, 7> targets = {{
         {1.00, 1.00}, // straight

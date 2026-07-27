@@ -5,8 +5,8 @@
 #include <cmath>
 
 namespace {
-constexpr qint64 kDefaultStageDurationMs = 4000;
-constexpr qint64 kDefaultTransitionDurationMs = 1000;
+constexpr qint64 kDefaultStageDurationMs = 2200;
+constexpr qint64 kDefaultTransitionDurationMs = 800;
 constexpr std::chrono::milliseconds kDefaultTimerInterval{33};
 constexpr std::chrono::milliseconds kMaximumTimerInterval{100};
 constexpr qint64 kMaximumAdvanceMs = 100;

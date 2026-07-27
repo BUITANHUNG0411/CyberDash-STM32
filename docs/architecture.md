@@ -45,17 +45,21 @@ The `isHardwareConnected` gate ensures simulator updates are accepted only while
 
 The encoder-drive pipeline is independent of dashboard odometer integration.
 `MockWheelTelemetryService` cycles through seven targets: straight, gentle left, straight,
-gentle right, strong left, straight, and strong right. Each accepted sample contains normalized
-left/right wheel motion and a bounded elapsed interval. `EncoderDriveViewModel` converts their
-mean into forward speed and their signed relative difference into turn state, lateral offset,
-yaw, curvature, and finite normalized `roadPath`/`roadEdgePath` strings.
+gentle right, strong left, straight, and strong right. Its default stage timing is tuned for
+mock demonstration rather than hardware realism, so a clear strong-turn sample appears within
+roughly the first ten seconds. Each accepted sample contains normalized left/right wheel motion
+and a bounded elapsed interval. `EncoderDriveViewModel` converts their mean into forward speed
+and their signed relative difference into turn state, lateral offset, yaw, curvature, and finite
+normalized `roadPath`/`roadEdgePath` strings.
 
 The relative difference is `abs(right - left) / mean(left, right)`: below 5% is straight,
 5% through 20% is a gentle turn, and above 20% is a strong turn. A faster right wheel produces
 a left turn; a faster left wheel produces a right turn. Invalid/non-finite samples are
 sanitized, elapsed intervals are capped, and stale input decays speed, yaw, and curvature back
 toward straight. `EncoderDriveView` and `HypercarView` are passive: they render the C++ pose and
-paths as one continuous road with no lane divider and a rear-view vector hypercar.
+paths as one continuous road with no lane divider and a rear-view vector hypercar. Strong turns
+now produce a pronounced same-direction vehicle yaw and a larger horizon bend, while the near
+road shifts only subtly so the scene does not feel like the entire road is sliding.
 
 This signal boundary is intentionally encoder-compatible: a future hardware adapter may emit
 measured left/right wheel motion with the same semantics and replace the mock source without

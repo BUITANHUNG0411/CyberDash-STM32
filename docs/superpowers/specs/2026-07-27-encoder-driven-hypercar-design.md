@@ -9,7 +9,7 @@
 
 - Replace the current Perspective Road runtime feature rather than restoring the older generic map.
 - Render one continuous pseudo-3D road with no centre dash, lane divider, GPS, map, route loop, button, or user-controlled steering.
-- Render a lightweight rear three-quarter cyberpunk hypercar with a chase camera; it remains near the lower screen area but may move and yaw inside that frame.
+- Render a lightweight rear three-quarter cyberpunk hypercar with a chase camera; it remains near the lower screen area, moves and yaws with the turn, and stays smaller than the road scene so the road reads clearly.
 - Use normalized left/right encoder motion with three response bands: straight below 5% difference, gentle drift from 5% through 20%, and a visible continuous turn above 20%.
 - In the gentle band both vehicle pose and road geometry respond subtly. In the turn band both continue to follow the current encoder difference, then smoothly return to straight when the difference subsides.
 - Begin with a deterministic automatic mock sequence: straight, gentle left, straight, gentle right, clear left turn, straight, clear right turn, then repeat.
@@ -95,16 +95,16 @@ direction = sign(rightMotion - leftMotion)
 | Difference ratio | Scene response |
 |---:|---|
 | `< 0.05` | Straight: yaw, lateral drift, and road curvature decay toward zero. |
-| `0.05–0.20` | Gentle: bounded small pose offset/yaw and low road curvature in `direction`. |
-| `> 0.20` | Turn: larger bounded curvature and yaw continue while the difference persists. |
+| `0.05–0.20` | Gentle: bounded small pose offset/yaw and low road curvature in `direction`, with the near road staying visually calm. |
+| `> 0.20` | Turn: larger bounded curvature and pronounced vehicle yaw continue while the difference persists; the horizon bend is amplified and the near road shifts only subtly. |
 
-The sign convention is explicit and tested: faster right motion produces a left visual bend/yaw, while faster left motion produces a right visual bend/yaw. Smoothing is elapsed-time based, clamps long gaps, and avoids a discontinuity at either threshold. At stale timeout, forward motion goes to zero and transient yaw/curvature ease back toward straight while the last accumulated vehicle offset remains visible.
+The sign convention is explicit and tested: faster right motion produces a left visual bend/yaw, while faster left motion produces a right visual bend/yaw. Smoothing is elapsed-time based, clamps long gaps, and avoids a discontinuity at either threshold. At stale timeout, forward motion goes to zero and transient yaw/curvature ease back toward straight while the last accumulated vehicle offset remains visible. The near road is intentionally subtle rather than fixed; most apparent road motion belongs to the horizon.
 
 ## 7. Components and QML Contract
 
 ### 7.1 `MockWheelTelemetryService`
 
-The mock source is reconfigured for seven deterministic stages with injectable target values and durations. Its default stages are equal forward motion, gentle left, equal motion, gentle right, strong left, equal motion, and strong right. It contains no user control and loops automatically.
+The mock source is reconfigured for seven deterministic stages with injectable target values and durations. Its default stages are equal forward motion, gentle left, equal motion, gentle right, strong left, equal motion, and strong right. The default duration is demo-friendly, so a clear strong turn appears within roughly ten seconds. It contains no user control and loops automatically.
 
 ### 7.2 `EncoderDriveViewModel`
 
@@ -128,7 +128,7 @@ The QML scene uses `Shape`/`PathSvg` bindings for a single asphalt ribbon and it
 
 ### 7.4 `HypercarView.qml`
 
-The car is a reusable passive vector component with a rear three-quarter hypercar silhouette: low wide body, cabin and rear glass, partial wheels, small spoiler, rear bumper, neon tail lamps, highlight surfaces, and contact shadow. It uses theme tokens and safe sibling-source glow where glow is needed. QML transforms bind to the ViewModel pose; no image asset or interaction is required.
+The car is a reusable passive vector component with a rear three-quarter hypercar silhouette: low wide body, cabin and rear glass, partial wheels, small spoiler, rear bumper, neon tail lamps, highlight surfaces, and contact shadow. It is intentionally scaled smaller than the road scene so the road stays prominent. It uses theme tokens and safe sibling-source glow where glow is needed. QML transforms bind to the ViewModel pose; no image asset or interaction is required.
 
 ## 8. Failure Handling and Edge Cases
 
@@ -144,8 +144,10 @@ The car is a reusable passive vector component with a rear three-quarter hyperca
 TDD precedes each production change. `tst_encoder_drive` replaces road-specific behavior coverage and contains deterministic injected-time tests for:
 
 - the complete seven-stage mock loop and its transitions;
+- default demo timing that reaches a clear strong turn within roughly ten seconds;
 - exact threshold boundaries below 5%, at 5%, at 20%, and above 20%;
 - small-difference co-response of vehicle pose and road curvature;
+- pronounced strong-turn yaw/curvature with a subtle near-road shift and larger horizon bend;
 - sustained large-difference turn and smooth return to straight;
 - direction-sign consistency, maximum clamps, invalid/extreme inputs, elapsed-time caps, stale stop, and no-change signal behavior;
 - finite/bounded path output and valid turn-state transitions.

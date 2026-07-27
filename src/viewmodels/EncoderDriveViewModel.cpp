@@ -11,16 +11,16 @@ constexpr double kMinimumMotion = 0.05;
 constexpr double kStraightThreshold = 0.05;
 constexpr double kGentleThreshold = 0.20;
 constexpr double kMaximumResponseRatio = 0.75;
-constexpr double kResponsePerSecond = 6.0;
-constexpr double kMaximumLateralOffset = 0.28;
-constexpr double kMaximumYawDegrees = 14.0;
-constexpr double kMaximumRoadCurvature = 0.72;
+constexpr double kResponsePerSecond = 6.5;
+constexpr double kMaximumLateralOffset = 0.48;
+constexpr double kMaximumYawDegrees = 22.0;
+constexpr double kMaximumRoadCurvature = 1.05;
 constexpr double kHorizonY = 0.16;
 constexpr double kNearY = 0.98;
 constexpr double kHorizonHalfWidth = 0.08;
 constexpr double kNearHalfWidth = 0.45;
-constexpr double kHorizonCurvatureScale = 0.22;
-constexpr double kNearCurvatureScale = 0.04;
+constexpr double kHorizonCurvatureScale = 0.34;
+constexpr double kNearCurvatureScale = 0.055;
 
 bool differs(qreal current, qreal next)
 {

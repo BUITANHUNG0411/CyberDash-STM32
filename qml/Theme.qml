@@ -106,10 +106,10 @@ QtObject {
 
     // Encoder chase scene geometry
     readonly property real encoderRoadHorizon: 0.16
-    readonly property int encoderVehicleWidth: 260
-    readonly property int encoderVehicleHeight: 230
-    readonly property int encoderVehicleTravel: 56
-    readonly property real encoderVehicleScale: 0.78
+    readonly property int encoderVehicleWidth: 228
+    readonly property int encoderVehicleHeight: 198
+    readonly property int encoderVehicleTravel: 66
+    readonly property real encoderVehicleScale: 0.70
     readonly property int encoderVehicleBottomMargin: 8
 
     // Bezel Geometry

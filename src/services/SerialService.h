@@ -25,6 +25,9 @@ signals:
     void rawTelemetryUpdated(int rpm, double batteryVoltage, int errorCode);
     void connectionStatusChanged(bool isConnected);
 
+protected:
+    virtual bool openSerialPort(QIODevice::OpenMode mode);
+
 private slots:
     void handleReadyRead();
     void processIncomingBytes(const QByteArray &bytes);

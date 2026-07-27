@@ -1,10 +1,29 @@
 #include <QtTest>
 
+#include <functional>
 #include <limits>
 
 #include "services/SerialService.h"
 #include "services/SerialTelemetryParser.h"
 #include "services/TelemetryMapper.h"
+
+class ControlledOpenSerialService final : public SerialService
+{
+public:
+    using SerialService::SerialService;
+
+    std::function<void()> beforeOpen;
+
+protected:
+    bool openSerialPort(QIODevice::OpenMode mode) override
+    {
+        Q_UNUSED(mode)
+        if (beforeOpen) {
+            beforeOpen();
+        }
+        return true;
+    }
+};
 
 class TestSerialPipeline : public QObject
 {
@@ -122,6 +141,55 @@ private slots:
             &service, "processIncomingBytes", Qt::DirectConnection,
             Q_ARG(QByteArray, QByteArray("TEL,118,11.8,0;129\n"))));
         QCOMPARE(telemetrySpy.count(), 1);
+    }
+
+    void successfulSilentOpenPublishesInitialDisconnectedState()
+    {
+        ControlledOpenSerialService service;
+        QSignalSpy connectionSpy(&service, &SerialService::connectionStatusChanged);
+        bool disconnectedBeforeOpen = false;
+        service.beforeOpen = [&connectionSpy, &disconnectedBeforeOpen]() {
+            disconnectedBeforeOpen =
+                connectionSpy.count() == 1
+                && !connectionSpy.first().first().toBool();
+        };
+
+        service.startService();
+
+        QVERIFY(disconnectedBeforeOpen);
+        QCOMPARE(connectionSpy.count(), 1);
+        QCOMPARE(connectionSpy.first().first().toBool(), false);
+    }
+
+    void stopClearsPartialFrameAndPublishesDisconnectedState()
+    {
+        SerialService service(QStringLiteral("/definitely/not/a/serial/port"));
+        QSignalSpy telemetrySpy(&service, &SerialService::rawTelemetryUpdated);
+        QSignalSpy connectionSpy(&service, &SerialService::connectionStatusChanged);
+
+        QVERIFY(QMetaObject::invokeMethod(
+            &service, "processIncomingBytes", Qt::DirectConnection,
+            Q_ARG(QByteArray, QByteArray("TEL,118,11.8,0;129\n"))));
+        QCOMPARE(telemetrySpy.count(), 1);
+        QCOMPARE(connectionSpy.count(), 1);
+        QVERIFY(connectionSpy.takeFirst().first().toBool());
+
+        QVERIFY(QMetaObject::invokeMethod(
+            &service, "processIncomingBytes", Qt::DirectConnection,
+            Q_ARG(QByteArray, QByteArray("TEL,118,11."))));
+        service.stopService();
+        QCOMPARE(connectionSpy.count(), 1);
+        QCOMPARE(connectionSpy.takeFirst().first().toBool(), false);
+
+        QVERIFY(QMetaObject::invokeMethod(
+            &service, "processIncomingBytes", Qt::DirectConnection,
+            Q_ARG(QByteArray, QByteArray("8,0;129\n"))));
+        QCOMPARE(telemetrySpy.count(), 1);
+
+        QVERIFY(QMetaObject::invokeMethod(
+            &service, "processIncomingBytes", Qt::DirectConnection,
+            Q_ARG(QByteArray, QByteArray("TEL,118,11.8,0;129\n"))));
+        QCOMPARE(telemetrySpy.count(), 2);
     }
 };
 

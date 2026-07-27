@@ -33,13 +33,13 @@ SerialService::~SerialService()
 
 void SerialService::startService()
 {
-    if (m_serial->open(QIODevice::ReadWrite)) {
+    setConnected(false);
+    if (openSerialPort(QIODevice::ReadWrite)) {
         qDebug() << "Serial port" << m_portName << "opened successfully. Waiting for data...";
         m_watchdogTimer->start();
         m_reconnectTimer->stop();
     } else {
         qWarning() << "Failed to open serial port" << m_portName << "-" << m_serial->errorString();
-        setConnected(false);
         m_reconnectTimer->start();
     }
 }
@@ -51,6 +51,8 @@ void SerialService::stopService()
     }
     m_watchdogTimer->stop();
     m_reconnectTimer->stop();
+    m_parser.clear();
+    setConnected(false);
 }
 
 void SerialService::sendCommand(const QString &command)
@@ -84,12 +86,7 @@ void SerialService::handleError(QSerialPort::SerialPortError error)
 {
     if (error == QSerialPort::ResourceError) {
         qWarning() << "Serial port resource error, disconnecting...";
-        m_watchdogTimer->stop();
-        if (m_serial->isOpen()) {
-            m_serial->close();
-        }
-        m_parser.clear();
-        setConnected(false);
+        stopService();
         m_reconnectTimer->start();
     }
 }
@@ -97,23 +94,23 @@ void SerialService::handleError(QSerialPort::SerialPortError error)
 void SerialService::handleWatchdogTimeout()
 {
     qWarning() << "Watchdog timeout! No telemetry data received.";
-    m_watchdogTimer->stop();
-    if (m_serial->isOpen()) {
-        m_serial->close();
-    }
-    m_parser.clear();
-    setConnected(false);
+    stopService();
     m_reconnectTimer->start();
 }
 
 void SerialService::tryReconnect()
 {
     qDebug() << "Attempting to reconnect to" << m_portName << "...";
-    if (m_serial->open(QIODevice::ReadWrite)) {
+    if (openSerialPort(QIODevice::ReadWrite)) {
         qDebug() << "Reconnected successfully.";
         m_watchdogTimer->start();
         m_reconnectTimer->stop();
     }
+}
+
+bool SerialService::openSerialPort(QIODevice::OpenMode mode)
+{
+    return m_serial->open(mode);
 }
 
 void SerialService::setConnected(bool connected)

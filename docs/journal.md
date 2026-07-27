@@ -4,6 +4,17 @@
 
 ## 2026-07-27
 
+### Phase 17: Pre-Feature Baseline Repair
+- **Why repair was required:** Active documentation and some historical status lines had diverged from the code. They described simulator and serial services as sharing a full-dashboard signal, implied serial derivation had already moved, claimed `GlassPanel` and `MockScenarioEngine::setScenario` were deleted, showed an invalid unchecked telemetry example, and treated the QML scrubber as Zero-JS while it still owned interaction math before Task 3.
+- **Parser boundary:** `SerialTelemetryParser` now exclusively owns byte accumulation, newline framing, field conversion, checksum validation, and the 4096-byte protection boundary. The checksum is `(rpm + int(vbat) + error) & 0xFF`; `TEL,118,11.8,0;129\n` is the canonical valid example.
+- **Mapping boundary:** `SerialService` is a transport and connection-state service. It emits raw RPM, battery voltage, and error code. `TelemetryMapper` derives dashboard fields outside the transport, and `main.cpp` feeds the same `VehicleStatusViewModel` surface used by the simulator.
+- **Connection boundary:** Port-open success is not connection success. The initial state is disconnected, the first valid frame establishes connected, and resource error/watchdog/stop close and clear the parser before publishing disconnected. Reopen attempts occur every 2000 ms; the watchdog is 500 ms.
+- **Thread boundary:** `QSerialPort::readyRead`, parsing, mapping, and ViewModel updates stay on the GUI thread as bounded non-blocking work. Only `MusicScanner` performs directory scanning on a worker thread.
+- **Interaction boundary:** `MusicPlayerViewModel` now owns scrubber drag state, normalization, clamping, and seek requests. `MusicPlayer.qml` contains only direct invokable calls for press/move/release/cancel.
+- **Zero-JS fix wave:** Follow-up review found volume normalization plus map-scale/toast-width `Math` helpers outside the scrubber. Commit `58dae97` moved normalization to `MusicPlayerViewModel` and replaced layout helpers with ternary bindings. The exact repository scan returned no matches and the formal changed-line QML re-review reported no issues.
+- **Documentation boundary:** Active guides describe the current baseline and require H1, `AI Context`, tagged opening code fences, and Troubleshooting. Dated specs/plans/reports remain historical artifacts under their workflow-mandated metadata and must not be silently rewritten as current truth.
+- **Verification status:** Tasks 1–3 provide committed implementation evidence for parser/mapper, serial fallback, scrubber, and the Zero-JS fix wave. Phase 17's final post-documentation build/test/smoke verification is intentionally left open for Task 5; hardware field validation remains open separately.
+
 ### Phase 16: Center Hub (Music ⇄ Map) + Neon Map
 - **Vấn đề**: Panel trung tâm chỉ có MusicPlayer cố định; user muốn hub lướt qua lại giữa nhiều widget, bắt đầu với Map.
 - **Quyết định 1 (Container)**: `SwipeView` (QtQuick.Controls.Basic — lần đầu repo dùng Controls) thay vì ListView-snap hay StackLayout: children khai báo tĩnh được khởi tạo một lần và KHÔNG BAO GIỜ bị hủy → giữ đúng quyết định Phase 14 "MusicPlayer phải sống xuyên suốt" (nhạc không đứt khi lướt sang Map). `currentIndex` là view-state cục bộ (tiền lệ PathView).

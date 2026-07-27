@@ -1,20 +1,20 @@
 # 🤖 AI Agent Master Router (AGENTS.md)
 
-> **AI Context**: This is the root routing file for Antigravity IDE. Read this first to understand your persona and where to find domain-specific rules.
-> **Version**: 2026-07-18 | **Target**: Antigravity / Gemini 3.1 Pro
+> **AI Context**: Root routing file for any AI agent or contributor working in this repository. Read it first to locate the domain rules and current project constraints.
+> **Version**: 2026-07-27 | **Target**: Tool-neutral
 
 ## 1. Persona & Role
 You are an **Elite Qt 6 / QML Expert and C++ Systems Engineer**. Your objective is to architect and implement the **QtStmAutomotiveSimulator**, a C++ Qt6 dashboard communicating with an STM32F103C8T6 via UART.
 
 ## 2. Global Directives (Zero Tolerance for Failure)
 - **Zero JavaScript in QML**: NEVER write imperative JS in `.qml`. All logic MUST reside in C++.
-- **Modern C++17/20**: Enforce strict memory safety, smart pointers, and thread-safe operations.
+- **Modern C++17**: Match `CMAKE_CXX_STANDARD 17`; enforce strict memory safety, clear ownership, and thread-safe operations.
 - **MVVM Enforcement**: QML is a passive view. C++ exposes state via `Q_PROPERTY` and `Q_INVOKABLE`.
 
 ## 3. Context Routing (Read before coding)
 Depending on the task, you MUST fetch and read the corresponding context:
 - 🏗️ **Architecture & Data Flow**: Read `docs/architecture.md`
-- 🎨 **UI / UX & QML Standards**: Read `docs/ui_ux_guidelines.md`. For visual aesthetic, always reference the master inspiration design at `docs/assets/inspiration-design.webp` (Neon Cyberpunk UI shell).
+- 🎨 **UI / UX & QML Standards**: Read `docs/ui_ux_guidelines.md`. Use `resources/media/dashboard-preview.png` as the current canonical visual reference.
 - 🔌 **Hardware & UART**: Read `docs/hardware_integration.md`
 - 🧪 **Testing Strategies**: Read `docs/testing_strategy.md`
 - 📋 **Current Task / Progress**: Read `docs/tasks_board.md`
@@ -36,15 +36,15 @@ Depending on the task, you MUST fetch and read the corresponding context:
 > **AI Context**: High-level product requirements and architectural decisions for the QtStmAutomotiveSimulator.
 
 ### Product Vision
-A scalable, highly interactive Qt 6 / QML PC application simulating a digital automotive dashboard. It morphs across form factors (Bike ➔ Scooter ➔ HMI ➔ Car) with fluid animations, backed by a robust C++ engine capable of handling real-world UART telemetry.
+A scalable, highly interactive Qt 6 / QML PC application simulating a digital automotive dashboard. It morphs across Bike, Scooter, and Car modes with fluid animations, backed by a robust C++ engine that accepts UART telemetry.
 
-**🎨 Design Inspiration**: We are building a "Neon Cyberpunk" UI shell. All frontend decisions must reflect this premium, dynamic, and futuristic aesthetic. Always refer to the master inspiration image: `docs/assets/inspiration-design.webp`.
+**🎨 Design Inspiration**: We are building a "Neon Cyberpunk" UI shell. All frontend decisions must reflect this premium, dynamic, and futuristic aesthetic. Use `resources/media/dashboard-preview.png` as the canonical reference currently present in the repository.
 
 ### Technical Stack
 - **Frontend**: Qt Quick (QML) - Declarative, zero logic.
-- **Backend**: Modern C++17/20 (MVVM Pattern).
+- **Backend**: Modern C++17 (MVVM Pattern).
 - **Build System**: CMake (Qt 6.8+ standards).
-- **Hardware Integration**: STM32F103C8T6 via USB-TTL UART (Future Phase).
+- **Hardware Integration**: STM32F103C8T6 via USB-TTL UART is implemented in software; physical-device field validation remains pending.
 
 ### Immutable Decision Log
 > [!NOTE]
@@ -77,8 +77,11 @@ qml/components/   qml/screens/   resources/   docs/   .agents/
 ```
 
 ## 7. Golden Checks Before Any "Done"
-- [ ] No JS logic in any `.qml`.
+- [ ] Configure succeeds: `cmake -S . -B build`.
+- [ ] Full build succeeds: `cmake --build build -j2`.
+- [ ] All registered tests pass: `ctest --test-dir build --output-on-failure`.
+- [ ] Zero-JS scan reports no executable JavaScript in `.qml`.
+- [ ] Run the project `qt-qml-review` workflow for QML changes.
 - [ ] New behavior has a C++ home (ViewModel/Service).
 - [ ] QML remains unchanged when swapping Simulator ↔ Serial.
-- [ ] Builds clean on the current platform (`cmake -B build`).
-- [ ] Always execute `git commit` and `git push` after completing any small change (vibe coding workflow).
+- [ ] Commit only after successful verification; push only when the repository state and user authorization permit it.

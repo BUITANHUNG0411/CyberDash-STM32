@@ -1,37 +1,96 @@
-# 🎨 UI/UX & QML Guidelines
+# 🎨 UI/UX and QML Guidelines
 
-> **AI Context**: Design system and animation standards for the Automotive Showcase.
+> **AI Context**: Active design-system, layout-state, and animation rules for the Neon Cyberpunk automotive dashboard.
 
-## 1. Aesthetic Philosophy (Neon Cyberpunk)
-The interface must feel premium, fluid, and highly glanceable.
-- **Backgrounds**: Deep Space Black (`#0B0C10`), Charcoal (`#1F2833`).
-- **Accents**: Neon Cyan (`#66FCF1`) for primary active states, Neon Red (`#FF3B30`) for warnings.
-- **Typography**: `Inter`, `Roboto`, or `Orbitron`. Use absolute sizing and clear hierarchies.
+## 1. Canonical Visual Reference
 
-## 2. Design Tokens (Theme.qml)
+The screenshot currently present in the repository is the canonical visual reference:
+
+![Canonical dashboard reference](../resources/media/dashboard-preview.png)
+
+Preserve its double-arch silhouette, dense but glanceable telemetry hierarchy, neon tick lighting, glass surfaces, and dark automotive character. If a later approved visual replaces it, update this guide and the root routing document together.
+
+## 2. Theme and Accent System
+
 > [!IMPORTANT]
-> Never hardcode HEX colors in individual QML files. Always bind to the global `Theme` singleton.
+> Bind reusable colors, spacing, geometry, radii, typography, and durations to `qml/Theme.qml`. Avoid new hard-coded visual constants in components.
 
-## 3. Animation & Fluidity Mandate
-Data changes from C++ (like RPM or Speed) can be noisy. QML must smooth these out visually.
+The theme has day and night variants. Core background/text/glass/tick tokens switch through `ThemeController.isNight` and cross-fade through centralized `ColorAnimation` behaviors.
+
+Drive mode selects the active accent:
+
+| Drive mode | Night accent | Day accent | Purpose |
+|---|---|---|---|
+| ECO | `#66FC8F` | `#1E8A4C` | Green efficiency state |
+| NORMAL | `#66FCF1` | `#00857C` | Cyan/teal default state |
+| SPORT | `#FF7A00` | `#C25600` | Orange performance state |
+
+`Theme.warningRed` remains reserved for warnings and redlines; SPORT must not reuse it.
+
+## 3. Vehicle Layout States
+
+`DashboardScreen.state` binds to the C++ `VehicleMode.vehicleMode` property and supports exactly:
+
+- **Car:** 160 km/h speed gauge, RPM right gauge, bottom bar, and CenterHub.
+- **Bike:** 60 km/h speed gauge, large battery presentation, center hub and bottom bar hidden.
+- **Scooter:** 120 km/h speed gauge, battery right gauge, and `RangeTripCard` center content.
+
+Use declarative `State`, `PropertyChanges`, and `Transition`. The Car state remains the base binding set so leaving Bike/Scooter restores original bindings.
+
+## 4. CenterHub
+
+Car mode uses `CenterHub.qml`, a `SwipeView` containing static Music and Map pages:
+
+- `MusicPlayer` preserves its lifetime while the user views the map.
+- `NeonMapView` binds route-marker position to C++ `MapModel.routeProgress`.
+- The page indicator and route use `Theme.accentCyan`, so drive-mode changes propagate.
+
+Do not put window-drag handlers over this interactive region; the top drag strip must not steal gestures from `SwipeView`, `PathView`, or the scrubber.
+
+## 5. Animation Rules
+
+Animate numeric visual properties, not strings. For example:
+
 ```qml
-// Apply smoothing to raw hardware telemetry
-Text {
-    text: vm.speed
-    Behavior on text {
-        NumberAnimation { duration: 200; easing.type: Easing.OutCubic }
+Item {
+    property real displayedValue: vm.speed
+
+    Behavior on displayedValue {
+        NumberAnimation {
+            duration: Theme.durationGauge
+            easing.type: Easing.OutQuad
+        }
+    }
+
+    Rectangle {
+        rotation: parent.displayedValue
+    }
+
+    Text {
+        text: vm.displaySpeed
     }
 }
 ```
 
-## 4. Adaptive State Switching
-Transitioning between Bike and Car modes must be handled declaratively using QML `States` and `Transitions`. Do not use manual X/Y calculations in JS.
+Never apply `NumberAnimation` to `Text.text`. Keep formatting in C++ when it needs logic or fixed precision.
 
-## 5. Design Inspiration (Holographic 3-Panel)
-The layout is inspired by a modern, 3-panel digital dashboard design. We map this to our Cyberpunk theme as follows:
-- **Left Panel (Speed):** Cyan glowing segmented arcs for gauges, shifting to red at high speeds.
-- **Center Panel (Media/Nav):** A floating glassmorphism/holographic card with a charcoal background and cyan borders.
-- **Right Panel (Gear/Power):** Pulsing energy rings.
-- **Status Bars:** Segmented blocks (`||||||||`) for battery/fuel to mimic energy cells.
+Vehicle morphing uses the dip transition: fade and scale both arches down, apply property swaps while invisible, then restore opacity and scale with an OutBack rise. Animate opacity and scale, not complex subtree width/height.
 
-![Dashboard Inspiration Design](assets/inspiration-design.webp)
+## 6. MultiEffect Safety
+
+> [!WARNING]
+> A `MultiEffect` source must be a sibling item that does not contain the effect. Never use `source: parent` when the parent contains that same `MultiEffect`; it creates recursive capture and frozen accumulated frames.
+
+Hidden sibling sources are used for the music backdrop, icons, glowing text, gauge ticks, and map route bloom.
+
+## 7. Zero JavaScript
+
+QML may use bindings, ternaries, declarative states, and a single direct call to a C++ invokable. Interaction state and calculations belong in C++. The music scrubber is the reference implementation: QML forwards pointer coordinates, while `MusicPlayerViewModel` owns drag state, clamping, normalization, and seek requests.
+
+## Troubleshooting
+
+- **Theme change recolors only part of the UI:** replace local colors with `Theme` tokens and confirm the token has a centralized `Behavior`.
+- **Morph shows tick-label popping:** keep the property swap inside the invisible midpoint of the dip transition.
+- **Blur or glow freezes:** inspect `MultiEffect.source` for recursive parent capture and replace it with a sibling source.
+- **Text animation warns or jumps:** animate a numeric backing property and bind `Text.text` to its display value.
+- **Swipe or scrub drags the window:** restrict the window `DragHandler` to the top drag strip.

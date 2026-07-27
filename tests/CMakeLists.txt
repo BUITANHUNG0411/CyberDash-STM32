@@ -84,6 +84,7 @@ add_test(NAME tst_road_motion COMMAND tst_road_motion)
 qt_add_executable(tst_encoder_drive
     tst_encoder_drive.cpp
     ../src/services/MockWheelTelemetryService.cpp
+    ../src/viewmodels/EncoderDriveViewModel.cpp
 )
 
 target_include_directories(tst_encoder_drive PRIVATE ../src)

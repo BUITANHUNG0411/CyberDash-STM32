@@ -193,6 +193,14 @@ void MusicPlayerViewModel::setVolume(float value)
     emit volumeChanged();
 }
 
+void MusicPlayerViewModel::setVolumeFromPosition(qreal position, qreal width)
+{
+    if (width <= 0.0)
+        return;
+
+    setVolume(static_cast<float>(position / width));
+}
+
 void MusicPlayerViewModel::setShuffleMode(bool enabled)
 {
     if (m_shuffleMode == enabled) return;

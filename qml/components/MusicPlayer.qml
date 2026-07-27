@@ -388,8 +388,8 @@ Item {
 
                         MouseArea {
                             anchors.fill: parent
-                            onPressed: MusicViewModel.setVolume(mouseX / Math.max(1, width))
-                            onPositionChanged: MusicViewModel.setVolume(mouseX / Math.max(1, width))
+                            onPressed: MusicViewModel.setVolumeFromPosition(mouseX, width)
+                            onPositionChanged: MusicViewModel.setVolumeFromPosition(mouseX, width)
                         }
                     }
                 }
@@ -490,7 +490,9 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 12
-        width: Math.min(parent.width - 24, toastText.width + 28)
+        width: parent.width - 24 < toastText.width + 28
+            ? parent.width - 24
+            : toastText.width + 28
         height: 34
         radius: Theme.radiusSm
         color: Theme.warningRed

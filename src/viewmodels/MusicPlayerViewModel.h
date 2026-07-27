@@ -94,6 +94,7 @@ public slots:
     Q_INVOKABLE void beginScrub(qreal position, qreal width);
     Q_INVOKABLE void updateScrub(qreal position, qreal width);
     Q_INVOKABLE void endScrub();
+    Q_INVOKABLE void setVolumeFromPosition(qreal position, qreal width);
 
     void setVolume(float value);
     void setShuffleMode(bool enabled);

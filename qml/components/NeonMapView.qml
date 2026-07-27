@@ -21,7 +21,9 @@ Rectangle {
         width: 400
         height: 360
         anchors.centerIn: parent
-        scale: Math.min(root.width / width, root.height / height)
+        scale: root.width / width < root.height / height
+            ? root.width / width
+            : root.height / height
 
         // Lưới phố nền
         Repeater {

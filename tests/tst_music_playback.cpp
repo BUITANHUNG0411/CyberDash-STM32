@@ -60,6 +60,34 @@ private slots:
         QCOMPARE(volSpy.count(), 3);
     }
 
+    void volume_from_position_clamps_test() {
+        MusicPlayerViewModel vm(nullptr, false);
+
+        vm.setVolumeFromPosition(-10.0, 100.0);
+        QCOMPARE(vm.volume(), 0.0f);
+
+        vm.setVolumeFromPosition(150.0, 100.0);
+        QCOMPARE(vm.volume(), 1.0f);
+    }
+
+    void volume_from_position_normalizes_test() {
+        MusicPlayerViewModel vm(nullptr, false);
+
+        vm.setVolumeFromPosition(25.0, 100.0);
+        QCOMPARE(vm.volume(), 0.25f);
+    }
+
+    void volume_from_position_ignores_nonpositive_width_test() {
+        MusicPlayerViewModel vm(nullptr, false);
+        vm.setVolume(0.4f);
+
+        vm.setVolumeFromPosition(20.0, 0.0);
+        QCOMPARE(vm.volume(), 0.4f);
+
+        vm.setVolumeFromPosition(20.0, -10.0);
+        QCOMPARE(vm.volume(), 0.4f);
+    }
+
     void seek_ratio_test() {
         MusicPlayerViewModel vm(nullptr, false);
         // No media loaded -> duration() == 0 -> seek is a no-op (must not crash).

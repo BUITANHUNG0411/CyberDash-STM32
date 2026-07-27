@@ -1,5 +1,7 @@
 #include <QtTest>
 
+#include <limits>
+
 #include "services/SerialTelemetryParser.h"
 #include "services/TelemetryMapper.h"
 
@@ -36,6 +38,21 @@ private slots:
         SerialTelemetryParser parser;
         QCOMPARE(parser.append(QByteArray(4097, 'X')).size(), 0);
         QCOMPARE(parser.append("TEL,118,11.8,0;129\n").size(), 1);
+    }
+
+    void fullRangeIntegersUseModuloChecksum()
+    {
+        SerialTelemetryParser parser;
+        const auto frames = parser.append("TEL,2147483647,0,1;0\n");
+        QCOMPARE(frames.size(), 1);
+        QCOMPARE(frames.first().rpm, std::numeric_limits<int>::max());
+        QCOMPARE(frames.first().errorCode, 1);
+    }
+
+    void outOfRangeBatteryIsRejected()
+    {
+        SerialTelemetryParser parser;
+        QCOMPARE(parser.append("TEL,1,2147483648,0;1\n").size(), 0);
     }
 
     void rawTelemetryMapsOutsideTransport()

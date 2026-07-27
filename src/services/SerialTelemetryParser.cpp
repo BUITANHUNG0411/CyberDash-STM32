@@ -2,6 +2,9 @@
 
 #include <QStringList>
 
+#include <cmath>
+#include <limits>
+
 QList<RawSerialTelemetry> SerialTelemetryParser::append(const QByteArray &bytes)
 {
     m_buffer.append(bytes);
@@ -53,12 +56,19 @@ std::optional<RawSerialTelemetry> SerialTelemetryParser::parseLine(const QString
     const int errorCode = fields.at(2).toInt(&errorOk);
     const int checksum = line.mid(separator + 1).toInt(&checksumOk);
 
-    if (!rpmOk || !batteryOk || !errorOk || !checksumOk) {
+    if (!rpmOk || !batteryOk || !errorOk || !checksumOk
+        || !std::isfinite(batteryVoltage)
+        || batteryVoltage < static_cast<double>(std::numeric_limits<int>::min())
+        || batteryVoltage > static_cast<double>(std::numeric_limits<int>::max())) {
         return std::nullopt;
     }
 
-    const int expectedChecksum = (rpm + static_cast<int>(batteryVoltage) + errorCode) & 0xFF;
-    if (checksum != expectedChecksum) {
+    const unsigned int expectedChecksum =
+        (static_cast<unsigned int>(rpm)
+         + static_cast<unsigned int>(static_cast<int>(batteryVoltage))
+         + static_cast<unsigned int>(errorCode))
+        & 0xFFU;
+    if (checksum < 0 || static_cast<unsigned int>(checksum) != expectedChecksum) {
         return std::nullopt;
     }
 

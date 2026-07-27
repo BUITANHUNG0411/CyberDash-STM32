@@ -193,27 +193,55 @@ private slots:
         EncoderDriveViewModel model;
         QSignalSpy turnStateSpy(
             &model, &EncoderDriveViewModel::turnStateChanged);
-        model.updateWheelMotion(1.00, 1.04, 50);
+        model.updateWheelMotion(0.90, 0.94, 50);
         QCOMPARE(model.turnState(), EncoderDriveViewModel::Straight);
         QCOMPARE(turnStateSpy.size(), 0);
 
-        model.updateWheelMotion(1.00, 1.06, 50);
+        model.updateWheelMotion(0.90, 0.96, 50);
         QCOMPARE(model.turnState(), EncoderDriveViewModel::GentleLeft);
         QCOMPARE(turnStateSpy.size(), 1);
 
-        model.updateWheelMotion(1.00, 1.26, 50);
+        model.updateWheelMotion(0.55, 1.00, 50);
         QCOMPARE(model.turnState(), EncoderDriveViewModel::TurningLeft);
         QCOMPARE(turnStateSpy.size(), 2);
 
-        constexpr double leftAtFivePercent = 1.9 / 2.1;
-        model.updateWheelMotion(leftAtFivePercent, 1.0, 50);
-        QCOMPARE(model.turnState(), EncoderDriveViewModel::GentleLeft);
+        constexpr double leftJustBelowFivePercent =
+            (2.0 - 0.049999) / (2.0 + 0.049999);
+        model.updateWheelMotion(leftJustBelowFivePercent, 1.0, 50);
+        QCOMPARE(model.turnState(), EncoderDriveViewModel::Straight);
         QCOMPARE(turnStateSpy.size(), 3);
 
-        constexpr double leftAtTwentyPercent = 1.8 / 2.2;
+        constexpr double leftInsideFivePercentTolerance =
+            (2.0 - (0.05 - 5.0e-13))
+            / (2.0 + (0.05 - 5.0e-13));
+        model.updateWheelMotion(leftInsideFivePercentTolerance, 1.0, 50);
+        QCOMPARE(model.turnState(), EncoderDriveViewModel::Straight);
+        QCOMPARE(turnStateSpy.size(), 3);
+
+        const double leftAtFivePercent =
+            std::nextafter(1.95 / 2.05, 0.0);
+        model.updateWheelMotion(leftAtFivePercent, 1.0, 50);
+        QCOMPARE(model.turnState(), EncoderDriveViewModel::GentleLeft);
+        QCOMPARE(turnStateSpy.size(), 4);
+
+        const double leftAtTwentyPercent =
+            std::nextafter(1.8 / 2.2, 1.0);
         model.updateWheelMotion(leftAtTwentyPercent, 1.0, 50);
         QCOMPARE(model.turnState(), EncoderDriveViewModel::GentleLeft);
-        QCOMPARE(turnStateSpy.size(), 3);
+        QCOMPARE(turnStateSpy.size(), 4);
+
+        constexpr double leftJustAboveTwentyPercent =
+            (2.0 - 0.200001) / (2.0 + 0.200001);
+        model.updateWheelMotion(leftJustAboveTwentyPercent, 1.0, 50);
+        QCOMPARE(model.turnState(), EncoderDriveViewModel::TurningLeft);
+        QCOMPARE(turnStateSpy.size(), 5);
+
+        constexpr double leftInsideTwentyPercentTolerance =
+            (2.0 - (0.20 + 5.0e-13))
+            / (2.0 + (0.20 + 5.0e-13));
+        model.updateWheelMotion(leftInsideTwentyPercentTolerance, 1.0, 50);
+        QCOMPARE(model.turnState(), EncoderDriveViewModel::TurningLeft);
+        QCOMPARE(turnStateSpy.size(), 5);
     }
 
     void smallDifferenceMovesVehicleAndRoad()
@@ -324,23 +352,47 @@ private slots:
         verifyFiniteNormalizedPath(model.roadEdgePath());
     }
 
+    void oversizedInputsClampIndependently()
+    {
+        EncoderDriveViewModel model;
+        model.updateWheelMotion(2.0, 1.0, 100);
+
+        QCOMPARE(model.turnState(), EncoderDriveViewModel::Straight);
+        QCOMPARE(model.forwardSpeed(), 1.0);
+        QCOMPARE(model.vehicleLateralOffset(), 0.0);
+        QCOMPARE(model.vehicleYawDegrees(), 0.0);
+        QCOMPARE(model.roadCurvature(), 0.0);
+    }
+
     void staleInputStopsWithoutResettingOffset()
     {
         EncoderDriveViewModel model;
         model.updateWheelMotion(0.55, 1.00, 100);
         const qreal offset = model.vehicleLateralOffset();
+        const qreal speed = model.forwardSpeed();
+        const qreal yaw = model.vehicleYawDegrees();
+        const qreal curvature = model.roadCurvature();
         QVERIFY(offset < 0.0);
 
         QVERIFY(QMetaObject::invokeMethod(
             &model, "handleStaleTimeout", Qt::DirectConnection));
 
-        QCOMPARE(model.forwardSpeed(), 0.0);
+        QVERIFY(model.forwardSpeed() < speed);
+        QVERIFY(model.forwardSpeed() > 0.0);
         QCOMPARE(model.vehicleLateralOffset(), offset);
-        QCOMPARE(model.vehicleYawDegrees(), 0.0);
-        QCOMPARE(model.roadCurvature(), 0.0);
+        QVERIFY(model.vehicleYawDegrees() < 0.0);
+        QVERIFY(model.vehicleYawDegrees() > yaw);
+        QVERIFY(model.roadCurvature() < 0.0);
+        QVERIFY(model.roadCurvature() > curvature);
         QCOMPARE(model.turnState(), EncoderDriveViewModel::Straight);
         verifyFiniteNormalizedPath(model.roadPath());
         verifyFiniteNormalizedPath(model.roadEdgePath());
+
+        const qreal decayedSpeed = model.forwardSpeed();
+        QVERIFY(QMetaObject::invokeMethod(
+            &model, "handleStaleTimeout", Qt::DirectConnection));
+        QVERIFY(model.forwardSpeed() < decayedSpeed);
+        QCOMPARE(model.vehicleLateralOffset(), offset);
     }
 
     void elapsedTimeIsCapped()

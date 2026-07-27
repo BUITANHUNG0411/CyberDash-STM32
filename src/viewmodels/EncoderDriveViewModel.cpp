@@ -21,7 +21,6 @@ constexpr double kHorizonHalfWidth = 0.08;
 constexpr double kNearHalfWidth = 0.45;
 constexpr double kHorizonCurvatureScale = 0.22;
 constexpr double kNearCurvatureScale = 0.04;
-constexpr double kThresholdTolerance = 1.0e-12;
 
 bool differs(qreal current, qreal next)
 {
@@ -96,14 +95,8 @@ void EncoderDriveViewModel::updateWheelMotion(double leftMotion,
         rightMotion = 0.0;
     }
 
-    leftMotion = (std::max)(leftMotion, 0.0);
-    rightMotion = (std::max)(rightMotion, 0.0);
-    const double normalizationScale =
-        (std::max)({leftMotion, rightMotion, 1.0});
-    leftMotion = std::clamp(
-        leftMotion / normalizationScale, 0.0, 1.0);
-    rightMotion = std::clamp(
-        rightMotion / normalizationScale, 0.0, 1.0);
+    leftMotion = std::clamp(leftMotion, 0.0, 1.0);
+    rightMotion = std::clamp(rightMotion, 0.0, 1.0);
 
     const double meanMotion = (leftMotion + rightMotion) / 2.0;
     const double signedDifference = rightMotion - leftMotion;
@@ -186,18 +179,31 @@ void EncoderDriveViewModel::updateWheelMotion(double leftMotion,
 
 void EncoderDriveViewModel::handleStaleTimeout()
 {
-    if (!qFuzzyIsNull(m_forwardSpeed)) {
-        m_forwardSpeed = 0.0;
+    constexpr double staleElapsedSeconds =
+        static_cast<double>(kMaximumElapsedMs) / 1000.0;
+    const double alpha = (std::min)(
+        1.0, staleElapsedSeconds * kResponsePerSecond);
+    const auto decayToStraight = [alpha](qreal current) {
+        const qreal decayed = static_cast<qreal>(
+            static_cast<double>(current) * (1.0 - alpha));
+        return qFuzzyIsNull(decayed) ? 0.0 : decayed;
+    };
+
+    const qreal nextForwardSpeed = decayToStraight(m_forwardSpeed);
+    if (differs(m_forwardSpeed, nextForwardSpeed)) {
+        m_forwardSpeed = nextForwardSpeed;
         emit forwardSpeedChanged();
     }
-    if (!qFuzzyIsNull(m_vehicleYawDegrees)) {
-        m_vehicleYawDegrees = 0.0;
+    const qreal nextYawDegrees = decayToStraight(m_vehicleYawDegrees);
+    if (differs(m_vehicleYawDegrees, nextYawDegrees)) {
+        m_vehicleYawDegrees = nextYawDegrees;
         emit vehicleYawDegreesChanged();
     }
 
     bool roadGeometryChanged = false;
-    if (!qFuzzyIsNull(m_roadCurvature)) {
-        m_roadCurvature = 0.0;
+    const qreal nextRoadCurvature = decayToStraight(m_roadCurvature);
+    if (differs(m_roadCurvature, nextRoadCurvature)) {
+        m_roadCurvature = nextRoadCurvature;
         roadGeometryChanged = true;
         emit roadCurvatureChanged();
     }
@@ -207,6 +213,11 @@ void EncoderDriveViewModel::handleStaleTimeout()
     }
     if (roadGeometryChanged) {
         updateRoadPaths();
+    }
+    if (!qFuzzyIsNull(m_forwardSpeed)
+        || !qFuzzyIsNull(m_vehicleYawDegrees)
+        || !qFuzzyIsNull(m_roadCurvature)) {
+        m_staleTimer->start();
     }
 }
 
@@ -260,13 +271,11 @@ EncoderDriveViewModel::TurnState EncoderDriveViewModel::classifyTurn(
     double ratio,
     double signedDifference)
 {
-    if (ratio + kThresholdTolerance < kStraightThreshold
-        || qFuzzyIsNull(signedDifference)) {
+    if (ratio < kStraightThreshold || signedDifference == 0.0) {
         return Straight;
     }
 
-    const bool isGentle =
-        ratio <= kGentleThreshold + kThresholdTolerance;
+    const bool isGentle = ratio <= kGentleThreshold;
     if (signedDifference > 0.0) {
         return isGentle ? GentleLeft : TurningLeft;
     }

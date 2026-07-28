@@ -55,6 +55,12 @@ private slots:
         QCOMPARE(hub.activePage(), CenterHubViewModel::MusicPage);
     }
 
+    void nullParkingViewModelDefaultsToMusicPage()
+    {
+        CenterHubViewModel hub(nullptr);
+        QCOMPARE(hub.activePage(), CenterHubViewModel::MusicPage);
+    }
+
     void identicalSampleDoesNotEmitDistanceChanged()
     {
         ParkingAssistViewModel viewModel;

@@ -67,10 +67,20 @@ Window {
             }
         }
 
-        // Cho phép kéo thả cửa sổ
-        DragHandler {
-            target: null
-            onActiveChanged: active && root.startSystemMove()
+        // Kéo thả cửa sổ: CHỈ ở dải bezel trên cùng (như title bar).
+        // Không gắn DragHandler lên cả clusterFrame — nó cướp grab của
+        // Flickable/SwipeView bên trong, làm gesture vuốt kéo cả cửa sổ theo.
+        Item {
+            id: windowDragStrip
+            anchors.top: parent.top
+            anchors.left: parent.left
+            anchors.right: parent.right
+            height: 60
+
+            DragHandler {
+                target: null
+                onActiveChanged: ThemeController.handleWindowDragActive(active)
+            }
         }
 
         DashboardScreen {

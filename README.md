@@ -1,346 +1,264 @@
 # QtStmAutomotiveSimulator
 
-> A Neon Cyberpunk automotive dashboard built with **C++ 17 / Qt 6.8 / QML**, talking to a real **STM32F103C8T6** over UART — with a graceful runtime fallback to an in-process simulator when the hardware is disconnected.
+> **AI Context**: Repository overview for the C++17/Qt 6.8 Neon Cyberpunk dashboard, its verified software interfaces, deterministic tests, and pending hardware field validation.
 
-![Dashboard Preview](resources/media/dashboard-preview.png)
+A Qt Quick automotive dashboard with Car, Bike, and Scooter layouts, C++-owned state, a music player, one-sensor rear Parking Assist, and STM32F103C8T6 telemetry over UART. The application falls back to an in-process simulator whenever serial telemetry is unavailable.
 
----
+![Dashboard preview](resources/media/dashboard-preview.png)
 
-## Table of Contents
+## Features
 
-- [Overview](#overview)
-- [Key Features](#key-features)
-- [Screenshots & Gallery](#screenshots--gallery)
-- [Architecture](#architecture)
-  - [The "Zero JavaScript" Rule](#the-zero-javascript-rule)
-  - [Runtime Hardware Fallback](#runtime-hardware-fallback)
-- [Technology Stack](#technology-stack)
-- [Project Layout](#project-layout)
-- [Prerequisites](#prerequisites)
-- [Build & Run](#build--run)
-- [Testing](#testing)
-- [Hardware Integration (STM32 & UART)](#hardware-integration-stm32--uart)
-  - [UART Protocol](#uart-protocol)
-  - [Fail-Safes](#fail-safes)
-- [Design System](#design-system)
-- [Contributing / Development Rules](#contributing--development-rules)
-- [Roadmap & Status](#roadmap--status)
-- [License](#license)
-- [Credits](#credits)
+- Strict MVVM: eight C++ ViewModels are exposed to passive QML.
+- Zero-JS policy: stateful interaction and domain logic live in C++.
+- Car, Bike, and Scooter layouts driven by declarative QML states.
+- Day/night themes and ECO/NORMAL/SPORT accent palettes.
+- Tick-lit double-arch gauges, glass panels, telltales, boot choreography, and dip transitions.
+- Car-mode CenterHub with a persistent Music player page.
+- Mock-first rear Parking Assist with one ultrasonic distance sample; it automatically replaces Music while reverse is active and restores Music afterward.
+- C++ `QMediaPlayer`, C++-owned scrubber state, and worker-thread music scanning.
+- Implemented serial parser, telemetry mapper, watchdog, reconnect, and simulator fallback.
+- Four deterministic Qt Test/CTest targets.
 
----
-
-## Overview
-
-`QtStmAutomotiveSimulator` is a scalable, highly interactive Qt 6 / QML desktop application that simulates a digital automotive dashboard. The UI is designed to morph across form factors (Bike ➔ Scooter ➔ HMI ➔ Car) with fluid, state-driven animations, backed by a robust C++ engine capable of consuming real-world UART telemetry from an STM32F103C8T6 ("Blue Pill") MCU.
-
-**🎨 Design philosophy**: A *Neon Cyberpunk* UI shell — glassmorphism panels, tick-based neon gauge illumination, a custom frameless "Double Arch / Binocular" bezel silhouette, and a 3D cover-flow music widget. The look-and-feel you see in `dashboard-preview.png` above is the canonical reference for every visual decision in this project.
-
-**🔌 Hardware story**: A real serial frame from the STM32 drives the same `ViewModel` surface as the in-process simulator. If you unplug the USB-TTL cable, the application **never freezes** — it detects the disconnect via a 500 ms watchdog and seamlessly hands telemetry over to `SimulatorService`.
-
----
-
-## Key Features
-
-- 🚫 **Zero JavaScript in QML** — every piece of logic lives in C++. `.qml` files contain only declarative property bindings, `Q_INVOKABLE` calls, and `States` transitions.
-- 🧠 **MVVM enforced** — QML is a passive view; C++ exposes state via `Q_PROPERTY` with `NOTIFY` signals. Swapping the backend never requires a QML change.
-- ⚙️ **Runtime Serial ⇄ Simulator fallback** — `main.cpp` wires both services simultaneously; whichever one reports `connectionStatusChanged(true)` wins until it times out.
-- 🐕 **Watchdog + auto-reconnect** — `SerialService` marks telemetry stale after 500 ms of silence and tries to reopen the port on `errorOccurred`.
-- 🌃 **Tick-based neon gauges** — `NeonTickGauge.qml` lights individual ticks (`isIlluminated`) instead of solid arcs — pure QML, no JS math.
-- 🪟 **Double Arch / Binocular bezel** — A `Shape` with a precise `PathSvg` cubic bezier forms the physical dashboard silhouette in a `FramelessWindowHint` window.
-- 🧊 **Glassmorphism panels** — Translucent `#2C353F` tinted base + diagonal gradients + edge fade masks create frosted-glass neon lighting.
-- 🚨 **Data-bound telltale bar** — Warning, low-battery, and high-temperature icons light up from live `VehicleStatusViewModel` telemetry via pure declarative bindings, with animated fade transitions.
-- 🎵 **3D cover-flow music player** — Native `PathView` with `PathAttribute` provides a Zero-JS 3D carousel; audio is fully driven by `QMediaPlayer` inside `MusicPlayerViewModel`.
-- 🧵 **Async media scanning** — `MusicScanner` runs `QDirIterator` on a `QThread`, so the QML render thread never blocks while scanning a directory of audio files.
-- 🌗 **Day/Night themes + automotive boot sequence** — one tap cross-fades the whole cluster between the dark Neon shell and a Light Glassmorphism day variant (bezel stays constant); startup plays a real-car choreography: telltale self-test → gauge sweep 0→max→0 → sequential content fade-in, all driven by a C++ `QSequentialAnimationGroup` timeline.
-- 🏍️ **Vehicle morphing (Bike ⇄ Scooter ⇄ Car)** — the dashboard reshapes itself via QML `States` bound to a C++ string property: gauges re-scale (60/120/160 km/h), the right arch swaps RPM ⇄ battery, and a "dip" transition masks tick relabeling.
-- 🏎️ **Drive modes (ECO / NORMAL / SPORT)** — a single 6-variant accent token in `Theme.qml` recolors every neon element (green / cyan / orange × day/night) with one 600 ms cross-fade.
-- 🧮 **Trip computer** — odometer, resettable trip, and average speed integrated in C++ from speed × real elapsed time (`QElapsedTimer`), displayed in the bottom bar with click-to-reset.
-- 🧪 **TDD by default** — Tests live alongside the code (`tests/`) and run via `ctest`.
-
----
-
-## Screenshots & Gallery
-
-### Dashboard Simulation Demo
-
-Watch the simulator in action (including Neon UI, dynamic gauges, and music player):
-
-https://github.com/user-attachments/assets/6a6238db-94a1-43bd-a060-19f87c4b604d
-<!-- TODO: screenshot — Main dashboard in Bike form factor -->
-<!-- TODO: screenshot — Serial disconnected state (auto-fallback to Simulator) -->
-
----
+> [!NOTE]
+> The serial software pipeline and no-hardware fallback transitions are automated and verified. Live STM32 firmware, USB-TTL wiring, unplug/replug behavior, and motor control still need field validation.
 
 ## Architecture
 
-### Layered MVVM Data Flow
+`src/main.cpp` owns both services and all eight context ViewModels:
+
+| QML context | Responsibility |
+|---|---|
+| `VehicleStatus` | Speed, RPM, gear, warning, battery, range, temperature |
+| `MusicViewModel` | Library model, playback, progress, and scrubber |
+| `ThemeController` | Day/night state and boot timeline |
+| `VehicleMode` | Car/Bike/Scooter state |
+| `DriveMode` | NORMAL/SPORT/ECO state |
+| `TripComputer` | Odometer, trip, average speed, formatted displays |
+| `ParkingAssist` | One rear distance, reverse state, proximity level, and formatted display |
+| `CenterHubController` | C++-owned Music/Parking Assist page selection |
+
+The transport contracts are deliberately different:
 
 ```mermaid
-graph TD
-    A[QML View<br/>Main.qml • DashboardScreen.qml] -->|Q_INVOKABLE / bindings| B(C++ ViewModel<br/>VehicleStatusViewModel • MusicPlayerViewModel)
-    B -->|NOTIFY signals| A
-    C1[SimulatorService<br/>QTimer + MockScenarioEngine] -->|telemetryUpdated| B
-    C2[SerialService<br/>QSerialPort /dev/ttyUSB0] -->|telemetryUpdated| B
-    D[MusicScanner<br/>QThread + QDirIterator] -->|async list updates| B
+flowchart LR
+    Simulator[SimulatorService<br/>full dashboard telemetry] --> Gate[main.cpp source gate]
+    Port[QSerialPort readyRead] --> Parser[SerialTelemetryParser]
+    Parser --> Serial[SerialService<br/>raw RPM / VBat / error]
+    Serial --> Mapper[TelemetryMapper]
+    Mapper --> Gate
+    Gate --> Vehicle[VehicleStatusViewModel]
+    Gate --> Trip[TripComputerViewModel]
+    ParkingSource[MockParkingSensorService] --> Parking[ParkingAssistViewModel]
+    Parking --> Hub[CenterHubViewModel]
+    Vehicle --> DashboardQML[Dashboard QML view]
+    Hub --> DashboardQML
+    Parking --> DashboardQML
 ```
 
-**Service-swap invariance**: `SimulatorService` and `SerialService` expose the same telemetry signal contract, so QML never knows which one is active.
+`SimulatorService::telemetryUpdated(...)` supplies all dashboard fields. `SerialService::rawTelemetryUpdated(...)` supplies only parsed wire values. `TelemetryMapper::fromSerial(...)` derives dashboard fields outside the transport, and `main.cpp` updates the shared ViewModel surface. QML never selects a telemetry source.
 
-### The "Zero JavaScript" Rule
+Serial parsing runs in the GUI thread from `QSerialPort::readyRead` and performs no blocking waits. Only `MusicScanner` uses a worker thread for `QDirIterator`.
 
-> [!CAUTION]
-> Imperative JavaScript in `.qml` is forbidden by project policy. Do not introduce `function`, `if`/`for`/`switch`, or `onClick: { someVar += 1 }` blocks.
-
-| ❌ Forbidden in QML | ✅ Allowed in QML |
-|---|---|
-| `function doMath() { ... }` | Property bindings (`width: parent.width * 0.5`) |
-| Control flow (`if`, `for`, `switch`) | Ternary styling (`color: vm.isWarning ? "red" : "white"`) |
-| State mutation (`onClick: { myVar += 1 }`) | Direct `Q_INVOKABLE` calls (`onClicked: vm.startEngine()`) |
-
-The relevant standard is documented in detail at [`docs/architecture.md`](docs/architecture.md).
-
-### Runtime Hardware Fallback
-
-`main.cpp` instantiates both `SerialService` and `SimulatorService`. Whichever emits `connectionStatusChanged(true)` first owns telemetry until it stops. A 500 ms watchdog in `SerialService` flips the bit back to `false` if no frame is received, at which point `SimulatorService` takes over instantly:
-
-```text
-[startup] ──► SerialService tries to open /dev/ttyUSB0
-                ├── success ─► SimulatorService.stopSimulation()
-                └── failure / disconnect ─► SimulatorService.startSimulation()
-```
-
----
-
-## Technology Stack
-
-| Layer | Technology |
-|---|---|
-| UI | **Qt 6.8** Quick / QML — declarative, no imperative JS |
-| App logic | **C++17** (MVVM, `QObject`, `Q_PROPERTY`, `Q_INVOKABLE`, smart pointers) |
-| Build | **CMake ≥ 3.16** with `qt_standard_project_setup(REQUIRES 6.8)` and `qt_add_qml_module` |
-| Hardware I/O | **QSerialPort** (USB-TTL UART @ 115200 8N1) |
-| Media | **QMediaPlayer** (all playback driven from C++; zero JS in audio callbacks) |
-| Async I/O | **QThread** + Worker Object pattern for directory scanning |
-| Tests | **Qt Test** (`ctest`) — TDD-first workflow |
-
----
+See [architecture.md](docs/architecture.md) for ownership, threading, MVVM, and Zero-JavaScript rules.
 
 ## Project Layout
 
 ```text
-qt-qml-stm32/
-├── AGENTS.md              ← AI Agent master router (read this first)
-├── CLAUDE.md              ← Claude Code entry point
-├── CMakeLists.txt         ← Qt 6.8 + C++17, URI com.showcase
+CyberDash-STM32/
+├── AGENTS.md
+├── CMakeLists.txt
+├── README.md
 ├── src/
-│   ├── main.cpp                          ← DI + runtime Serial/Simulator fallback
+│   ├── main.cpp
 │   ├── services/
-│   │   ├── SimulatorService.{h,cpp}      ← QTimer-based mock telemetry
-│   │   ├── MockScenarioEngine.{h,cpp}    ← Drag Race / Battery Drain scenarios
-│   │   ├── SerialService.{h,cpp}         ← QSerialPort parser + watchdog
-│   │   └── MusicScanner.{h,cpp}          ← QThreaded directory scanner
+│   │   ├── MockScenarioEngine.{h,cpp}
+│   │   ├── MockParkingSensorService.{h,cpp}
+│   │   ├── MusicScanner.{h,cpp}
+│   │   ├── SerialService.{h,cpp}
+│   │   ├── SerialTelemetryParser.{h,cpp}
+│   │   ├── SimulatorService.{h,cpp}
+│   │   └── TelemetryMapper.{h,cpp}
 │   └── viewmodels/
-│       ├── VehicleStatusViewModel.{h,cpp}
-│       ├── MusicPlayerViewModel.{h,cpp}  ← QAbstractListModel + QMediaPlayer
-│       ├── ThemeViewModel.{h,cpp}        ← Day/Night flag + C++ boot timeline
-│       ├── VehicleModeViewModel.{h,cpp}  ← Bike/Scooter/Car morph state
-│       ├── DriveModeViewModel.{h,cpp}    ← ECO/NORMAL/SPORT accent state
-│       └── TripComputerViewModel.{h,cpp} ← Odometer / trip / avg-speed integration
+│       ├── DriveModeViewModel.{h,cpp}
+│       ├── MusicPlayerViewModel.{h,cpp}
+│       ├── ParkingAssistViewModel.{h,cpp}
+│       ├── CenterHubViewModel.{h,cpp}
+│       ├── ThemeViewModel.{h,cpp}
+│       ├── TripComputerViewModel.{h,cpp}
+│       ├── VehicleModeViewModel.{h,cpp}
+│       └── VehicleStatusViewModel.{h,cpp}
 ├── qml/
 │   ├── Main.qml
-│   ├── Theme.qml                         ← Singleton: design tokens (radii, colors, geometry)
+│   ├── Theme.qml
 │   ├── components/
-│   │   ├── NeonTickGauge.qml             ← Tick-based illumination gauge
-│   │   ├── MusicPlayer.qml               ← 3D PathView cover-flow player
-│   │   ├── GlassPanel.qml                ← Glassmorphism container
-│   │   ├── EnergyBlocks.qml              ← Segmented battery / fuel cells
-│   │   ├── NeonIcon.qml • NeonIconButton.qml
-│   │   ├── RangeTripCard.qml             ← Scooter-mode center card (range/battery)
-│   │   └── GlowingText.qml
+│   │   ├── CenterHub.qml
+│   │   ├── EnergyBlocks.qml
+│   │   ├── GlassPanel.qml
+│   │   ├── GlowingText.qml
+│   │   ├── MusicPlayer.qml
+│   │   ├── NeonIcon.qml
+│   │   ├── NeonIconButton.qml
+│   │   ├── NeonTickGauge.qml
+│   │   ├── ParkingAssistView.qml
+│   │   └── RangeTripCard.qml
 │   └── screens/
-│       └── DashboardScreen.qml           ← Declarative anchors on PathSvg Double Arch
+│       └── DashboardScreen.qml
 ├── resources/
-│   ├── icons/                            ← SVG icon set
-│   └── media/                            ← Splash / demo video
-├── docs/
-│   ├── architecture.md                   ← MVVM data flow & Zero-JS standard
-│   ├── ui_ux_guidelines.md               ← Design tokens, palette, animation rules
-│   ├── hardware_integration.md           ← UART protocol + fail-safes
-│   ├── testing_strategy.md               ← TDD workflow
-│   ├── tasks_board.md                    ← Phase-by-phase progress (Phase 0–11 ✅)
-│   ├── music_player_design.md
-│   └── adr/                             ← Architecture Decision Records
+│   ├── icons/
+│   └── media/
+│       ├── dashboard-preview.png
+│       └── simulator-demo.mp4
 ├── tests/
 │   ├── CMakeLists.txt
 │   ├── main.cpp
-│   ├── tst_music_playback.cpp            ← MusicPlayerViewModel + MusicScanner tests
-│   └── (tst_viewmodels)                  ← VehicleStatusViewModel tests
+│   ├── tst_music_playback.cpp
+│   ├── tst_parking_assist.cpp
+│   └── tst_serial_pipeline.cpp
+├── docs/
+│   ├── DOCUMENTATION_STANDARDS.md
+│   ├── architecture.md
+│   ├── hardware_integration.md
+│   ├── journal.md
+│   ├── music_player_design.md
+│   ├── tasks_board.md
+│   ├── testing_strategy.md
+│   └── ui_ux_guidelines.md
 └── .agents/
-    ├── skills/                           ← AI skills (qt-cpp-review, qt-qml-review, deep-research)
-    └── workflows/                        ← SOPs for brainstorming, C++, QML, CMake standards
+    ├── skills/
+    └── workflows/
 ```
 
----
+## Requirements
 
-## Prerequisites
+- Qt 6.8 or newer with Core, Gui, Qml, Quick, Test, SerialPort, and Multimedia.
+- CMake 3.16 or newer.
+- A C++17 compiler.
+- Optional for field validation: STM32F103C8T6 and USB-TTL adapter.
 
-- **Qt 6.8 or newer** (install via [Qt Online Installer](https://www.qt.io/download-qt-installer) or your distro; modules needed: `Core`, `Gui`, `Qml`, `Quick`, `Test`, `SerialPort`, `Multimedia`)
-- **CMake ≥ 3.16**
-- A C++17-capable compiler (GCC, Clang, or MSVC)
-- *(Optional, only for live-hardware mode)* An **STM32F103C8T6** board flashed with firmware that emits `TEL,...;` frames at 115200 8N1. See [Hardware Integration](#hardware-integration-stm32--uart).
-
----
-
-## Build & Run
+## Build and Run
 
 ```bash
-# Configure
 cmake -S . -B build
-
-# Compile
-cmake --build build -j
-
-# Launch
+cmake --build build -j2
 ./build/QtStmAutomotiveSimulator
 ```
 
-The application opens a frameless transparent window using the Double-Arch bezel SVG. On startup it tries to open `/dev/ttyUSB0`. If that fails (or you haven't plugged the MCU in), the **simulator instantly takes over** so the UI never appears dead.
-
-> 💡 If your serial port is on a different path, edit `src/main.cpp` (line: `SerialService serialService("/dev/ttyUSB0");`) or wrap it in a CLI flag.
-
----
+The host currently constructs `SerialService` for `/dev/ttyUSB0`. If the open fails, the initial disconnected state starts `SimulatorService`. A successful open remains logically disconnected until a valid telemetry frame arrives.
 
 ## Testing
 
-This project follows a strict **TDD-first** workflow. Tests are written before implementation, and every `Q_PROPERTY` is verified for its `READ` / `NOTIFY` semantics.
+CTest registers exactly four targets:
+
+| Target | Actual responsibilities |
+|---|---|
+| `tst_viewmodels` | Vehicle telemetry properties; theme/boot; vehicle and drive modes; trip computer |
+| `tst_music_playback` | Playback state controls and C++ scrubber clamping/drag state; CTest supplies `QT_QPA_PLATFORM=offscreen` |
+| `tst_serial_pipeline` | Parser, checksum, buffering, mapper, and no-hardware connection transitions |
+| `tst_parking_assist` | One-sensor thresholds, invalid/stale input, deterministic mock progression, notifications, and CenterHub page handoff |
+
+Run the deterministic baseline:
 
 ```bash
-# Run all tests
+cmake -S . -B build
+cmake --build build -j2
 ctest --test-dir build --output-on-failure
-
-# Or drive CMake directly
-cmake --build build --target tst_viewmodels tst_music_playback
 ```
 
-Current test suites:
+Scan QML for forbidden patterns, then manually classify every match. Comment-only matches are non-executable; any executable match fails the policy:
 
-- `tst_viewmodels` — `VehicleStatusViewModel` (telemetry updates, derived signals).
-- `tst_music_playback` — `MusicPlayerViewModel` + `MusicScanner` (async scan, list-model integration).
+```bash
+rg -n '\bMath\.|on[A-Z][A-Za-z]+\s*:\s*\{|\b(function|if|for|while|switch|var|let|const)\b' qml -g '*.qml'
+```
 
-See [docs/testing_strategy.md](docs/testing_strategy.md) for the canonical TDD loop:
-1. **Red** — write a failing test.
-2. **Green** — implement C++ until `ctest` passes.
-3. **Refactor** — clean up.
-4. **Bind** — expose to QML.
+For QML changes, also run the repository `qt-qml-review` workflow. A display-independent smoke command is:
 
----
+```bash
+QT_QPA_PLATFORM=offscreen timeout 8s ./build/QtStmAutomotiveSimulator
+```
 
-## Hardware Integration (STM32 & UART)
+See [testing_strategy.md](docs/testing_strategy.md) for evidence and troubleshooting rules.
 
-Full hardware protocol & fail-safe specs live in [`docs/hardware_integration.md`](docs/hardware_integration.md).
+## UART Protocol
 
-### UART Protocol
+The implemented receive format is newline-delimited ASCII:
 
-- **PHY**: USB-TTL UART, **115200 8N1**, no flow control.
-- **Frame format** (line-based ASCII): `<CMD>,<ARG1>,...;<CHECKSUM>\n`
+```text
+TEL,<rpm>,<battery-voltage>,<error-code>;<checksum>\n
+```
 
-| Direction | Example frame | Meaning |
+The checksum is:
+
+```cpp
+(rpm + int(vbat) + error) & 0xFF
+```
+
+Valid examples:
+
+```text
+TEL,118,11.8,0;129\n
+TEL,3000,11.8,0;195\n
+```
+
+`SerialTelemetryParser` retains partial frames and clears the buffer if it grows beyond 4096 bytes. `SerialService` uses a 500 ms valid-frame watchdog and a 2000 ms reconnect timer. A resource error or timeout closes the port, clears parser state, publishes disconnected once, and starts the simulator; a valid frame after reconnect publishes connected and stops the simulator.
+
+The implemented outbound emergency helper sends:
+
+```text
+STOP;\n
+```
+
+The current host does not implement a checksummed outbound `SET` protocol. See [hardware_integration.md](docs/hardware_integration.md) before changing the wire contract.
+
+## UI System
+
+The current canonical reference is the preview at the top of this README. `qml/Theme.qml` centralizes palette, geometry, typography, and duration tokens.
+
+- Day/night theme state comes from `ThemeController`.
+- ECO is green, NORMAL is cyan/teal, and SPORT is orange; warning red stays distinct.
+- `DashboardScreen` supports Car, Bike, and Scooter states.
+- The Car CenterHub contains the persistent Music player page.
+- While reverse is active, `CenterHubController` selects the passive Parking Assist panel; MusicPlayer remains alive and resumes when reverse ends. The panel shows only a centered ultrasonic zone, distance, and OEM-style status text — never a fake camera image.
+- Vehicle changes use the fade/scale dip transition.
+- Every `MultiEffect` captures a sibling source; recursive `source: parent` is forbidden.
+
+See [ui_ux_guidelines.md](docs/ui_ux_guidelines.md).
+
+## Roadmap and Status
+
+Historical detail is preserved in [tasks_board.md](docs/tasks_board.md).
+
+| Phase | Scope | Status |
 |---|---|---|
-| PC ➔ STM | `SET,120,1;` | Target **120 RPM**, direction **Forward** |
-| PC ➔ STM | `STOP;` | Emergency halt |
-| STM ➔ PC | `TEL,118,11.8,0;` | RPM=`118`, VBat=`11.8` V, Error=`0` |
+| 0 | Project scaffold | Complete |
+| 1 | MVVM core and testing | Complete |
+| 2 | QML shell and UI guidelines | Complete |
+| 3 | Hardware simulation | Complete |
+| 4 | STM32 software integration | Implemented; field validation pending |
+| 5 | Holographic dashboard | Complete |
+| 6 | Advanced mock engine | Complete |
+| 7 | Dynamic hardware fallback | Complete |
+| 8 | UI/UX aesthetic refinement | Complete |
+| 9 | Music player UI | Complete |
+| 10 | Architecture audit and debt cleanup | Complete with historical claims corrected |
+| 11 | UI standardization and layout refactor | Complete |
+| 12 | Functional telltale bar | Complete |
+| 13 | Day/night theme and startup animation | Complete |
+| 14 | Vehicle morphing | Complete |
+| 15 | Drive modes and trip computer | Complete |
+| 16 | CenterHub introduction | Complete |
+| 17 | Pre-Feature Baseline Repair | Software implementation and full verification complete; physical field validation pending |
+| 18 | Rear Parking Assist | Mock implementation and verification complete; STM32 ultrasonic adapter pending |
 
-`SerialService` parses into a `QByteArray` buffer, accumulates until `\n`, validates the checksum, and emits `telemetryUpdated(speed, rpm, gear, isWarning, battery, range, temperature)`.
+Phase 17 repaired the parser/mapper boundary, made serial fallback transitions deterministic, moved scrubber and volume normalization into C++, removed the remaining QML `Math` helpers, isolated test-only music persistence, hardened finite numeric inputs, synchronized active documentation, and completed the pre-feature build/test/lint/smoke verification matrix. Physical STM32/USB-TTL field validation remains pending.
 
-### Fail-Safes
+## Contribution Rules
 
-- **Watchdog** (500 ms): if no telemetry frame arrives, data is marked stale and QML is alerted.
-- **Auto-reconnect**: `QSerialPort::errorOccurred` triggers reconnection.
-- **Dynamic fallback**: when the watchdog expires or the port errors out, `SerialService::connectionStatusChanged(false)` is emitted, and `SimulatorService` instantly takes over so the UI never freezes.
-
----
-
-## Design System
-
-The design language lives in **one place**: [`qml/Theme.qml`](qml/Theme.qml), exposed as a QML singleton. Hard-coded HEX, magic pixel numbers, and ad-hoc durations in component files are forbidden.
-
-Palette and typography anchors (from `docs/ui_ux_guidelines.md`):
-
-| Token | Value | Role |
-|---|---|---|
-| Background — Deep Space Black | `#0B0C10` | Window base |
-| Background — Charcoal | `#1F2833` | Panel base, glassmorphism tint |
-| Accent — Neon Cyan | `#66FCF1` | Active states, primary gauges |
-| Accent — Neon Red | `#FF3B30` | Warnings, over-threshold gauges |
-| Fonts | Inter / Roboto / Orbitron | Typography hierarchy |
-
-Animation defaults come from `Behavior on ... { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }` bindings on raw telemetry so noisy signals look fluid.
-
----
-
-## Contributing / Development Rules
-
-Before you mark anything "Done", run through the **Golden Checks** from `AGENTS.md` §7:
-
-- [ ] No JS logic in any `.qml`.
-- [ ] New behavior has a C++ home (ViewModel / Service).
-- [ ] QML remains unchanged when swapping Simulator ↔ Serial.
-- [ ] Build is clean on the current platform (`cmake -B build`).
-- [ ] Tests added/changed and `ctest` is green.
-- [ ] `git commit` and `git push` after every small change (vibe-coding workflow).
-
-Additional reading for contributors:
-
-- 📘 [`.agents/workflows/cpp_coding_standards.md`](.agents/workflows/cpp_coding_standards.md)
-- 📙 [`.agents/workflows/qml_coding_standards.md`](.agents/workflows/qml_coding_standards.md)
-- 🛠️ [`.agents/workflows/cmake_standards.md`](.agents/workflows/cmake_standards.md)
-
----
-
-## Roadmap & Status
-
-Tracked in [`docs/tasks_board.md`](docs/tasks_board.md). Snapshot:
-
-| Phase | Title | Status |
-|---|---|---|
-| 0 | Project Scaffold (CMake + Arch) | ✅ |
-| 1 | MVVM Core & Testing | ✅ |
-| 2 | QML Shell & UI Guidelines | ✅ |
-| 3 | Hardware Simulation (C++) | ✅ |
-| 4 | STM32 Integration | ✅ |
-| 5 | Holographic Dashboard (Neon Cyberpunk 3-Panel) | ✅ |
-| 6 | Advanced Mock Engine (Physics & Scenarios) | ✅ |
-| 7 | Dynamic Hardware Fallback | ✅ |
-| 8 | UI/UX Aesthetic Refinement (Tick Gauge, Double Arch) | ✅ |
-| 9 | Music Player UI (Neon Cyberpunk, 3D Cover Flow) | ✅ |
-| 10 | Architecture Audit & Technical Debt Eradication | ✅ |
-| 11 | UI Standardization & Layout Refactor | ✅ |
-| 12 | Functional Telltale Bar | ✅ |
-| 13 | Day/Night Theme + Startup Animation | ✅ |
-| 14 | Vehicle Morphing (Bike / Scooter / Car) | ✅ |
-| 15 | Drive Modes (ECO/NORMAL/SPORT) + Trip Computer | ✅ |
-
-Planned next:
-
-- Real-world field test with the STM32 MCU (closed-loop motor + encoder) — extend the UART frame beyond RPM/VBat/Error.
-- Scenario selector UI — expose the existing `MockScenarioEngine` scenarios (Drag Race / Battery Drain / Error Injection).
-- Persistence layer for user preferences (theme, vehicle & drive mode, odometer, last-played track).
-
----
+- Use C++17 and keep QML passive.
+- Write focused tests first for behavior changes.
+- Preserve `SimulatorService`/`SerialService` source-swap invariance at the ViewModel boundary.
+- Complete configure, build, CTest, Zero-JS scan, and QML review checks before marking work done.
+- Commit only after verification; push only with an appropriate repository state and user authorization.
 
 ## License
 
-**TBD** — license not yet declared. Until a `LICENSE` file is committed, treat this repository as **All Rights Reserved** by the original author.
-
----
-
-## Credits
-
-- **Author**: [@BUITANHUNG0411](https://github.com/BUITANHUNG0411)
-- **AI-assisted engineering**: [Antigravity / Claude](https://claude.com) — every commit follows the rules in `AGENTS.md` and is shipped through the vibe-coding workflow.
-- **Inspiration**: a *Neon Cyberpunk* 3-panel automotive layout — visible in the hero screenshot above.
-
----
-
-<p align="center"><sub>Built with strict adherence to "Zero JavaScript in QML" — every pixel you see is animated by C++.</sub></p>
+No `LICENSE` file is currently committed. Treat the repository as all rights reserved until the owner adds one.

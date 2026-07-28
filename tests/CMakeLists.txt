@@ -42,3 +42,36 @@ target_link_libraries(tst_music_playback
 )
 
 add_test(NAME tst_music_playback COMMAND tst_music_playback)
+set_tests_properties(tst_music_playback PROPERTIES
+    ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
+    TIMEOUT 20
+)
+
+qt_add_executable(tst_serial_pipeline
+    tst_serial_pipeline.cpp
+    ../src/services/SerialService.cpp
+    ../src/services/SerialTelemetryParser.cpp
+    ../src/services/TelemetryMapper.cpp
+)
+
+target_include_directories(tst_serial_pipeline PRIVATE ../src)
+
+target_link_libraries(tst_serial_pipeline
+    PRIVATE
+    Qt6::Core
+    Qt6::Test
+    Qt6::SerialPort
+)
+
+add_test(NAME tst_serial_pipeline COMMAND tst_serial_pipeline)
+
+qt_add_executable(tst_parking_assist
+    tst_parking_assist.cpp
+    ../src/services/MockParkingSensorService.cpp
+    ../src/viewmodels/ParkingAssistViewModel.cpp
+    ../src/viewmodels/CenterHubViewModel.cpp
+)
+
+target_include_directories(tst_parking_assist PRIVATE ../src)
+target_link_libraries(tst_parking_assist PRIVATE Qt6::Core Qt6::Test)
+add_test(NAME tst_parking_assist COMMAND tst_parking_assist)

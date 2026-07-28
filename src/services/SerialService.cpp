@@ -1,13 +1,10 @@
 #include "SerialService.h"
+
 #include <QDebug>
-#include <QStringList>
 
 SerialService::SerialService(const QString &portName, QObject *parent)
     : QObject(parent),
-      m_portName(portName),
-      m_lastSpeed(0.0),
-      m_lastRpm(0),
-      m_isConnected(false)
+      m_portName(portName)
 {
     m_serial = new QSerialPort(this);
     m_serial->setPortName(m_portName);
@@ -36,18 +33,14 @@ SerialService::~SerialService()
 
 void SerialService::startService()
 {
-    if (m_serial->open(QIODevice::ReadWrite)) {
+    setConnected(false);
+    if (openSerialPort(QIODevice::ReadWrite)) {
         qDebug() << "Serial port" << m_portName << "opened successfully. Waiting for data...";
         m_watchdogTimer->start();
         m_reconnectTimer->stop();
     } else {
         qWarning() << "Failed to open serial port" << m_portName << "-" << m_serial->errorString();
         m_reconnectTimer->start();
-        if (m_isConnected) {
-            m_isConnected = false;
-        }
-        emit connectionStatusChanged(false);
-        handleWatchdogTimeout(); // Trigger warning UI immediately
     }
 }
 
@@ -58,6 +51,8 @@ void SerialService::stopService()
     }
     m_watchdogTimer->stop();
     m_reconnectTimer->stop();
+    m_parser.clear();
+    setConnected(false);
 }
 
 void SerialService::sendCommand(const QString &command)
@@ -74,67 +69,16 @@ void SerialService::emergencyStop()
 
 void SerialService::handleReadyRead()
 {
-    m_buffer.append(m_serial->readAll());
-
-    if (m_buffer.size() > 4096) {
-        qWarning() << "Serial buffer exceeded max limit, clearing.";
-        m_buffer.clear();
-        return;
-    }
-
-    // Process line-by-line
-    while (m_buffer.contains('\n')) {
-        int newlineIndex = m_buffer.indexOf('\n');
-        QByteArray line = m_buffer.left(newlineIndex);
-        m_buffer.remove(0, newlineIndex + 1);
-
-        QString dataStr = QString::fromUtf8(line).trimmed();
-        if (!dataStr.isEmpty()) {
-            parseTelemetry(dataStr);
-        }
-    }
+    processIncomingBytes(m_serial->readAll());
 }
 
-void SerialService::parseTelemetry(const QString &line)
+void SerialService::processIncomingBytes(const QByteArray &bytes)
 {
-    // Format: TEL,RPM,VBAT,ERROR;CHECKSUM
-    if (line.startsWith("TEL,") && line.contains(";")) {
-        int semiIndex = line.lastIndexOf(';');
-        QString payload = line.mid(4, semiIndex - 4);
-        QString checksumStr = line.mid(semiIndex + 1);
-        
-        QStringList parts = payload.split(",");
-        if (parts.size() == 3) {
-            bool okRpm, okVbat, okError;
-            int rpm = parts[0].toInt(&okRpm);
-            double vbat = parts[1].toDouble(&okVbat);
-            int error = parts[2].toInt(&okError);
-
-            if (okRpm && okVbat && okError) {
-                // Verify checksum
-                int expectedChecksum = (rpm + static_cast<int>(vbat) + error) & 0xFF;
-                if (checksumStr.toInt() == expectedChecksum) {
-                    m_watchdogTimer->start();
-                    if (!m_isConnected) {
-                        m_isConnected = true;
-                        emit connectionStatusChanged(true);
-                    }
-                    m_lastRpm = rpm;
-                    
-                    double calcSpeed = static_cast<double>(rpm) * 0.03;
-                    QString calcGear = "N";
-                    if (calcSpeed > 0 && calcSpeed <= 20) calcGear = "1";
-                    else if (calcSpeed > 20 && calcSpeed <= 40) calcGear = "2";
-                    else if (calcSpeed > 40 && calcSpeed <= 60) calcGear = "3";
-                    else if (calcSpeed > 60 && calcSpeed <= 80) calcGear = "4";
-                    else if (calcSpeed > 80) calcGear = "5";
-
-                    bool warning = (error != 0) || (vbat < 10.5);
-                    
-                    emit telemetryUpdated(calcSpeed, rpm, calcGear, warning, 100, 325, 57);
-                }
-            }
-        }
+    const auto frames = m_parser.append(bytes);
+    for (const RawSerialTelemetry &frame : frames) {
+        m_watchdogTimer->start();
+        setConnected(true);
+        emit rawTelemetryUpdated(frame.rpm, frame.batteryVoltage, frame.errorCode);
     }
 }
 
@@ -149,28 +93,33 @@ void SerialService::handleError(QSerialPort::SerialPortError error)
 
 void SerialService::handleWatchdogTimeout()
 {
-    // Stale data or disconnected
     qWarning() << "Watchdog timeout! No telemetry data received.";
-    if (m_isConnected) {
-        m_isConnected = false;
-        emit connectionStatusChanged(false);
-    }
-    m_lastSpeed = 0.0;
-    m_lastRpm = 0;
-    emit telemetryUpdated(0.0, 0, "N", true, 0, 0, 0); // 1 = error/stale data
-    
-    // Auto-reconnect
-    if (!m_reconnectTimer->isActive()) {
-        m_reconnectTimer->start();
-    }
+    stopService();
+    m_reconnectTimer->start();
 }
 
 void SerialService::tryReconnect()
 {
     qDebug() << "Attempting to reconnect to" << m_portName << "...";
-    if (m_serial->open(QIODevice::ReadOnly)) {
+    if (openSerialPort(QIODevice::ReadWrite)) {
         qDebug() << "Reconnected successfully.";
         m_watchdogTimer->start();
         m_reconnectTimer->stop();
     }
+}
+
+bool SerialService::openSerialPort(QIODevice::OpenMode mode)
+{
+    return m_serial->open(mode);
+}
+
+void SerialService::setConnected(bool connected)
+{
+    if (m_connectionStateKnown && m_isConnected == connected) {
+        return;
+    }
+
+    m_connectionStateKnown = true;
+    m_isConnected = connected;
+    emit connectionStatusChanged(connected);
 }

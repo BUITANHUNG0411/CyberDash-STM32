@@ -1,0 +1,27 @@
+pragma ComponentBehavior: Bound
+
+import QtQuick
+import QtQuick.Layouts
+import com.showcase
+
+/*
+ * Hub trung tâm (Car mode): giữ MusicPlayer sống ổn định trong panel.
+ */
+Item {
+    id: root
+
+    StackLayout {
+        anchors.fill: parent
+        currentIndex: CenterHubController.activePage
+
+        MusicPlayer {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+        }
+
+        ParkingAssistView {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+        }
+    }
+}

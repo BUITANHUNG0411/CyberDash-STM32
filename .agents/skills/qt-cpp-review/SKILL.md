@@ -474,7 +474,8 @@ leaks and thread-safety conflicts in code that touches `QTimer` or
 
 - **`SimulatorService`** drives mock telemetry with a `QTimer`.
 - **`SerialService`** reads UART frames from an STM32F103C8T6 over
-  `QSerialPort` (115200 8N1, length-prefixed `\n`-terminated ASCII frames).
+  `QSerialPort` (115200 8N1, newline-delimited
+  `TEL,<rpm>,<vbat>,<error>;<checksum>` ASCII records).
 
 **Memory-leak checks (raise confidence and priority for these):**
 - Any `QTimer`/`QSerialPort` created with `new` must have a `QObject` parent,

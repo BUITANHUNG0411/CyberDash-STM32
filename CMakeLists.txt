@@ -27,7 +27,12 @@ qt_add_executable(${PROJECT_NAME}
     src/services/SimulatorService.cpp
     src/services/MockScenarioEngine.cpp
     src/services/SerialService.cpp
+    src/services/SerialTelemetryParser.cpp
+    src/services/TelemetryMapper.cpp
     src/services/MusicScanner.cpp
+    src/services/MockParkingSensorService.cpp
+    src/viewmodels/ParkingAssistViewModel.cpp
+    src/viewmodels/CenterHubViewModel.cpp
 )
 
 set_source_files_properties(qml/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
@@ -46,6 +51,8 @@ qt_add_qml_module(${PROJECT_NAME}
         qml/components/NeonIcon.qml
         qml/components/NeonIconButton.qml
         qml/components/RangeTripCard.qml
+        qml/components/CenterHub.qml
+        qml/components/ParkingAssistView.qml
         qml/screens/DashboardScreen.qml
     RESOURCES
         resources/icons/play.svg
@@ -79,6 +86,10 @@ qt_add_qml_module(${PROJECT_NAME}
         src/viewmodels/DriveModeViewModel.cpp
         src/viewmodels/TripComputerViewModel.h
         src/viewmodels/TripComputerViewModel.cpp
+        src/viewmodels/ParkingAssistViewModel.h
+        src/viewmodels/ParkingAssistViewModel.cpp
+        src/viewmodels/CenterHubViewModel.h
+        src/viewmodels/CenterHubViewModel.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}

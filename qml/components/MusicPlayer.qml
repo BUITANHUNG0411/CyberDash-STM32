@@ -9,9 +9,6 @@ Item {
     implicitWidth: 350
     implicitHeight: 450
 
-    // Local UI state (declarative only — no JS logic)
-    property bool scrubberDragging: false
-
     // Neon Blur Backdrop driven by current song color1 (Zero-JS)
     Rectangle {
         id: blurBackdrop
@@ -319,11 +316,9 @@ Item {
                         radius: 1.5
 
                         Rectangle {
-                            width: parent.width * (root.scrubberDragging
-                                ? (scrberMouse.dragX / Math.max(1, parent.width))
-                                : (MusicViewModel.duration > 0
-                                    ? (MusicViewModel.positionMs / MusicViewModel.duration)
-                                    : MusicViewModel.progress))
+                            width: parent.width * (MusicViewModel.scrubberDragging
+                                ? MusicViewModel.scrubberRatio
+                                : MusicViewModel.progress)
                             height: parent.height
                             color: Theme.accentCyan
                             radius: 1.5
@@ -348,21 +343,12 @@ Item {
                         }
                     }
                     
-                    // Simple Drag Handler Alternative using MouseArea
                     MouseArea {
-                        id: scrberMouse
                         anchors.fill: parent
-                        property real dragX: 0
-                        onPressed: {
-                            root.scrubberDragging = true
-                            dragX = mouseX
-                            MusicViewModel.seek(mouseX / Math.max(1, width))
-                        }
-                        onPositionChanged: {
-                            dragX = mouseX
-                            MusicViewModel.seek(mouseX / Math.max(1, width))
-                        }
-                        onReleased: root.scrubberDragging = false
+                        onPressed: MusicViewModel.beginScrub(mouseX, width)
+                        onPositionChanged: MusicViewModel.updateScrub(mouseX, width)
+                        onReleased: MusicViewModel.endScrub()
+                        onCanceled: MusicViewModel.endScrub()
                     }
                 }
 
@@ -402,8 +388,8 @@ Item {
 
                         MouseArea {
                             anchors.fill: parent
-                            onPressed: MusicViewModel.setVolume(mouseX / Math.max(1, width))
-                            onPositionChanged: MusicViewModel.setVolume(mouseX / Math.max(1, width))
+                            onPressed: MusicViewModel.setVolumeFromPosition(mouseX, width)
+                            onPositionChanged: MusicViewModel.setVolumeFromPosition(mouseX, width)
                         }
                     }
                 }
@@ -504,7 +490,9 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 12
-        width: Math.min(parent.width - 24, toastText.width + 28)
+        width: parent.width - 24 < toastText.width + 28
+            ? parent.width - 24
+            : toastText.width + 28
         height: 34
         radius: Theme.radiusSm
         color: Theme.warningRed

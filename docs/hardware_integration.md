@@ -1,30 +1,107 @@
-# 🔌 Hardware Integration (STM32 & UART)
+# 🔌 Hardware Integration (STM32 and UART)
 
-> **AI Context**: Protocol and architecture for PC-to-STM32 serial communication.
+> **AI Context**: Active protocol and runtime-fallback contract for STM32F103C8T6 telemetry over `QSerialPort`. Software integration is implemented; physical-device field validation is still pending.
 
 ## 1. Hardware Topology
-- **Host**: PC running Qt6 Application (`QSerialPort`).
-- **MCU**: STM32F103C8T6 (Blue Pill).
-- **Actuators/Sensors**: L298N Motor Driver, Encoder feedback.
-- **Connection**: USB-TTL UART @ 115200 8N1.
 
-## 2. UART Protocol Specification
-Uses line-based ASCII for high observability. Format: `<CMD>,<ARG1>,...;<CHECKSUM>\n`
+- **Host:** Qt 6 application using `QSerialPort`.
+- **MCU:** STM32F103C8T6 (Blue Pill).
+- **Connection:** USB-TTL UART at 115200 baud, 8 data bits, no parity, 1 stop bit, no flow control.
+- **Default host path:** `/dev/ttyUSB0`, constructed in `src/main.cpp`.
 
-| Direction | Example Frame | Description |
-|---|---|---|
-| PC ➔ STM | `SET,120,1;` | Target 120 RPM, Forward |
-| PC ➔ STM | `STOP;` | Emergency Halt |
-| STM ➔ PC | `TEL,118,11.8,0;` | RPM=118, VBat=11.8V, Error=0 |
+## 2. Receive Protocol
 
-## 3. C++ SerialService Requirements
-- Use `QByteArray` buffer to read until `\n` to prevent partial frame processing.
-- Verify checksum before processing `TEL` frames.
-- Run parsing asynchronously (or leverage `readyRead()` slots) so the GUI thread never blocks.
+Incoming telemetry is newline-delimited ASCII:
 
-## 4. Fail-Safes
+```text
+TEL,<rpm>,<battery-voltage>,<error-code>;<checksum>\n
+```
+
+The checksum is the low eight bits of the integer sum:
+
+```cpp
+(rpm + int(vbat) + error) & 0xFF
+```
+
+The battery voltage is truncated toward zero for checksum calculation. A valid complete frame is:
+
+```text
+TEL,118,11.8,0;129\n
+```
+
+Here, `118 + 11 + 0` equals `129`. The parser rejects malformed fields, multiple separators, non-finite or out-of-`int` battery values, negative/mismatched checksums, and non-`TEL` records.
+
+## 3. Framing and Mapping
+
+`SerialTelemetryParser` appends bytes into a `QByteArray`, retains partial lines, and processes only newline-terminated records. If the retained buffer grows beyond 4096 bytes, it is cleared and that append produces no frame.
+
+`SerialService` emits only:
+
+```cpp
+rawTelemetryUpdated(int rpm, double batteryVoltage, int errorCode)
+```
+
+`main.cpp` passes that raw record to `TelemetryMapper`. The mapper derives dashboard speed, gear, warning, battery, range, and temperature before updating `VehicleStatusViewModel`. Serial transport code does not own dashboard derivation.
+
+## 4. Runtime Connection State
+
+The service publishes disconnected before its initial open attempt. Opening a port is not sufficient to claim a connection; only the first valid `TEL` frame emits `connectionStatusChanged(true)`.
+
+- **Watchdog:** 500 ms from the latest valid frame.
+- **Reconnect timer:** 2000 ms after an open failure, watchdog timeout, or resource error.
+- **Parser reset:** stop, watchdog, and resource-error paths clear partial input.
+- **Reconnect:** a successful reopen restarts the watchdog but remains disconnected until valid telemetry arrives.
+
+```text
+QSerialPort::ResourceError
+  -> stop/close port + clear parser
+  -> connectionStatusChanged(false)
+  -> main.cpp starts SimulatorService
+  -> reconnect attempt every 2000 ms
+  -> valid TEL frame
+  -> connectionStatusChanged(true)
+  -> main.cpp stops SimulatorService
+```
+
+Duplicate disconnected notifications are suppressed. This keeps source switching deterministic and prevents multiple fallback transitions for one failure.
+
+## 5. Threading
+
+`QSerialPort::readyRead`, byte parsing, checksum validation, mapping, and ViewModel updates run on the GUI thread. The handler performs no blocking wait and only consumes currently available bytes.
+
 > [!WARNING]
-> Hardware can disconnect at any time.
-- Implement watchdog timers in C++: If no telemetry is received for 500ms, mark data as "Stale" and alert QML.
-- Implement auto-reconnect logic on `QSerialPort::errorOccurred`.
-- **Dynamic Fallback:** The application uses dependency injection dynamically in `main.cpp`. If `SerialService` loses connection or watchdog times out, it emits `connectionStatusChanged(false)` and the application instantly spins up `SimulatorService` to keep the UI alive. When valid `TEL` frames are received, it emits `true` and the simulator shuts down.
+> Do not add blocking reads or move `QSerialPort` independently of its owning `SerialService`. The only worker-thread I/O in the current application is music directory scanning.
+
+## 6. Host-to-MCU Commands
+
+`sendCommand()` appends a newline to the supplied text. The implemented emergency-stop helper sends:
+
+```text
+STOP;\n
+```
+
+No checksummed outbound `SET` protocol is implemented in the current host code; coordinate and test any firmware command extension before documenting it as supported.
+
+## 7. Validation Status
+
+Parser, mapper, and no-hardware connection transitions have deterministic automated coverage in `tst_serial_pipeline`. Live STM32 wiring, firmware compatibility, unplug/replug behavior, and motor control still require the separate Phase 4 field validation.
+
+## 8. Rear Parking Assist Boundary
+
+The current Parking Assist release is mock-first and uses one rear ultrasonic sensor. The
+high-level sample boundary is `distanceCm` plus `reverseActive`; the ViewModel accepts only
+integer distances from `1` through `250` cm and marks the sensor unavailable after one second
+without a valid update while reverse is active.
+
+The STM32F103 should later measure echo timing and convert it to centimetres on the MCU or in a
+dedicated C++ adapter before emitting a validated high-level sample. No camera stream, raw echo
+timing, or sensor parsing belongs in QML, and the existing `TEL` frame must not be silently
+extended without a separately specified checksum/protocol change.
+
+## Troubleshooting
+
+- **Frame rejected:** include the terminating newline and recompute the checksum using the truncated integer part of battery voltage.
+- **Port opens but simulator remains active:** this is expected until a valid telemetry frame arrives.
+- **Repeated reconnects:** check device permissions, the `/dev/ttyUSB0` path, baud settings, firmware line endings, and checksum output.
+- **Stale partial frame after unplug:** ensure every failure path reuses `stopService()`, which clears the parser.
+- **UI stays on hardware after silence:** confirm the 500 ms watchdog is running after open and after every valid frame.

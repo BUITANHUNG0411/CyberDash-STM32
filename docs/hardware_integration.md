@@ -86,6 +86,18 @@ No checksummed outbound `SET` protocol is implemented in the current host code; 
 
 Parser, mapper, and no-hardware connection transitions have deterministic automated coverage in `tst_serial_pipeline`. Live STM32 wiring, firmware compatibility, unplug/replug behavior, and motor control still require the separate Phase 4 field validation.
 
+## 8. Rear Parking Assist Boundary
+
+The current Parking Assist release is mock-first and uses one rear ultrasonic sensor. The
+high-level sample boundary is `distanceCm` plus `reverseActive`; the ViewModel accepts only
+integer distances from `1` through `250` cm and marks the sensor unavailable after one second
+without a valid update while reverse is active.
+
+The STM32F103 should later measure echo timing and convert it to centimetres on the MCU or in a
+dedicated C++ adapter before emitting a validated high-level sample. No camera stream, raw echo
+timing, or sensor parsing belongs in QML, and the existing `TEL` frame must not be silently
+extended without a separately specified checksum/protocol change.
+
 ## Troubleshooting
 
 - **Frame rejected:** include the terminating newline and recompute the checksum using the truncated integer part of battery voltage.

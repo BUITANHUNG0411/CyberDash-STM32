@@ -128,3 +128,11 @@
 - [x] Close final branch-review follow-ups: direct connected-state fallback/reconnect regressions, test-safe music persistence, and documentation/review-skill truth fixes (`4307a4d`, `1d863df`).
 - [x] Complete the final re-review with no remaining high-confidence Critical or Important findings; rerun configure, build, CTest 3/3, Zero-JS, module `qmllint`, range diff hygiene, and the 8-second offscreen smoke check.
 - [x] Historical checklist superseded by the canonical Phase 4 hardware-validation task.
+
+## Phase 18: Rear Parking Assist
+- [x] Add `MockParkingSensorService` for one deterministic rear ultrasonic distance and reverse-state sample.
+- [x] Add `ParkingAssistViewModel` with `1..250` cm validation, Clear/Caution/Stop/Unavailable levels, formatted display state, and one-second stale expiry.
+- [x] Add `CenterHubViewModel` so reverse automatically selects Parking Assist while preserving MusicPlayer lifetime.
+- [x] Add passive Neon Cyberpunk/OEM `ParkingAssistView` with centralized theme tokens and no camera illustration.
+- [x] Register `tst_parking_assist` and verify threshold, stale, mock progression, notification, and page-handoff contracts.
+- [x] Document the future STM32 high-level distance/reverse boundary without changing the current UART protocol.

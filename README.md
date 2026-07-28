@@ -2,28 +2,29 @@
 
 > **AI Context**: Repository overview for the C++17/Qt 6.8 Neon Cyberpunk dashboard, its verified software interfaces, deterministic tests, and pending hardware field validation.
 
-A Qt Quick automotive dashboard with Car, Bike, and Scooter layouts, C++-owned state, a music player, and STM32F103C8T6 telemetry over UART. The application falls back to an in-process simulator whenever serial telemetry is unavailable.
+A Qt Quick automotive dashboard with Car, Bike, and Scooter layouts, C++-owned state, a music player, one-sensor rear Parking Assist, and STM32F103C8T6 telemetry over UART. The application falls back to an in-process simulator whenever serial telemetry is unavailable.
 
 ![Dashboard preview](resources/media/dashboard-preview.png)
 
 ## Features
 
-- Strict MVVM: six C++ ViewModels are exposed to passive QML.
+- Strict MVVM: eight C++ ViewModels are exposed to passive QML.
 - Zero-JS policy: stateful interaction and domain logic live in C++.
 - Car, Bike, and Scooter layouts driven by declarative QML states.
 - Day/night themes and ECO/NORMAL/SPORT accent palettes.
 - Tick-lit double-arch gauges, glass panels, telltales, boot choreography, and dip transitions.
 - Car-mode CenterHub with a persistent Music player page.
+- Mock-first rear Parking Assist with one ultrasonic distance sample; it automatically replaces Music while reverse is active and restores Music afterward.
 - C++ `QMediaPlayer`, C++-owned scrubber state, and worker-thread music scanning.
 - Implemented serial parser, telemetry mapper, watchdog, reconnect, and simulator fallback.
-- Three deterministic Qt Test/CTest targets.
+- Four deterministic Qt Test/CTest targets.
 
 > [!NOTE]
 > The serial software pipeline and no-hardware fallback transitions are automated and verified. Live STM32 firmware, USB-TTL wiring, unplug/replug behavior, and motor control still need field validation.
 
 ## Architecture
 
-`src/main.cpp` owns both services and all six context ViewModels:
+`src/main.cpp` owns both services and all eight context ViewModels:
 
 | QML context | Responsibility |
 |---|---|
@@ -33,6 +34,8 @@ A Qt Quick automotive dashboard with Car, Bike, and Scooter layouts, C++-owned s
 | `VehicleMode` | Car/Bike/Scooter state |
 | `DriveMode` | NORMAL/SPORT/ECO state |
 | `TripComputer` | Odometer, trip, average speed, formatted displays |
+| `ParkingAssist` | One rear distance, reverse state, proximity level, and formatted display |
+| `CenterHubController` | C++-owned Music/Parking Assist page selection |
 
 The transport contracts are deliberately different:
 
@@ -45,7 +48,11 @@ flowchart LR
     Mapper --> Gate
     Gate --> Vehicle[VehicleStatusViewModel]
     Gate --> Trip[TripComputerViewModel]
+    ParkingSource[MockParkingSensorService] --> Parking[ParkingAssistViewModel]
+    Parking --> Hub[CenterHubViewModel]
     Vehicle --> DashboardQML[Dashboard QML view]
+    Hub --> DashboardQML
+    Parking --> DashboardQML
 ```
 
 `SimulatorService::telemetryUpdated(...)` supplies all dashboard fields. `SerialService::rawTelemetryUpdated(...)` supplies only parsed wire values. `TelemetryMapper::fromSerial(...)` derives dashboard fields outside the transport, and `main.cpp` updates the shared ViewModel surface. QML never selects a telemetry source.
@@ -65,6 +72,7 @@ CyberDash-STM32/
 │   ├── main.cpp
 │   ├── services/
 │   │   ├── MockScenarioEngine.{h,cpp}
+│   │   ├── MockParkingSensorService.{h,cpp}
 │   │   ├── MusicScanner.{h,cpp}
 │   │   ├── SerialService.{h,cpp}
 │   │   ├── SerialTelemetryParser.{h,cpp}
@@ -73,6 +81,8 @@ CyberDash-STM32/
 │   └── viewmodels/
 │       ├── DriveModeViewModel.{h,cpp}
 │       ├── MusicPlayerViewModel.{h,cpp}
+│       ├── ParkingAssistViewModel.{h,cpp}
+│       ├── CenterHubViewModel.{h,cpp}
 │       ├── ThemeViewModel.{h,cpp}
 │       ├── TripComputerViewModel.{h,cpp}
 │       ├── VehicleModeViewModel.{h,cpp}
@@ -89,6 +99,7 @@ CyberDash-STM32/
 │   │   ├── NeonIcon.qml
 │   │   ├── NeonIconButton.qml
 │   │   ├── NeonTickGauge.qml
+│   │   ├── ParkingAssistView.qml
 │   │   └── RangeTripCard.qml
 │   └── screens/
 │       └── DashboardScreen.qml
@@ -101,6 +112,7 @@ CyberDash-STM32/
 │   ├── CMakeLists.txt
 │   ├── main.cpp
 │   ├── tst_music_playback.cpp
+│   ├── tst_parking_assist.cpp
 │   └── tst_serial_pipeline.cpp
 ├── docs/
 │   ├── DOCUMENTATION_STANDARDS.md
@@ -142,6 +154,7 @@ CTest registers exactly four targets:
 | `tst_viewmodels` | Vehicle telemetry properties; theme/boot; vehicle and drive modes; trip computer |
 | `tst_music_playback` | Playback state controls and C++ scrubber clamping/drag state; CTest supplies `QT_QPA_PLATFORM=offscreen` |
 | `tst_serial_pipeline` | Parser, checksum, buffering, mapper, and no-hardware connection transitions |
+| `tst_parking_assist` | One-sensor thresholds, invalid/stale input, deterministic mock progression, notifications, and CenterHub page handoff |
 
 Run the deterministic baseline:
 
@@ -204,6 +217,7 @@ The current canonical reference is the preview at the top of this README. `qml/T
 - ECO is green, NORMAL is cyan/teal, and SPORT is orange; warning red stays distinct.
 - `DashboardScreen` supports Car, Bike, and Scooter states.
 - The Car CenterHub contains the persistent Music player page.
+- While reverse is active, `CenterHubController` selects the passive Parking Assist panel; MusicPlayer remains alive and resumes when reverse ends. The panel shows only a centered ultrasonic zone, distance, and OEM-style status text — never a fake camera image.
 - Vehicle changes use the fade/scale dip transition.
 - Every `MultiEffect` captures a sibling source; recursive `source: parent` is forbidden.
 
@@ -233,6 +247,7 @@ Historical detail is preserved in [tasks_board.md](docs/tasks_board.md).
 | 15 | Drive modes and trip computer | Complete |
 | 16 | CenterHub introduction | Complete |
 | 17 | Pre-Feature Baseline Repair | Software implementation and full verification complete; physical field validation pending |
+| 18 | Rear Parking Assist | Mock implementation and verification complete; STM32 ultrasonic adapter pending |
 
 Phase 17 repaired the parser/mapper boundary, made serial fallback transitions deterministic, moved scrubber and volume normalization into C++, removed the remaining QML `Math` helpers, isolated test-only music persistence, hardened finite numeric inputs, synchronized active documentation, and completed the pre-feature build/test/lint/smoke verification matrix. Physical STM32/USB-TTL field validation remains pending.
 

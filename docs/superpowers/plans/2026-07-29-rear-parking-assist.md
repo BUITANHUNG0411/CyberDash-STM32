@@ -55,7 +55,7 @@
 - Produces `ParkingAssistViewModel` properties `reverseActive`, `sensorAvailable`, `rearDistanceCm`, `proximityLevel`, `distanceText`, and `statusText`.
 - Produces `CenterHubViewModel(ParkingAssistViewModel *)` and `activePage`, where Music is `0` and Parking Assist is `1`.
 
-- [ ] **Step 1: Write the failing tests and register their target**
+- [x] **Step 1: Write the failing tests and register their target**
 
 Create `tests/tst_parking_assist.cpp` with this complete test contract:
 
@@ -176,13 +176,13 @@ target_link_libraries(tst_parking_assist PRIVATE Qt6::Core Qt6::Test)
 add_test(NAME tst_parking_assist COMMAND tst_parking_assist)
 ```
 
-- [ ] **Step 2: Run the focused target and verify RED**
+- [x] **Step 2: Run the focused target and verify RED**
 
 Run: `cmake -S . -B build && cmake --build build --target tst_parking_assist -j2`
 
 Expected: configuration or compilation fails because the parking service and ViewModels do not exist.
 
-- [ ] **Step 3: Implement the minimal C++ domain types**
+- [x] **Step 3: Implement the minimal C++ domain types**
 
 Implement `ParkingAssistViewModel` with `Q_ENUM(ProximityLevel)` and these declarations:
 
@@ -204,13 +204,13 @@ Implement `MockParkingSensorService` as a GUI-thread `QObject` with a single-sho
 
 Implement `CenterHubViewModel` as a non-owning observer of `ParkingAssistViewModel`. Its `Q_PROPERTY(int activePage READ activePage NOTIFY activePageChanged)` maps `reverseActive == true` to `ParkingPage` and false to `MusicPage`; connect only to `reverseActiveChanged` and suppress duplicate signals.
 
-- [ ] **Step 4: Run focused GREEN and refactor only if needed**
+- [x] **Step 4: Run focused GREEN and refactor only if needed**
 
 Run: `cmake --build build --target tst_parking_assist -j2 && ./build/tests/tst_parking_assist`
 
 Expected: all six tests pass with no failure or warning output.
 
-- [ ] **Step 5: Commit the verified C++ domain task**
+- [x] **Step 5: Commit the verified C++ domain task**
 
 ```bash
 git add tests/CMakeLists.txt tests/tst_parking_assist.cpp \
@@ -234,13 +234,13 @@ git commit -m "feat: add parking assist domain model"
 - Produces context properties `ParkingAssist` and `CenterHubController`.
 - Produces a static CenterHub page `0` Music and `1` Parking Assist.
 
-- [ ] **Step 1: Preserve Task 1 behavioral evidence before QML integration**
+- [x] **Step 1: Preserve Task 1 behavioral evidence before QML integration**
 
 Run: `cmake --build build --target tst_parking_assist -j2 && ./build/tests/tst_parking_assist reverseStateSelectsParkingPage`
 
 Expected: PASS. Task 1 already establishes the only new behavior in this integration task: reverse selects page `1` and leaving reverse selects page `0`. Task 2 adds no C++ decision logic; it binds that tested contract to application ownership and passive QML.
 
-- [ ] **Step 2: Wire the application and add passive QML**
+- [x] **Step 2: Wire the application and add passive QML**
 
 In `CMakeLists.txt`, add the three C++ implementation files to `qt_add_executable`, both parking ViewModel files to `qt_add_qml_module(... SOURCES)`, and `qml/components/ParkingAssistView.qml` to `QML_FILES`.
 
@@ -276,7 +276,7 @@ The distance `Text` binds directly to `ParkingAssist.distanceText`; the status `
 
 Add mutable, animated `Theme.parkingCaution` and `Theme.parkingUnavailable` tokens for day/night color modes. Do not add ad hoc colors to `ParkingAssistView.qml`.
 
-- [ ] **Step 3: Run GREEN plus QML policy checks**
+- [x] **Step 3: Run GREEN plus QML policy checks**
 
 Run:
 
@@ -290,7 +290,7 @@ python3 .agents/skills/qt-qml-review/references/lint-scripts/qt_qml_lint.py qml/
 
 Expected: the focused test passes; the QML linter and module `qmllint` return zero with no executable JavaScript finding.
 
-- [ ] **Step 4: Commit the verified runtime and QML task**
+- [x] **Step 4: Commit the verified runtime and QML task**
 
 ```bash
 git add CMakeLists.txt src/main.cpp qml/Theme.qml \
@@ -316,13 +316,13 @@ git commit -m "feat: show rear parking assist panel"
 - Consumes the verified implementation from Tasks 1 and 2.
 - Produces a single active documentation contract for the mock-first one-sensor parking assist and future STM32 high-level sample boundary.
 
-- [ ] **Step 1: Verify the active documentation does not yet describe the feature**
+- [x] **Step 1: Verify the active documentation does not yet describe the feature**
 
 Run: `rg -n 'MockParkingSensorService|tst_parking_assist|one ultrasonic distance' AGENTS.md README.md docs`
 
 Expected: no active documentation contains the new complete parking-assist contract.
 
-- [ ] **Step 2: Update active documents and record the completed acceptance contract**
+- [x] **Step 2: Update active documents and record the completed acceptance contract**
 
 Update the nine listed documents with the same contract: one sensor; valid `1..250` cm; `Clear`/`Caution`/`Stop`/unavailable thresholds; one-second stale timeout; automatic Car CenterHub switch while reverse is active; C++ ownership; mock source now and high-level STM32 UART adapter later; no camera, no audio beep, and no QML changes when hardware replaces mock input. Add the parking domain files and `tst_parking_assist` to README's project tree and deterministic-test table.
 
@@ -335,7 +335,7 @@ Record these checked items in `docs/tasks_board.md` only after the full verifica
 - [x] Document `tst_parking_assist` and the full verification matrix.
 ```
 
-- [ ] **Step 3: Run the full verification matrix**
+- [x] **Step 3: Run the full verification matrix**
 
 Run:
 
@@ -352,7 +352,7 @@ git diff --check
 
 Expected: configure/build return zero; all four CTest targets pass; the QML scan has only manually classified comment matches; linter/module `qmllint` return zero; smoke reaches the event loop and ends by timeout code `124` with no QML load/type/binding errors; diff check returns zero.
 
-- [ ] **Step 4: Commit documentation and verification evidence**
+- [x] **Step 4: Commit documentation and verification evidence**
 
 ```bash
 git add AGENTS.md README.md docs/architecture.md docs/ui_ux_guidelines.md \

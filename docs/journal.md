@@ -5,6 +5,15 @@
 > [!IMPORTANT]
 > The active guides (`AGENTS.md`, `README.md`, and the current `docs/*.md`) are the source of truth for present behavior.
 
+## 2026-07-29
+
+### Phase 18: Rear Parking Assist
+- **Runtime contract:** `MockParkingSensorService -> ParkingAssistViewModel -> CenterHubViewModel -> ParkingAssistView`. One mock ultrasonic distance and reverse-state sample drives a passive OEM-style panel; no camera image or QML-side logic is used.
+- **Safety states:** Valid distances are `1..250` cm. Clear is `151..250`, Caution is `31..150`, Stop is `1..30`; invalid input or a one-second stale interval renders `SENSOR UNAVAILABLE` without retaining an old distance.
+- **CenterHub behavior:** Music and Parking Assist remain static children, and C++ selects page `0` or `1`; MusicPlayer is not destroyed during reverse.
+- **Hardware boundary:** Future STM32 integration must convert ultrasonic echo timing into a high-level distance/reverse sample. The existing UART protocol remains unchanged until a separately specified extension is verified.
+- **Verification:** `tst_parking_assist` covers thresholds, invalid samples, stale expiry, duplicate notifications, mock progression, and page handoff; the full matrix requires four CTest targets, Zero-JS, QML review, module `qmllint`, and offscreen smoke.
+
 ## 2026-07-27
 
 ### Phase 17: Pre-Feature Baseline Repair

@@ -41,6 +41,13 @@ Use declarative `State`, `PropertyChanges`, and `Transition`. The Car state rema
 
 Car mode uses `CenterHub.qml` as the persistent home of `MusicPlayer`. The player owns no navigation state; its library, playback, and scrubber remain C++-backed through `MusicViewModel`.
 
+While reverse is active, the C++-owned `CenterHubViewModel` selects `ParkingAssistView` and
+keeps `MusicPlayer` alive as a static sibling. Parking Assist is a rectangular dark-glass OEM
+panel: one centered rear-sensor zone, a large integer centimetre value, and `REAR CLEAR`,
+`CAUTION`, `STOP`, or `SENSOR UNAVAILABLE`. The only visual accents are the centralized cyan,
+amber, warning-red, and unavailable Theme tokens; it does not render a camera image or fake
+obstacle geometry. Leaving reverse returns to Music automatically.
+
 Do not put window-drag handlers over the player controls, `PathView`, or the scrubber.
 
 ## 5. Animation Rules

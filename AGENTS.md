@@ -64,6 +64,7 @@ A scalable, highly interactive Qt 6 / QML PC application simulating a digital au
 | **Declarative Bezel Alignment** | `DashboardScreen` uses robust `anchors` and `Theme.qml` geometry tokens (e.g., `gaugeInsetLeft`) to lock gauge centers precisely to the `PathSvg` Double Arch bezels, maximizing maintainability while preventing UI overflow. |
 | **Async Media Scanning** | Use `QThread` with `QDirIterator` (Worker Object pattern) in C++ to scan OS directories without blocking the QML Render Thread. |
 | **C++ Audio Playback** | `QMediaPlayer` is managed entirely within `MusicPlayerViewModel`. Playback state and progress are exposed to QML via `Q_PROPERTY` to ensure Zero JS. |
+| **Rear Parking Assist** | `MockParkingSensorService` emits one bounded ultrasonic distance sample and reverse state to `ParkingAssistViewModel`; `CenterHubViewModel` selects the passive Parking Assist panel while reverse is active. Future STM32 input must provide the same high-level sample boundary; no camera, raw echo timing, or sensor parsing belongs in QML. |
 | **One-ViewModel-per-Concern** | UI chrome state lives in dedicated small VMs (`ThemeViewModel`, `VehicleModeViewModel`, …) with their own context properties — independent lifecycles, focused TDD, never mixed into telemetry (`VehicleStatusViewModel`). |
 | **Centralized Theme Ternaries** | `Theme.qml` color tokens are ternaries on chrome VMs (`ThemeController.isNight`, …) with `Behavior { ColorAnimation }` declared INSIDE the singleton — the whole app cross-fades with zero per-component changes. |
 | **C++-Driven Boot Choreography** | Startup sequence (`bootStage`/`bootProgress`) is a `QSequentialAnimationGroup` timeline in `ThemeViewModel`; QML only binds ternaries (telltale self-test → gauge sweep → content fade-in). |
@@ -72,7 +73,8 @@ A scalable, highly interactive Qt 6 / QML PC application simulating a digital au
 
 ## 6. Project Layout (Do not deviate without reason)
 ```text
-src/viewmodels/   src/services/  (flat: SimulatorService, SerialService, SerialTelemetryParser, TelemetryMapper, MockScenarioEngine, MusicScanner)
+src/viewmodels/   src/services/  (flat: SimulatorService, SerialService, SerialTelemetryParser, TelemetryMapper, MockScenarioEngine, MusicScanner, MockParkingSensorService)
+src/viewmodels/  (flat: VehicleStatusViewModel, MusicPlayerViewModel, ThemeViewModel, VehicleModeViewModel, DriveModeViewModel, TripComputerViewModel, ParkingAssistViewModel, CenterHubViewModel)
 qml/components/   qml/screens/   resources/   docs/   .agents/
 ```
 

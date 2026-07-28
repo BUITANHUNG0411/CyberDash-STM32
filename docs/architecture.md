@@ -1,10 +1,10 @@
 # 🏗️ Architecture: MVVM, Services, and Zero JavaScript
 
-> **AI Context**: Active specification of ownership and data flow between the C++17 services, six context ViewModels, and passive QML view.
+> **AI Context**: Active specification of ownership and data flow between the C++17 services, eight context ViewModels, and passive QML view.
 
 ## 1. Ownership and Lifetime
 
-`main.cpp` owns all application services and the seven ViewModels exposed through the `QQmlContext`. They remain alive for the duration of `app.exec()`.
+`main.cpp` owns all application services and the eight ViewModels exposed through the `QQmlContext`. They remain alive for the duration of `app.exec()`.
 
 | Context property | C++ owner/type | Concern |
 |---|---|---|
@@ -14,6 +14,8 @@
 | `VehicleMode` | `VehicleModeViewModel` | Car, Bike, and Scooter state |
 | `DriveMode` | `DriveModeViewModel` | NORMAL, SPORT, and ECO state |
 | `TripComputer` | `TripComputerViewModel` | Odometer, trip, and average speed |
+| `ParkingAssist` | `ParkingAssistViewModel` | One rear ultrasonic distance, reverse state, proximity level, and formatted display |
+| `CenterHubController` | `CenterHubViewModel` | C++-owned Music/Parking Assist page selection |
 
 `SimulatorService`, `SerialService`, and `QElapsedTimer` are also stack-owned in `main.cpp`. QObject parent ownership covers each service's internal timers and serial port.
 
@@ -34,11 +36,24 @@ flowchart LR
     Mapper --> Main
     Main --> Status[VehicleStatusViewModel]
     Main --> Trip[TripComputerViewModel]
+    ParkingSource[MockParkingSensorService] -->|distance cm + reverse state| Parking[ParkingAssistViewModel]
+    Parking --> Hub[CenterHubViewModel]
     Status --> DashboardQML[Passive dashboard QML]
     Trip --> DashboardQML
+    Hub --> DashboardQML
+    Parking --> DashboardQML
 ```
 
 The `isHardwareConnected` gate ensures simulator updates are accepted only while serial is disconnected and serial updates only after a valid frame establishes the connection. A source switch restarts the trip clock so disconnected time is not integrated as distance.
+
+The rear parking pipeline is independent of dashboard telemetry. `MockParkingSensorService`
+emits one deterministic distance sample in centimetres together with reverse state;
+`ParkingAssistViewModel` validates `1..250` cm, derives Clear/Caution/Stop/Unavailable, and
+expires valid input after one second while reverse remains active. `CenterHubViewModel` observes
+only `reverseActive` and selects Music page `0` or Parking Assist page `1`. Both ViewModels and
+the mock timer remain GUI-thread objects. A future STM32 adapter must convert ultrasonic echo
+timing into this high-level sample before it reaches the ViewModel; QML never parses UART or
+hardware timing.
 
 ## 3. Parser and Mapper Boundaries
 
@@ -60,7 +75,7 @@ TEL,118,11.8,0;129\n
 
 `QSerialPort`, `SerialTelemetryParser`, `TelemetryMapper`, and ViewModel updates run on the GUI thread. `readyRead` work is bounded and non-blocking: read available bytes, split complete lines, validate, emit.
 
-Only media directory scanning runs on a worker thread. `MusicScanner` uses the worker-object pattern with `QThread` and `QDirIterator`; results return to `MusicPlayerViewModel` through queued signals.
+Only media directory scanning runs on a worker thread. `MusicScanner` uses the worker-object pattern with `QThread` and `QDirIterator`; results return to `MusicPlayerViewModel` through queued signals. Parking sensor and page-selection timers remain bounded GUI-thread work.
 
 > [!WARNING]
 > Do not move a QObject with a parent to another thread, block the GUI thread waiting for serial input, or access QML-owned state from the music scanner worker.

@@ -20,6 +20,7 @@
 | `tst_viewmodels` | `VehicleStatusViewModel` property READ/WRITE/NOTIFY behavior; theme and boot state; vehicle/drive mode cycles; trip integration |
 | `tst_music_playback` | Repeat/shuffle/volume/seek/playback state and C++-owned scrubber clamping/drag state; multimedia-disabled construction for deterministic tests |
 | `tst_serial_pipeline` | Parser framing/checksum/buffer boundaries; raw-to-dashboard mapper; initial, valid-frame, stop, resource-error, and parser-reset connection transitions |
+| `tst_parking_assist` | One-sensor distance thresholds, invalid/unavailable input, stale timeout, duplicate-notification suppression, mock progression, and CenterHub page handoff |
 
 CTest configures `QT_QPA_PLATFORM=offscreen` and a 20-second timeout for `tst_music_playback`, so the multimedia-facing test is deterministic in a headless environment. The serial tests use controlled/no-hardware paths and do not require an attached STM32.
 
@@ -30,6 +31,7 @@ CTest configures `QT_QPA_PLATFORM=offscreen` and a 20-second timeout for `tst_mu
 - Mapper tests must prove dashboard derivation occurs outside `SerialService`.
 - Connection tests must cover initial disconnected publication, valid-frame connection, idempotent resource errors, stop behavior, and partial-frame clearing.
 - Music interaction tests must cover scrubber normalization, clamping, zero-width input, drag state, and signal emission.
+- Parking tests must cover valid `1..250` cm thresholds, invalid values, reverse page selection, stale expiry after one second, effective-value notifications, and deterministic mock progression.
 - QML interaction handlers remain direct invokable calls; no QML-local scrubber state or math.
 
 ## 4. Deterministic Verification Commands

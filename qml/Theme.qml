@@ -22,12 +22,6 @@ QtObject {
     property color glassPanelBase: ThemeController.isNight ? "#40151D26" : "#8CE8F0F8"
     property color glassPanelBorder: ThemeController.isNight ? "#802A3B4C" : "#80FFFFFF"
     property color trackInactive: ThemeController.isNight ? "#40FFFFFF" : "#401A2530"
-    property color mapFallback: ThemeController.isNight ? "#101923" : "#CED9E0"
-    property color mapFrame: ThemeController.isNight ? "#9966FCF1" : "#9900857C"
-    property color mapMarker: ThemeController.isNight ? "#66FCF1" : "#00857C"
-    property color mapMarkerOutline: ThemeController.isNight ? "#E6F4FB" : "#1A2530"
-    property color mapStatusFill: ThemeController.isNight ? "#CC111A24" : "#E6F2F7FA"
-    property color mapStatusBorder: ThemeController.isNight ? "#8066FCF1" : "#8000857C"
 
     property color tickLitMajor: ThemeController.isNight ? "#FFB3CC" : "#D81B60"
     property color tickLitMinor: ThemeController.isNight ? "#FFFFFF" : "#0E8F88"
@@ -49,12 +43,6 @@ QtObject {
     Behavior on glassPanelBase { ColorAnimation { duration: durationTheme } }
     Behavior on glassPanelBorder { ColorAnimation { duration: durationTheme } }
     Behavior on trackInactive { ColorAnimation { duration: durationTheme } }
-    Behavior on mapFallback { ColorAnimation { duration: durationTheme } }
-    Behavior on mapFrame { ColorAnimation { duration: durationTheme } }
-    Behavior on mapMarker { ColorAnimation { duration: durationTheme } }
-    Behavior on mapMarkerOutline { ColorAnimation { duration: durationTheme } }
-    Behavior on mapStatusFill { ColorAnimation { duration: durationTheme } }
-    Behavior on mapStatusBorder { ColorAnimation { duration: durationTheme } }
     Behavior on tickLitMajor { ColorAnimation { duration: durationTheme } }
     Behavior on tickLitMinor { ColorAnimation { duration: durationTheme } }
     Behavior on tickDimMajor { ColorAnimation { duration: durationTheme } }

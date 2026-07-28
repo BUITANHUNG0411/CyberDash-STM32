@@ -20,7 +20,6 @@
 | `tst_viewmodels` | `VehicleStatusViewModel` property READ/WRITE/NOTIFY behavior; theme and boot state; vehicle/drive mode cycles; trip integration |
 | `tst_music_playback` | Repeat/shuffle/volume/seek/playback state and C++-owned scrubber clamping/drag state; multimedia-disabled construction for deterministic tests |
 | `tst_serial_pipeline` | Parser framing/checksum/buffer boundaries; raw-to-dashboard mapper; initial, valid-frame, stop, resource-error, and parser-reset connection transitions |
-| `tst_map_navigation` | Deterministic position-source progression, interpolation, bearing, route wrapping, invalid-input rejection, extracted default-road anchors, and the verified no-U-turn return street; ViewModel fix validation, last-known source handoff, viewport pan/zoom bounds including pixel-only wheel deltas, follow/explore behavior, follow timeout, and source replacement |
 
 CTest configures `QT_QPA_PLATFORM=offscreen` and a 20-second timeout for `tst_music_playback`, so the multimedia-facing test is deterministic in a headless environment. The serial tests use controlled/no-hardware paths and do not require an attached STM32.
 
@@ -31,9 +30,6 @@ CTest configures `QT_QPA_PLATFORM=offscreen` and a 20-second timeout for `tst_mu
 - Mapper tests must prove dashboard derivation occurs outside `SerialService`.
 - Connection tests must cover initial disconnected publication, valid-frame connection, idempotent resource errors, stop behavior, and partial-frame clearing.
 - Music interaction tests must cover scrubber normalization, clamping, zero-width input, drag state, and signal emission.
-- Map tests must use injected elapsed time and cover deterministic position interpolation, active-segment bearing, wrapping, maximum elapsed-time caps, invalid fixes, and source lifecycle behavior.
-- Map ViewModel tests must cover normalized bearing, effective no-change signals, Web-Mercator pan direction, longitude wrapping, latitude and zoom clamping, follow/explore gestures, and automatic follow restoration using an injected timeout.
-- Position-source tests must not require OSM network access; the committed mock polyline has a regression anchor from the OSM/OSRM extraction, while tile delivery is a manual/runtime integration concern.
 - QML interaction handlers remain direct invokable calls; no QML-local scrubber state or math.
 
 ## 4. Deterministic Verification Commands
@@ -75,5 +71,3 @@ Record the command, exit/result, and focused RED/GREEN evidence in the task repo
 - **Serial test waits for hardware:** use the controlled open seam and injected bytes; unit tests must not depend on `/dev/ttyUSB0`.
 - **Zero-JS scan reports matches:** move utility math, block handlers, functions, and mutable JavaScript state into C++, then rerun the scan and QML review.
 - **Smoke command exits 124:** `timeout` uses 124 for a still-running application; inspect output for QML/runtime errors before deciding whether the smoke passed.
-- **Map test depends on tile delivery:** test only the deterministic source and ViewModel contracts; OSM tiles are outside CTest.
-- **Follow timeout test depends on wall-clock timing:** use the injected follow-clock seam and a short timeout.

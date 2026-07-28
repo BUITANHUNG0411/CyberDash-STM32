@@ -39,17 +39,9 @@ Use declarative `State`, `PropertyChanges`, and `Transition`. The Car state rema
 
 ## 4. CenterHub
 
-Car mode uses `CenterHub.qml`, a `SwipeView` containing static Music and OSM mini-map pages:
+Car mode uses `CenterHub.qml` as the persistent home of `MusicPlayer`. The player owns no navigation state; its library, playback, and scrubber remain C++-backed through `MusicViewModel`.
 
-- `MusicPlayer` preserves its lifetime while the user views the map.
-- `OsmMiniMapView` is a rectangular glass-panel map with a dark fallback, cyan frame, a compact marker, and a restrained `FOLLOW`/`EXPLORE` status pill using centralized `Theme` tokens.
-- The map remains north-up; only the marker rotates from C++-provided bearing.
-- User drag, wheel, and pinch gestures directly call `MapModel` invokables. Wheel input forwards both angle and pixel deltas so mouse wheels and pixel-only trackpads zoom consistently. C++ owns Web-Mercator pan/zoom math, follow/explore state, and the four-second idle return to follow mode.
-- OSM attribution remains visible and must not be covered by the pill or page indicator. The OSM plugin uses the application User-Agent and `NoPrefetching`; do not add route lines, destination/search controls, routing, bulk downloads, or offline tile bundles.
-
-`OsmMiniMapView` contains no QML-side map calculations, timers, or mutable interaction state. It binds declaratively to `MapModel.position`, `bearingDegrees`, `viewportCenter`, `zoomLevel`, and `followLabel`.
-
-Do not put window-drag handlers over this interactive region; the top drag strip must not steal gestures from `SwipeView`, `PathView`, or the scrubber.
+Do not put window-drag handlers over the player controls, `PathView`, or the scrubber.
 
 ## 5. Animation Rules
 
@@ -98,6 +90,3 @@ QML may use bindings, ternaries, declarative states, and a single direct call to
 - **Blur or glow freezes:** inspect `MultiEffect.source` for recursive parent capture and replace it with a sibling source.
 - **Text animation warns or jumps:** animate a numeric backing property and bind `Text.text` to its display value.
 - **Swipe or scrub drags the window:** restrict the window `DragHandler` to the top drag strip.
-- **Map rotates with the marker:** keep `Map.bearing` at `0`; bind only the marker rotation to `MapModel.bearingDegrees`.
-- **Map stays in explore mode:** confirm all gesture updates restart the C++ follow timeout, then check that follow mode recenters and restores default zoom after four idle seconds.
-- **OSM attribution is hidden:** move the map status pill or page indicator; attribution must remain visible.

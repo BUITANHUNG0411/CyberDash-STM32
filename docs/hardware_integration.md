@@ -86,17 +86,6 @@ No checksummed outbound `SET` protocol is implemented in the current host code; 
 
 Parser, mapper, and no-hardware connection transitions have deterministic automated coverage in `tst_serial_pipeline`. Live STM32 wiring, firmware compatibility, unplug/replug behavior, and motor control still require the separate Phase 4 field validation.
 
-## 8. Future Position-Source Boundary
-
-Phase 20 is mock-first: `MockPositionSource` emits deterministic `QGeoPositionInfo` samples to
-`MapViewModel`. Future GNSS can replace that source through the same Qt position-source signal
-boundary without changing QML.
-
-Encoder measurements are not absolute map coordinates. A future encoder/dead-reckoning adapter
-must include explicit localization or map matching before it emits a coordinate and bearing to
-the map boundary. Commanded PWM is an actuator command, not motion feedback or odometry, and it
-must never be presented as geographic position. PWM may remain diagnostic/command telemetry.
-
 ## Troubleshooting
 
 - **Frame rejected:** include the terminating newline and recompute the checksum using the truncated integer part of battery voltage.
@@ -104,5 +93,3 @@ must never be presented as geographic position. PWM may remain diagnostic/comman
 - **Repeated reconnects:** check device permissions, the `/dev/ttyUSB0` path, baud settings, firmware line endings, and checksum output.
 - **Stale partial frame after unplug:** ensure every failure path reuses `stopService()`, which clears the parser.
 - **UI stays on hardware after silence:** confirm the 500 ms watchdog is running after open and after every valid frame.
-- **Future map position is implausible:** validate GNSS accuracy or the localization adapter before changing `MapViewModel` or QML.
-- **Only PWM is available:** do not derive or label map position from it; retain the deterministic mock source until a qualified position source exists.

@@ -125,18 +125,6 @@
 - [x] Synchronize active project documentation with the committed implementation and preserve corrected historical context.
 - [x] Complete the full pre-feature verification matrix and record its fresh evidence (Task 5).
 - [x] Close the formal Task 5 review with in-scope C++ lint cleanup, direct Qt 6.11.1 `qmllint` triage, and a fresh full verification matrix.
-- [x] Close final branch-review follow-ups: direct connected-state fallback/reconnect regressions, test-safe music persistence, finite map invariants including tiny-route division overflow, and documentation/review-skill truth fixes (`4307a4d`, `1d863df`).
+- [x] Close final branch-review follow-ups: direct connected-state fallback/reconnect regressions, test-safe music persistence, and documentation/review-skill truth fixes (`4307a4d`, `1d863df`).
 - [x] Complete the final re-review with no remaining high-confidence Critical or Important findings; rerun configure, build, CTest 3/3, Zero-JS, module `qmllint`, range diff hygiene, and the 8-second offscreen smoke check.
 - [x] Historical checklist superseded by the canonical Phase 4 hardware-validation task.
-
-## Phase 20: OSM Follow Mini-Map
-- [x] Implement `MockPositionSource` as a deterministic `QGeoPositionInfoSource` with bounded, testable route progression and bearing.
-- [x] Implement `MapViewModel` (TDD) for validated position/bearing, north-up marker state, Web-Mercator viewport pan/zoom, and follow/explore behavior.
-- [x] Add passive `OsmMiniMapView` and replace the Car-mode center page while preserving static MusicPlayer lifetime.
-- [x] Add Qt Location and Positioning build modules; configure the OSM User-Agent, visible attribution, and `NoPrefetching` policy.
-- [x] Register `tst_map_navigation` as the fourth deterministic CTest target and verify source, ViewModel, and gesture contracts without OSM network access.
-- [x] Consume a valid replacement source's `lastKnownPosition()` immediately and request the mock's first fix before rendering, avoiding a blank-center handoff.
-- [x] Accept both wheel-angle and pixel-only trackpad deltas for map zoom; cover both contracts in `tst_map_navigation`.
-- [x] Replace the mock route's lane-snap U-turn leg with an OSRM-verified return through Nguyễn Thiệp, Nguyễn Huệ, and Lê Thánh Tôn; cover its coordinate and bearing contract offline.
-- [x] Synchronize the map runtime and active documentation with the Phase 20 contract.
-- [x] Document that GNSS or encoder localization integration is separate future work; encoder counts and commanded PWM are not geographic position or odometry. The canonical physical STM32 UART field-validation item remains in Phase 4.

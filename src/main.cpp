@@ -1,13 +1,11 @@
 #include "services/SerialService.h"
 #include "services/SimulatorService.h"
-#include "services/MockPositionSource.h"
 #include "services/TelemetryMapper.h"
 #include "viewmodels/VehicleStatusViewModel.h"
 #include "viewmodels/MusicPlayerViewModel.h"
 #include "viewmodels/ThemeViewModel.h"
 #include "viewmodels/VehicleModeViewModel.h"
 #include "viewmodels/DriveModeViewModel.h"
-#include "viewmodels/MapViewModel.h"
 #include "viewmodels/TripComputerViewModel.h"
 #include <QElapsedTimer>
 #include <QGuiApplication>
@@ -20,9 +18,6 @@ int main(int argc, char *argv[]) {
 
   VehicleStatusViewModel vm;
   TripComputerViewModel tripVm;
-  MockPositionSource mockPositionSource;
-  MapViewModel mapVm;
-  mapVm.setPositionSource(&mockPositionSource);
   QElapsedTimer tripClock;
   tripClock.start();
 
@@ -82,7 +77,6 @@ int main(int argc, char *argv[]) {
   engine.rootContext()->setContextProperty("VehicleMode", &vehicleModeVm);
   engine.rootContext()->setContextProperty("DriveMode", &driveModeVm);
   engine.rootContext()->setContextProperty("TripComputer", &tripVm);
-  engine.rootContext()->setContextProperty("MapModel", &mapVm);
 
   QObject::connect(&themeVm, &ThemeViewModel::windowMoveRequested, &engine, [&engine]() {
       const auto rootObjects = engine.rootObjects();
@@ -101,8 +95,6 @@ int main(int argc, char *argv[]) {
   engine.loadFromModule("com.showcase", "Main");
 
   themeVm.startBootSequence();
-  mockPositionSource.requestUpdate();
-  mockPositionSource.startUpdates();
 
   return app.exec();
 }

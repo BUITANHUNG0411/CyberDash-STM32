@@ -64,22 +64,3 @@ target_link_libraries(tst_serial_pipeline
 )
 
 add_test(NAME tst_serial_pipeline COMMAND tst_serial_pipeline)
-
-find_package(Qt6 6.8 REQUIRED COMPONENTS Positioning)
-
-qt_add_executable(tst_map_navigation
-    tst_map_navigation.cpp
-    ../src/services/MockPositionSource.cpp
-    ../src/viewmodels/MapViewModel.cpp
-)
-
-target_include_directories(tst_map_navigation PRIVATE ../src)
-
-target_link_libraries(tst_map_navigation
-    PRIVATE
-    Qt6::Core
-    Qt6::Positioning
-    Qt6::Test
-)
-
-add_test(NAME tst_map_navigation COMMAND tst_map_navigation)

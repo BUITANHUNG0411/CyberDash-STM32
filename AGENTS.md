@@ -69,11 +69,10 @@ A scalable, highly interactive Qt 6 / QML PC application simulating a digital au
 | **C++-Driven Boot Choreography** | Startup sequence (`bootStage`/`bootProgress`) is a `QSequentialAnimationGroup` timeline in `ThemeViewModel`; QML only binds ternaries (telltale self-test → gauge sweep → content fade-in). |
 | **Dip Transition Masking** | Layout morphs use a sequential transition: fade+scale both arches to 0 → `PropertyAction` applies swaps while invisible → OutBack rise. Only `opacity`/`scale` are ever animated (never width/height on complex subtrees). |
 | **MultiEffect Sibling Source** | NEVER capture an ancestor that contains the same `MultiEffect` (for example `source: parent`) because recursive capture freezes accumulated frames. Use a non-recursive sibling source; hide it only when it exists solely as the effect input. Visible gauge-tick siblings are valid sources. |
-| **OSM Follow Mini-Map** | `MockPositionSource` emits deterministic `QGeoPositionInfo` samples to `MapViewModel`; passive `OsmMiniMapView` renders a north-up OSM map whose marker rotates from C++ bearing. Pan, wheel, and pinch enter explore mode; C++ restores follow mode, center, and zoom after four idle seconds. OSM attribution stays visible, uses the identifying User-Agent and `NoPrefetching`; future GNSS or localized encoder adapters use the same position-source boundary. Encoder counts alone and commanded PWM are never map coordinates or odometry. |
 
 ## 6. Project Layout (Do not deviate without reason)
 ```text
-src/viewmodels/   src/services/  (flat: SimulatorService, SerialService, SerialTelemetryParser, TelemetryMapper, MockScenarioEngine, MockPositionSource, MusicScanner)
+src/viewmodels/   src/services/  (flat: SimulatorService, SerialService, SerialTelemetryParser, TelemetryMapper, MockScenarioEngine, MusicScanner)
 qml/components/   qml/screens/   resources/   docs/   .agents/
 ```
 

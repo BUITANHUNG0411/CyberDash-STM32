@@ -45,8 +45,9 @@ The `isHardwareConnected` gate ensures simulator updates are accepted only while
 
 The map pipeline is independent of dashboard odometer integration. `MockPositionSource`
 subclasses `QGeoPositionInfoSource` and emits deterministic coordinate, timestamp, and direction
-samples along a closed OSM/OSRM-extracted street polyline (Pasteur → Đồng Khởi → Công
-trường Lam Sơn → Pasteur). On injection, `MapViewModel` also consumes a valid
+samples along a closed OSM/OSRM-extracted street polyline (Pasteur → Lý Tự Trọng → Đồng
+Khởi → Nguyễn Thiệp → Nguyễn Huệ → Lê Thánh Tôn → Pasteur). The route deliberately
+excludes an earlier lane-snap U-turn. On injection, `MapViewModel` also consumes a valid
 `lastKnownPosition()` so an already-running replacement source does not wait for its next sample.
 It validates coordinates and finite direction values,
 normalizes bearing into `[0, 360)`, and owns the map center, zoom, and follow/explore state.

@@ -113,6 +113,25 @@ private slots:
         QVERIFY(fix.coordinate().distanceTo(extractedRoadStart) < 0.1);
     }
 
+    void defaultRouteUsesTheMappedReturnStreet()
+    {
+        MockPositionSource source;
+        QSignalSpy spy(&source, &MockPositionSource::positionUpdated);
+
+        for (int sampleIndex = 0; sampleIndex < 80; ++sampleIndex) {
+            source.advance(1000);
+        }
+
+        QCOMPARE(spy.size(), 80);
+        const QGeoPositionInfo fix = qvariant_cast<QGeoPositionInfo>(
+            spy.takeLast().at(0));
+        const QGeoCoordinate returnStreet(10.775868, 106.703295);
+        QVERIFY(fix.coordinate().distanceTo(returnStreet) < 1.0);
+        const qreal direction = fix.attribute(QGeoPositionInfo::Direction);
+        QVERIFY(direction > 100.0);
+        QVERIFY(direction < 160.0);
+    }
+
     void sourceBearingMatchesActiveSegment()
     {
         MockPositionConfig config;

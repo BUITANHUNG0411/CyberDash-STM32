@@ -45,7 +45,7 @@ flowchart LR
     OSM[Qt Location OSM plugin] -->|tiles + attribution| MapQML
 ```
 
-`QGeoPositionInfoSource` is the standard Qt position-source boundary. `MockPositionSource` subclasses it and is the only implementation in Phase 20. It publishes `QGeoPositionInfo` with a coordinate and `Direction` attribute, owns a fixed OSM/OSRM-extracted driving polyline (Pasteur → Đồng Khởi → Công trường Lam Sơn → Pasteur), segment progress, speed, and its timer, and keeps deterministic `advance(elapsedMs)` available to tests.
+`QGeoPositionInfoSource` is the standard Qt position-source boundary. `MockPositionSource` subclasses it and is the only implementation in Phase 20. It publishes `QGeoPositionInfo` with a coordinate and `Direction` attribute, owns a fixed OSM/OSRM-extracted driving polyline (Pasteur → Lý Tự Trọng → Đồng Khởi → Nguyễn Thiệp → Nguyễn Huệ → Lê Thánh Tôn → Pasteur), segment progress, speed, and its timer, and keeps deterministic `advance(elapsedMs)` available to tests. The route excludes lane-snap U-turns.
 
 `MapViewModel` consumes a replaceable, non-owning `QGeoPositionInfoSource` pointer and accepts its valid `lastKnownPosition()` immediately. It validates samples and owns current position, normalized bearing, viewport center, follow/explore state, zoom bounds, Web-Mercator pan conversion, and the four-second follow-resume timer. QML forwards raw drag, wheel, and pinch deltas through direct invokable calls; the ViewModel performs all calculations and restarts the resume timer while the user continues exploring. Wheel input falls back to a pixel-only delta for trackpads.
 

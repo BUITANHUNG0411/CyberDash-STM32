@@ -137,5 +137,6 @@
 - [x] Register `tst_map_navigation` as the fourth deterministic CTest target and verify source, ViewModel, and gesture contracts without OSM network access.
 - [x] Consume a valid replacement source's `lastKnownPosition()` immediately and request the mock's first fix before rendering, avoiding a blank-center handoff.
 - [x] Accept both wheel-angle and pixel-only trackpad deltas for map zoom; cover both contracts in `tst_map_navigation`.
+- [x] Replace the mock route's lane-snap U-turn leg with an OSRM-verified return through Nguyễn Thiệp, Nguyễn Huệ, and Lê Thánh Tôn; cover its coordinate and bearing contract offline.
 - [x] Synchronize the map runtime and active documentation with the Phase 20 contract.
 - [x] Document that GNSS or encoder localization integration is separate future work; encoder counts and commanded PWM are not geographic position or odometry. The canonical physical STM32 UART field-validation item remains in Phase 4.

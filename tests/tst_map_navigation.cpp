@@ -277,6 +277,19 @@ private slots:
         QCOMPARE(viewportSpy.size(), 1);
     }
 
+    void viewModelConsumesLastKnownPositionDuringSourceInjection()
+    {
+        InjectedPositionSource source;
+        source.publish(positionInfo(QGeoCoordinate(10.0, 106.0), 45.0));
+        MapViewModel viewModel;
+
+        viewModel.setPositionSource(&source);
+
+        QCOMPARE(viewModel.position(), QGeoCoordinate(10.0, 106.0));
+        QCOMPARE(viewModel.viewportCenter(), QGeoCoordinate(10.0, 106.0));
+        QCOMPARE(viewModel.bearingDegrees(), 45.0);
+    }
+
     void replacingSourceDisconnectsOldSource()
     {
         InjectedPositionSource oldSource;
@@ -345,7 +358,7 @@ private slots:
     {
         MapViewModel viewModel(10);
 
-        viewModel.zoomByWheelDelta(100000.0);
+        viewModel.zoomByWheelDelta(100000.0, 0.0);
         QCOMPARE(viewModel.zoomLevel(), 19.0);
         QVERIFY(!viewModel.followEnabled());
         viewModel.advanceFollowClock(9);
@@ -357,6 +370,16 @@ private slots:
         viewModel.advanceFollowClock(1);
         QVERIFY(viewModel.followEnabled());
         QCOMPARE(viewModel.zoomLevel(), 16.5);
+    }
+
+    void pixelOnlyWheelDeltaZoomsTheMap()
+    {
+        MapViewModel viewModel;
+
+        viewModel.zoomByWheelDelta(0.0, 120.0);
+
+        QCOMPARE(viewModel.zoomLevel(), 17.5);
+        QVERIFY(!viewModel.followEnabled());
     }
 
     void followResumesAtInjectedTimeout()

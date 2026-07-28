@@ -78,7 +78,7 @@ Item {
             }
 
             WheelHandler {
-                onWheel: MapModel.zoomByWheelDelta(event.angleDelta.y)
+                onWheel: MapModel.zoomByWheelDelta(event.angleDelta.y, event.pixelDelta.y)
             }
 
             PinchHandler {

@@ -101,6 +101,8 @@ void MapViewModel::setPositionSource(QGeoPositionInfoSource *source)
             m_positionSource = nullptr;
         }
     });
+
+    handlePositionUpdated(source->lastKnownPosition());
 }
 
 void MapViewModel::panByPixels(qreal dx,
@@ -141,14 +143,21 @@ void MapViewModel::panByPixels(qreal dx,
     setViewportCenter(QGeoCoordinate(nextLatitude, nextLongitude));
 }
 
-void MapViewModel::zoomByWheelDelta(qreal angleDeltaY)
+void MapViewModel::zoomByWheelDelta(qreal angleDeltaY, qreal pixelDeltaY)
 {
-    if (!std::isfinite(angleDeltaY) || qFuzzyIsNull(angleDeltaY)) {
+    if (!std::isfinite(angleDeltaY) || !std::isfinite(pixelDeltaY)) {
+        return;
+    }
+
+    const qreal deltaY = qFuzzyIsNull(angleDeltaY)
+        ? pixelDeltaY
+        : angleDeltaY;
+    if (qFuzzyIsNull(deltaY)) {
         return;
     }
 
     enterExplore();
-    setZoomLevel(m_zoomLevel + angleDeltaY / 120.0);
+    setZoomLevel(m_zoomLevel + deltaY / 120.0);
 }
 
 void MapViewModel::zoomByPinchScale(qreal scaleDelta)

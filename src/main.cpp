@@ -101,6 +101,7 @@ int main(int argc, char *argv[]) {
   engine.loadFromModule("com.showcase", "Main");
 
   themeVm.startBootSequence();
+  mockPositionSource.requestUpdate();
   mockPositionSource.startUpdates();
 
   return app.exec();

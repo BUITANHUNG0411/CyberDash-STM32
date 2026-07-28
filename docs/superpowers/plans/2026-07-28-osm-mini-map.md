@@ -3,7 +3,7 @@
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 > **Status:** Completed and verified in Phase 20; retained as the implementation record.
 
-**Goal:** Replace the retired visual-navigation renderer with a rectangular, north-up OSM mini-map whose C++-driven marker follows a deterministic mock route and whose source can later be replaced by GNSS or localized encoder hardware.
+**Goal:** Provide a rectangular, north-up OSM mini-map whose C++-driven marker follows a deterministic mock route and whose source can later be replaced by GNSS or localized encoder hardware.
 
 **Architecture:** `MockPositionSource` subclasses `QGeoPositionInfoSource` and emits deterministic `QGeoPositionInfo` updates. `MapViewModel` owns validated position, bearing, viewport pan/zoom, follow timeout, and Web-Mercator math. Passive QML renders a raw Qt Location `Map`, forwards gesture deltas to C++, and places one `MapQuickItem` marker.
 
@@ -16,7 +16,6 @@
 - Public OSM use keeps copyrights visible, sets an identifying User-Agent, disables prefetching, and never implements bulk/offline download.
 - CTest never depends on network tile delivery.
 - Preserve `SimulatorService`, `SerialService`, `TelemetryMapper`, dashboard/trip ViewModels, MusicPlayer lifetime, UART fallback, and vehicle-mode layouts.
-- Migration: remove the retired visual-navigation runtime, tests, QML, theme tokens, and feature-only history; do not rewrite Git history.
 
 ---
 
@@ -33,7 +32,7 @@
 **Interfaces:**
 - Produces: `MockPositionSource : QGeoPositionInfoSource`, deterministic `advance(qint64 elapsedMs)`, and standard `positionUpdated(const QGeoPositionInfo &)`.
 - Produces: `MapViewModel::setPositionSource(QGeoPositionInfoSource *)`, `position`, `bearingDegrees`, `viewportCenter`, `zoomLevel`, `followEnabled`, `followLabel`.
-- Produces invokables: `panByPixels(qreal dx, qreal dy, qreal viewportWidth, qreal viewportHeight)`, `zoomByWheelDelta(qreal angleDeltaY)`, `zoomByPinchScale(qreal scaleDelta)`, `resumeFollow()`, and deterministic `advanceFollowClock(qint64 elapsedMs)`.
+- Produces invokables: `panByPixels(qreal dx, qreal dy, qreal viewportWidth, qreal viewportHeight)`, `zoomByWheelDelta(qreal angleDeltaY, qreal pixelDeltaY)`, `zoomByPinchScale(qreal scaleDelta)`, `resumeFollow()`, and deterministic `advanceFollowClock(qint64 elapsedMs)`.
 
 - [x] **Step 1: Write the focused RED test target**
 
@@ -122,7 +121,7 @@ Run focused C++ review on the four new production files and resolve Critical/Imp
 
 ---
 
-### Task 2: OSM QML integration and retired-runtime removal
+### Task 2: OSM QML integration
 
 **Files:**
 - Create: `qml/components/OsmMiniMapView.qml`
@@ -131,7 +130,6 @@ Run focused C++ review on the four new production files and resolve Critical/Imp
 - Modify: `src/main.cpp`
 - Modify: `CMakeLists.txt`
 - Modify: `tests/CMakeLists.txt`
-- Delete: retired visual-navigation service, ViewModel, QML, and test files from the migration inventory.
 
 **Interfaces:**
 - Consumes: `MapViewModel` properties and invokables from Task 1.
@@ -148,7 +146,7 @@ rg -n 'QtLocation|MapQuickItem|MapModel' qml/components/OsmMiniMapView.qml
 
 - [x] **Step 2: Update CMake and main wiring**
 
-Add `Location` and `Positioning` to `find_package`; link `Qt6::Location` and `Qt6::Positioning`. Register `MockPositionSource.cpp`, `MapViewModel.{h,cpp}`, and `OsmMiniMapView.qml`. Remove every retired visual-navigation source/QML/test entry.
+Add `Location` and `Positioning` to `find_package`; link `Qt6::Location` and `Qt6::Positioning`. Register `MockPositionSource.cpp`, `MapViewModel.{h,cpp}`, and `OsmMiniMapView.qml`.
 
 In `main.cpp`, stack-own:
 
@@ -185,7 +183,7 @@ Gesture handlers contain only direct calls:
 
 ```qml
 onTranslationChanged: MapModel.panByPixels(delta.x, delta.y, map.width, map.height)
-onWheel: MapModel.zoomByWheelDelta(event.angleDelta.y)
+onWheel: MapModel.zoomByWheelDelta(event.angleDelta.y, event.pixelDelta.y)
 onScaleChanged: MapModel.zoomByPinchScale(delta)
 ```
 
@@ -193,11 +191,11 @@ The status pill binds to `MapModel.followLabel`. Do not add route lines, destina
 
 - [x] **Step 4: Replace the CenterHub page and remove theme residue**
 
-Replace the retired second page with `OsmMiniMapView {}` while keeping both `SwipeView` children static. Remove its feature-only `Theme` properties and behaviors; add only the minimal map frame/marker/status tokens required by the new component.
+Add `OsmMiniMapView {}` as the second static `SwipeView` page while keeping both children static. Add only the minimal map frame/marker/status tokens required by the component.
 
-- [x] **Step 5: Delete old runtime and run integration GREEN**
+- [x] **Step 5: Run integration GREEN**
 
-Delete the listed synthetic files using an explicit patch, then run:
+Run:
 
 ```bash
 cmake -S . -B build
@@ -215,7 +213,7 @@ Run both project `qt-cpp-review` and `qt-qml-review`; resolve Critical/Important
 
 ---
 
-### Task 3: Remove obsolete history and synchronize active documentation
+### Task 3: Synchronize active documentation
 
 **Files:**
 - Modify: `AGENTS.md`
@@ -226,17 +224,12 @@ Run both project `qt-cpp-review` and `qt-qml-review`; resolve Critical/Important
 - Modify: `docs/testing_strategy.md`
 - Modify: `docs/tasks_board.md`
 - Modify: `docs/journal.md`
-- Delete: retired visual-navigation plans/specs under `docs/superpowers/`
 
 **Interfaces:**
 - Consumes: verified runtime and test names from Tasks 1–2.
-- Produces: one canonical Phase 20 OSM contract with no active retired-renderer guidance.
+- Produces: one canonical Phase 20 OSM contract.
 
-- [x] **Step 1: Remove dedicated synthetic history**
-
-Delete the six feature-only artifacts specified by the approved migration inventory. Remove legacy-renderer references from remaining archive stubs. Do not rewrite Git commit history or force-push.
-
-- [x] **Step 2: Synchronize active guides**
+- [x] **Step 1: Synchronize active guides**
 
 Document:
 
@@ -249,15 +242,13 @@ Document:
 - `tst_map_navigation` as the fourth registered target;
 - Phase 20 as the current map phase.
 
-Remove the superseded task-board/journal sections and old decision-log entries.
-
-- [x] **Step 3: Residue scan**
+- [x] **Step 2: Residue scan**
 
 Run the repository residue scan prescribed by the Task 3 brief.
 
 Expected: zero results.
 
-- [x] **Step 4: Full verification**
+- [x] **Step 3: Full verification**
 
 ```bash
 cmake -S . -B build
@@ -271,6 +262,7 @@ timeout 8s env QT_QPA_PLATFORM=offscreen ./build/QtStmAutomotiveSimulator
 
 Expected: build succeeds; all tests pass; Zero-JS/QML checks pass; diff is clean; smoke reaches the event loop without QML load/type/binding errors. Network tile warnings do not establish a software failure if the OSM provider is unreachable.
 
-- [x] **Step 5: Handoff**
+
+**Handoff:**
 
 Do not commit unless the user explicitly authorizes it.

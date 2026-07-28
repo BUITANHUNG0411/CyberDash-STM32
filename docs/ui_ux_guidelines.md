@@ -44,7 +44,7 @@ Car mode uses `CenterHub.qml`, a `SwipeView` containing static Music and OSM min
 - `MusicPlayer` preserves its lifetime while the user views the map.
 - `OsmMiniMapView` is a rectangular glass-panel map with a dark fallback, cyan frame, a compact marker, and a restrained `FOLLOW`/`EXPLORE` status pill using centralized `Theme` tokens.
 - The map remains north-up; only the marker rotates from C++-provided bearing.
-- User drag, wheel, and pinch gestures directly call `MapModel` invokables. C++ owns Web-Mercator pan/zoom math, follow/explore state, and the four-second idle return to follow mode.
+- User drag, wheel, and pinch gestures directly call `MapModel` invokables. Wheel input forwards both angle and pixel deltas so mouse wheels and pixel-only trackpads zoom consistently. C++ owns Web-Mercator pan/zoom math, follow/explore state, and the four-second idle return to follow mode.
 - OSM attribution remains visible and must not be covered by the pill or page indicator. The OSM plugin uses the application User-Agent and `NoPrefetching`; do not add route lines, destination/search controls, routing, bulk downloads, or offline tile bundles.
 
 `OsmMiniMapView` contains no QML-side map calculations, timers, or mutable interaction state. It binds declaratively to `MapModel.position`, `bearingDegrees`, `viewportCenter`, `zoomLevel`, and `followLabel`.

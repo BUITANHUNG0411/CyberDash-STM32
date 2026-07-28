@@ -247,7 +247,7 @@ Historical detail is preserved in [tasks_board.md](docs/tasks_board.md).
 
 Phase 17 repaired the parser/mapper boundary, made serial fallback transitions deterministic, moved scrubber and volume normalization into C++, removed the remaining QML `Math` helpers, isolated test-only music persistence, hardened finite numeric inputs, synchronized active documentation, and completed the pre-feature build/test/lint/smoke verification matrix. Physical STM32/USB-TTL field validation remains pending.
 
-Phase 20 replaces the retired map experiments with `MockPositionSource -> MapViewModel -> OsmMiniMapView`. The source emits deterministic coordinate, timestamp, and bearing samples along mapped streets; the ViewModel validates fixes, owns Web-Mercator pan/zoom and follow/explore state, then restores center and default zoom after four seconds without user input. Future GNSS may provide the same position signal, while encoder-derived positions require an explicit localization adapter. Raw encoder counts and commanded PWM must never be presented as geographic position or odometry.
+Phase 20 implements `MockPositionSource -> MapViewModel -> OsmMiniMapView`. The source emits deterministic coordinate, timestamp, and bearing samples along mapped streets; the ViewModel validates fixes, owns Web-Mercator pan/zoom and follow/explore state, then restores center and default zoom after four seconds without user input. Future GNSS may provide the same position signal, while encoder-derived positions require an explicit localization adapter. Raw encoder counts and commanded PWM must never be presented as geographic position or odometry.
 
 ## Contribution Rules
 

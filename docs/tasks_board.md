@@ -135,5 +135,7 @@
 - [x] Add passive `OsmMiniMapView` and replace the Car-mode center page while preserving static MusicPlayer lifetime.
 - [x] Add Qt Location and Positioning build modules; configure the OSM User-Agent, visible attribution, and `NoPrefetching` policy.
 - [x] Register `tst_map_navigation` as the fourth deterministic CTest target and verify source, ViewModel, and gesture contracts without OSM network access.
-- [x] Remove retired synthetic navigation runtime and synchronize active documentation with the Phase 20 contract.
+- [x] Consume a valid replacement source's `lastKnownPosition()` immediately and request the mock's first fix before rendering, avoiding a blank-center handoff.
+- [x] Accept both wheel-angle and pixel-only trackpad deltas for map zoom; cover both contracts in `tst_map_navigation`.
+- [x] Synchronize the map runtime and active documentation with the Phase 20 contract.
 - [x] Document that GNSS or encoder localization integration is separate future work; encoder counts and commanded PWM are not geographic position or odometry. The canonical physical STM32 UART field-validation item remains in Phase 4.

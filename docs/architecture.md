@@ -46,12 +46,14 @@ The `isHardwareConnected` gate ensures simulator updates are accepted only while
 The map pipeline is independent of dashboard odometer integration. `MockPositionSource`
 subclasses `QGeoPositionInfoSource` and emits deterministic coordinate, timestamp, and direction
 samples along a closed OSM/OSRM-extracted street polyline (Pasteur → Đồng Khởi → Công
-trường Lam Sơn → Pasteur). `MapViewModel` validates coordinates and finite direction values,
+trường Lam Sơn → Pasteur). On injection, `MapViewModel` also consumes a valid
+`lastKnownPosition()` so an already-running replacement source does not wait for its next sample.
+It validates coordinates and finite direction values,
 normalizes bearing into `[0, 360)`, and owns the map center, zoom, and follow/explore state.
 `OsmMiniMapView` is passive: it binds to this state, keeps the OSM map north-up, and rotates only
 the marker from the ViewModel bearing.
 
-A drag, wheel, or pinch gesture is forwarded directly to the ViewModel, enters explore mode, and
+A drag, wheel (including pixel-only trackpad deltas), or pinch gesture is forwarded directly to the ViewModel, enters explore mode, and
 restarts its four-second timer. On expiry, C++ restores follow mode, the current position as the
 viewport center, and the default zoom. Qt Location's OSM plugin uses an identifying User-Agent,
 `NoPrefetching`, and visible attribution. Automated tests never require tile-network access.

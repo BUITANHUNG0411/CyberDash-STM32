@@ -39,7 +39,8 @@ public:
                                  qreal dy,
                                  qreal viewportWidth,
                                  qreal viewportHeight);
-    Q_INVOKABLE void zoomByWheelDelta(qreal angleDeltaY);
+    Q_INVOKABLE void zoomByWheelDelta(qreal angleDeltaY,
+                                      qreal pixelDeltaY);
     Q_INVOKABLE void zoomByPinchScale(qreal scaleDelta);
     Q_INVOKABLE void resumeFollow();
     Q_INVOKABLE void advanceFollowClock(qint64 elapsedMs);

@@ -7,7 +7,6 @@
 
 ## 1. Understanding Summary
 
-- Replace the retired visual-navigation renderer completely.
 - Show a rectangular mini-map that matches the dashboard's center-panel geometry rather than a circular watch face.
 - Use Qt Location's `osm` plugin to display a real interactive OpenStreetMap viewport.
 - Keep the map north-up. The marker rotates to the C++-provided bearing so it remains parallel to the active road segment.
@@ -48,7 +47,7 @@ flowchart LR
 
 `QGeoPositionInfoSource` is the standard Qt position-source boundary. `MockPositionSource` subclasses it and is the only implementation in Phase 20. It publishes `QGeoPositionInfo` with a coordinate and `Direction` attribute, owns a fixed OSM/OSRM-extracted driving polyline (Pasteur → Đồng Khởi → Công trường Lam Sơn → Pasteur), segment progress, speed, and its timer, and keeps deterministic `advance(elapsedMs)` available to tests.
 
-`MapViewModel` consumes a replaceable, non-owning `QGeoPositionInfoSource` pointer. It validates samples and owns current position, normalized bearing, viewport center, follow/explore state, zoom bounds, Web-Mercator pan conversion, and the four-second follow-resume timer. QML forwards raw drag, wheel, and pinch deltas through direct invokable calls; the ViewModel performs all calculations and restarts the resume timer while the user continues exploring.
+`MapViewModel` consumes a replaceable, non-owning `QGeoPositionInfoSource` pointer and accepts its valid `lastKnownPosition()` immediately. It validates samples and owns current position, normalized bearing, viewport center, follow/explore state, zoom bounds, Web-Mercator pan conversion, and the four-second follow-resume timer. QML forwards raw drag, wheel, and pinch deltas through direct invokable calls; the ViewModel performs all calculations and restarts the resume timer while the user continues exploring. Wheel input falls back to a pixel-only delta for trackpads.
 
 `OsmMiniMapView.qml` is a passive rectangular view. It declares the OSM `Plugin`, a raw `Map`, declarative viewport bindings, direct-call pointer handlers, and a `MapQuickItem` marker. The stock `MapView.qml` assembly is not copied because its built-in gestures contain imperative JavaScript. The project view contains no route calculations, timers, mutation, or imperative control flow.
 
@@ -78,7 +77,7 @@ Invalid coordinates, non-finite bearings, and non-positive `advance()` intervals
 
 ## 7. UI Contract
 
-The map replaces the retired second page inside the existing static `CenterHub` `SwipeView`, preserving `MusicPlayer` lifetime. The page uses the existing rectangular glass-panel footprint, rounded corners, dark fallback color, cyan frame, and compact page indicator.
+The map occupies the second page inside the static `CenterHub` `SwipeView`, preserving `MusicPlayer` lifetime. The page uses the existing rectangular glass-panel footprint, rounded corners, dark fallback color, cyan frame, and compact page indicator.
 
 The marker is a small cyan vector arrow with a light outline and restrained glow. It must remain legible against both bright and dark OSM tiles without covering nearby street names. A small `FOLLOW`/`EXPLORE` pill is allowed; controls, destination fields, routing banners, lane guidance, and decorative road overlays are not.
 
@@ -108,7 +107,3 @@ OSM copyrights remain visible and must not be covered by the status pill or page
 - ViewModel acceptance of any source using the common position signal contract.
 
 CTest never depends on OSM network availability. QML verification consists of project lint, module `qmllint`, Zero-JavaScript scan, and a bounded offscreen smoke run; tile delivery is a manual/runtime integration concern.
-
-## 10. Migration and History Cleanup
-
-Migration: remove the retired visual-navigation runtime and its six feature-only plans/specs, preserve the second-page replacement scope and unrelated history, and do not rewrite Git commits or force-push.

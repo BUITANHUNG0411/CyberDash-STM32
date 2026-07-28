@@ -20,7 +20,7 @@
 | `tst_viewmodels` | `VehicleStatusViewModel` property READ/WRITE/NOTIFY behavior; theme and boot state; vehicle/drive mode cycles; trip integration |
 | `tst_music_playback` | Repeat/shuffle/volume/seek/playback state and C++-owned scrubber clamping/drag state; multimedia-disabled construction for deterministic tests |
 | `tst_serial_pipeline` | Parser framing/checksum/buffer boundaries; raw-to-dashboard mapper; initial, valid-frame, stop, resource-error, and parser-reset connection transitions |
-| `tst_map_navigation` | Deterministic position-source progression, interpolation, bearing, route wrapping, invalid-input rejection, and the extracted default-road anchor; ViewModel fix validation, viewport pan/zoom bounds, follow/explore behavior, follow timeout, and source replacement |
+| `tst_map_navigation` | Deterministic position-source progression, interpolation, bearing, route wrapping, invalid-input rejection, and the extracted default-road anchor; ViewModel fix validation, last-known source handoff, viewport pan/zoom bounds including pixel-only wheel deltas, follow/explore behavior, follow timeout, and source replacement |
 
 CTest configures `QT_QPA_PLATFORM=offscreen` and a 20-second timeout for `tst_music_playback`, so the multimedia-facing test is deterministic in a headless environment. The serial tests use controlled/no-hardware paths and do not require an attached STM32.
 

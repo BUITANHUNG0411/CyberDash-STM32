@@ -99,6 +99,20 @@ private slots:
         QVERIFY(fix.coordinate().distanceTo(expected) < 0.01);
     }
 
+    void defaultRouteStartsOnExtractedOsmRoadPolyline()
+    {
+        MockPositionSource source;
+        QSignalSpy spy(&source, &MockPositionSource::positionUpdated);
+
+        source.advance(1);
+
+        QCOMPARE(spy.size(), 1);
+        const QGeoPositionInfo fix = qvariant_cast<QGeoPositionInfo>(
+            spy.takeFirst().at(0));
+        const QGeoCoordinate extractedRoadStart(10.775773, 106.700383);
+        QVERIFY(fix.coordinate().distanceTo(extractedRoadStart) < 0.1);
+    }
+
     void sourceBearingMatchesActiveSegment()
     {
         MockPositionConfig config;

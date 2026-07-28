@@ -45,7 +45,8 @@ The `isHardwareConnected` gate ensures simulator updates are accepted only while
 
 The map pipeline is independent of dashboard odometer integration. `MockPositionSource`
 subclasses `QGeoPositionInfoSource` and emits deterministic coordinate, timestamp, and direction
-samples along a closed route. `MapViewModel` validates coordinates and finite direction values,
+samples along a closed OSM/OSRM-extracted street polyline (Pasteur → Đồng Khởi → Công
+trường Lam Sơn → Pasteur). `MapViewModel` validates coordinates and finite direction values,
 normalizes bearing into `[0, 360)`, and owns the map center, zoom, and follow/explore state.
 `OsmMiniMapView` is passive: it binds to this state, keeps the OSM map north-up, and rotates only
 the marker from the ViewModel bearing.

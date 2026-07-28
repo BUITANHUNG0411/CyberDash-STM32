@@ -9,6 +9,7 @@
 
 ### Phase 20: OSM Follow Mini-Map
 - **Runtime contract:** `MockPositionSource -> MapViewModel -> OsmMiniMapView`. The mock source supplies deterministic `QGeoPositionInfo` coordinates and direction along mapped streets; the passive view keeps the map north-up and rotates only the marker from C++ bearing.
+- **Route correction:** the initial four hand-picked coordinates could interpolate across buildings. The default mock is now the closed, OSM/OSRM-extracted driving polyline `Pasteur → Đồng Khởi → Công trường Lam Sơn → Pasteur`; its first road anchor has an offline regression test so a future route edit cannot silently restore the defect.
 - **Interaction contract:** C++ owns validation, bearing normalization, Web-Mercator pan/zoom, and follow/explore state. User pan, wheel, and pinch gestures enter explore mode; four seconds of idle time restore the current position as center and the default zoom.
 - **Provider policy:** Qt Location's OSM plugin uses the application User-Agent, `NoPrefetching`, and visible attribution. Automated tests do not depend on network tile delivery.
 - **Future hardware:** GNSS can use the same position-source boundary. Encoder measurements require an explicit localization adapter before they may provide geographic coordinates; commanded PWM is not position or odometry. The Phase 4 STM32 UART field-validation task remains separate.

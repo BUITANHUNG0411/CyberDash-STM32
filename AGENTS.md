@@ -1,7 +1,7 @@
 # 🤖 AI Agent Master Router (AGENTS.md)
 
 > **AI Context**: Root routing file for any AI agent or contributor working in this repository. Read it first to locate the domain rules and current project constraints.
-> **Version**: 2026-07-27 | **Target**: Tool-neutral
+> **Version**: 2026-07-28 | **Target**: Tool-neutral
 
 ## 1. Persona & Role
 You are an **Elite Qt 6 / QML Expert and C++ Systems Engineer**. Your objective is to architect and implement the **QtStmAutomotiveSimulator**, a C++ Qt6 dashboard communicating with an STM32F103C8T6 via UART.
@@ -68,12 +68,12 @@ A scalable, highly interactive Qt 6 / QML PC application simulating a digital au
 | **Centralized Theme Ternaries** | `Theme.qml` color tokens are ternaries on chrome VMs (`ThemeController.isNight`, …) with `Behavior { ColorAnimation }` declared INSIDE the singleton — the whole app cross-fades with zero per-component changes. |
 | **C++-Driven Boot Choreography** | Startup sequence (`bootStage`/`bootProgress`) is a `QSequentialAnimationGroup` timeline in `ThemeViewModel`; QML only binds ternaries (telltale self-test → gauge sweep → content fade-in). |
 | **Dip Transition Masking** | Layout morphs use a sequential transition: fade+scale both arches to 0 → `PropertyAction` applies swaps while invisible → OutBack rise. Only `opacity`/`scale` are ever animated (never width/height on complex subtrees). |
-| **MultiEffect Sibling Source** | NEVER capture an ancestor that contains the same `MultiEffect` (for example `source: parent`) because recursive capture freezes accumulated frames. Use a non-recursive sibling source; hide it only when it exists solely as the effect input. Visible gauge-tick and road-edge siblings are valid sources. |
-| **Encoder-Driven Arrow Road Scene** | `MockWheelTelemetryService` feeds measured-motion-shaped left/right samples to `EncoderDriveViewModel`, which owns the 5% straight and 20% gentle/strong response bands plus every finite road-direction, turn-state, and continuous-road path value. Passive `EncoderDriveView`/`HypercarView` render one road with no lane divider and a centered vector arrow that rotates with the road direction. Future hardware must replace the mock with measured encoder telemetry through the same boundary; commanded PWM is never encoder feedback or odometry. |
+| **MultiEffect Sibling Source** | NEVER capture an ancestor that contains the same `MultiEffect` (for example `source: parent`) because recursive capture freezes accumulated frames. Use a non-recursive sibling source; hide it only when it exists solely as the effect input. Visible gauge-tick siblings are valid sources. |
+| **OSM Follow Mini-Map** | `MockPositionSource` emits deterministic `QGeoPositionInfo` samples to `MapViewModel`; passive `OsmMiniMapView` renders a north-up OSM map whose marker rotates from C++ bearing. Pan, wheel, and pinch enter explore mode; C++ restores follow mode, center, and zoom after four idle seconds. OSM attribution stays visible, uses the identifying User-Agent and `NoPrefetching`; future GNSS or localized encoder adapters use the same position-source boundary. Encoder counts alone and commanded PWM are never map coordinates or odometry. |
 
 ## 6. Project Layout (Do not deviate without reason)
 ```text
-src/viewmodels/   src/services/  (flat: SimulatorService, SerialService, SerialTelemetryParser, TelemetryMapper, MockScenarioEngine, MockWheelTelemetryService, MusicScanner)
+src/viewmodels/   src/services/  (flat: SimulatorService, SerialService, SerialTelemetryParser, TelemetryMapper, MockScenarioEngine, MockPositionSource, MusicScanner)
 qml/components/   qml/screens/   resources/   docs/   .agents/
 ```
 

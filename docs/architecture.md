@@ -14,9 +14,9 @@
 | `VehicleMode` | `VehicleModeViewModel` | Car, Bike, and Scooter state |
 | `DriveMode` | `DriveModeViewModel` | NORMAL, SPORT, and ECO state |
 | `TripComputer` | `TripComputerViewModel` | Odometer, trip, and average speed |
-| `EncoderDrive` | `EncoderDriveViewModel` | Road direction, turn state, speed, and finite continuous-road path geometry |
+| `MapModel` | `MapViewModel` | Position, marker bearing, follow/explore state, and C++-owned viewport |
 
-`SimulatorService`, `SerialService`, `MockWheelTelemetryService`, and `QElapsedTimer` are also stack-owned in `main.cpp`. QObject parent ownership covers each service's internal timers and serial port.
+`SimulatorService`, `SerialService`, `MockPositionSource`, and `QElapsedTimer` are also stack-owned in `main.cpp`. QObject parent ownership covers each service's internal timers and serial port.
 
 ## 2. Telemetry Contracts
 
@@ -35,36 +35,29 @@ flowchart LR
     Mapper --> Main
     Main --> Status[VehicleStatusViewModel]
     Main --> Trip[TripComputerViewModel]
-    MockWheel[MockWheelTelemetryService] -->|seven-stage left/right normalized motion + elapsed ms| Drive[EncoderDriveViewModel]
+    Position[MockPositionSource] -->|QGeoPositionInfo: coordinate + direction| Map[MapViewModel]
     Status --> DashboardQML[Passive dashboard QML]
     Trip --> DashboardQML
-    Drive --> EncoderQML[EncoderDriveView / HypercarView]
+    Map --> MapQML[OsmMiniMapView]
 ```
 
 The `isHardwareConnected` gate ensures simulator updates are accepted only while serial is disconnected and serial updates only after a valid frame establishes the connection. A source switch restarts the trip clock so disconnected time is not integrated as distance.
 
-The encoder-drive pipeline is independent of dashboard odometer integration.
-`MockWheelTelemetryService` cycles through seven targets: straight, gentle left, straight,
-gentle right, strong left, straight, and strong right. Its default stage timing is tuned for
-mock demonstration rather than hardware realism, so a clear strong-turn sample appears within
-roughly the first ten seconds. Each accepted sample contains normalized left/right wheel motion
-and a bounded elapsed interval. `EncoderDriveViewModel` converts their mean into forward speed
-and their signed relative difference into turn state, yaw, curvature, and finite normalized
-`roadPath`/`roadEdgePath` strings.
+The map pipeline is independent of dashboard odometer integration. `MockPositionSource`
+subclasses `QGeoPositionInfoSource` and emits deterministic coordinate, timestamp, and direction
+samples along a closed route. `MapViewModel` validates coordinates and finite direction values,
+normalizes bearing into `[0, 360)`, and owns the map center, zoom, and follow/explore state.
+`OsmMiniMapView` is passive: it binds to this state, keeps the OSM map north-up, and rotates only
+the marker from the ViewModel bearing.
 
-The relative difference is `abs(right - left) / mean(left, right)`: below 5% is straight,
-5% through 20% is a gentle turn, and above 20% is a strong turn. A faster right wheel produces
-a left turn; a faster left wheel produces a right turn. Invalid/non-finite samples are
-sanitized, elapsed intervals are capped, and stale input decays speed, yaw, and curvature back
-toward straight. `EncoderDriveView` and `HypercarView` are passive: they render the C++ pose and
-paths as one continuous road with no lane divider and a centered vector arrow. Strong turns now
-produce a pronounced arrow rotation and a larger horizon bend, while the near road shifts only
-subtly so the scene does not feel like the entire road is sliding.
+A drag, wheel, or pinch gesture is forwarded directly to the ViewModel, enters explore mode, and
+restarts its four-second timer. On expiry, C++ restores follow mode, the current position as the
+viewport center, and the default zoom. Qt Location's OSM plugin uses an identifying User-Agent,
+`NoPrefetching`, and visible attribution. Automated tests never require tile-network access.
 
-This signal boundary is intentionally encoder-compatible: a future hardware adapter may emit
-measured left/right wheel motion with the same semantics and replace the mock source without
-changing `EncoderDriveViewModel` or QML. Motor PWM is a command, not measured motion, and must
-not be treated as encoder feedback.
+Future GNSS can supply the same `QGeoPositionInfoSource` boundary. Encoder measurements need an
+explicit localization adapter before they can produce a coordinate and bearing; raw counts and
+commanded PWM are not geographic position or odometry.
 
 ## 3. Parser and Mapper Boundaries
 
@@ -86,7 +79,7 @@ TEL,118,11.8,0;129\n
 
 `QSerialPort`, `SerialTelemetryParser`, `TelemetryMapper`, and ViewModel updates run on the GUI thread. `readyRead` work is bounded and non-blocking: read available bytes, split complete lines, validate, emit.
 
-Only media directory scanning runs on a worker thread. `MusicScanner` uses the worker-object pattern with `QThread` and `QDirIterator`; results return to `MusicPlayerViewModel` through queued signals. Mock wheel timers and encoder-drive updates remain bounded GUI-thread work.
+Only media directory scanning runs on a worker thread. `MusicScanner` uses the worker-object pattern with `QThread` and `QDirIterator`; results return to `MusicPlayerViewModel` through queued signals. `MockPositionSource` and `MapViewModel` timers remain bounded GUI-thread work.
 
 > [!WARNING]
 > Do not move a QObject with a parent to another thread, block the GUI thread waiting for serial input, or access QML-owned state from the music scanner worker.
@@ -116,5 +109,5 @@ Every ViewModel inherits `QObject`, declares `Q_OBJECT`, exposes observable stat
 - **Partial data survives a disconnect:** all stop, resource-error, and watchdog paths must call `SerialTelemetryParser::clear()`.
 - **UI freezes during scanning:** confirm only `MusicScanner` performs `QDirIterator` work and that it remains on its worker thread.
 - **QML contains interaction math:** move it into a ViewModel invokable/property and leave only a direct call or binding in QML.
-- **Arrow rotation does not settle after input disappears:** confirm the `EncoderDriveViewModel` stale-input timer is active and receives accepted samples.
-- **Hardware road direction is wrong:** compare measured left/right encoder channel semantics at the adapter boundary; do not compensate by adding math to QML.
+- **Map does not recenter after interaction:** confirm each gesture reaches the `MapViewModel` invokable and the four-second follow timer is active.
+- **Future hardware position is wrong:** validate the GNSS or localization adapter's coordinate and bearing before changing `MapViewModel` or QML; do not derive map position from PWM.

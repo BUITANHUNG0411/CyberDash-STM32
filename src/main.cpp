@@ -1,13 +1,13 @@
 #include "services/SerialService.h"
 #include "services/SimulatorService.h"
-#include "services/MockWheelTelemetryService.h"
+#include "services/MockPositionSource.h"
 #include "services/TelemetryMapper.h"
 #include "viewmodels/VehicleStatusViewModel.h"
 #include "viewmodels/MusicPlayerViewModel.h"
 #include "viewmodels/ThemeViewModel.h"
 #include "viewmodels/VehicleModeViewModel.h"
 #include "viewmodels/DriveModeViewModel.h"
-#include "viewmodels/EncoderDriveViewModel.h"
+#include "viewmodels/MapViewModel.h"
 #include "viewmodels/TripComputerViewModel.h"
 #include <QElapsedTimer>
 #include <QGuiApplication>
@@ -20,20 +20,15 @@ int main(int argc, char *argv[]) {
 
   VehicleStatusViewModel vm;
   TripComputerViewModel tripVm;
-  EncoderDriveViewModel encoderDriveVm;
+  MockPositionSource mockPositionSource;
+  MapViewModel mapVm;
+  mapVm.setPositionSource(&mockPositionSource);
   QElapsedTimer tripClock;
   tripClock.start();
 
   // Setup both services
   SimulatorService simulatorService;
   SerialService serialService("/dev/ttyUSB0");
-  MockWheelTelemetryService mockWheelTelemetry;
-  QObject::connect(
-      &mockWheelTelemetry,
-      &MockWheelTelemetryService::wheelTelemetryUpdated,
-      &encoderDriveVm,
-      &EncoderDriveViewModel::updateWheelMotion);
-
   bool isHardwareConnected = false;
 
   // Handle hardware connection status
@@ -87,7 +82,7 @@ int main(int argc, char *argv[]) {
   engine.rootContext()->setContextProperty("VehicleMode", &vehicleModeVm);
   engine.rootContext()->setContextProperty("DriveMode", &driveModeVm);
   engine.rootContext()->setContextProperty("TripComputer", &tripVm);
-  engine.rootContext()->setContextProperty("EncoderDrive", &encoderDriveVm);
+  engine.rootContext()->setContextProperty("MapModel", &mapVm);
 
   QObject::connect(&themeVm, &ThemeViewModel::windowMoveRequested, &engine, [&engine]() {
       const auto rootObjects = engine.rootObjects();
@@ -106,7 +101,7 @@ int main(int argc, char *argv[]) {
   engine.loadFromModule("com.showcase", "Main");
 
   themeVm.startBootSequence();
-  mockWheelTelemetry.start();
+  mockPositionSource.startUpdates();
 
   return app.exec();
 }

@@ -23,7 +23,7 @@
 - **Control Panel Integration:** Separated into a distinct Glassmorphism panel below the cover art.
   - *Alternatives considered:* Controls floating directly over the cover art.
   - *Why chosen:* Better UX for automotive environments, allowing a wider progress bar and larger touch targets.
-- **Neon Aesthetic:** Decided to use static Cyberpunk theme colors (`Theme.primaryColor` / `Theme.accentColor`).
+- **Neon Aesthetic:** Bind to centralized Cyberpunk theme tokens, including the day/night variants, instead of static component colors.
   - *Alternatives considered:* Dynamic colors extracting dominant colors from the current cover art.
   - *Why chosen:* Maintains absolute consistency with the existing dashboard gauges (e.g., NeonTickGauge).
 

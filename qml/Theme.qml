@@ -22,20 +22,12 @@ QtObject {
     property color glassPanelBase: ThemeController.isNight ? "#40151D26" : "#8CE8F0F8"
     property color glassPanelBorder: ThemeController.isNight ? "#802A3B4C" : "#80FFFFFF"
     property color trackInactive: ThemeController.isNight ? "#40FFFFFF" : "#401A2530"
-    property color roadSurface: ThemeController.isNight ? "#CC111A24" : "#DDE5EBF0"
-    property color roadLaneMarker: ThemeController.isNight ? "#E6FFFFFF" : "#CC1A2530"
-    property color roadHorizonGlow: ThemeController.isNight ? "#4066FCF1" : "#3000857C"
-    property color encoderSky: ThemeController.isNight ? "#061126" : "#BDD7E7"
-    property color encoderGround: ThemeController.isNight ? "#071018" : "#9AADB8"
-    property color hypercarBody: ThemeController.isNight ? "#37677E" : "#B7D7E5"
-    property color hypercarGlass: ThemeController.isNight ? "#0B1D2E" : "#416B7C"
-    property color hypercarTailLamp: ThemeController.isNight ? "#FF4E63" : "#C51F36"
-    property color hypercarShadow: ThemeController.isNight ? "#B802070C" : "#6607131A"
-    property color hypercarHighlight: ThemeController.isNight ? "#B89DEFFF" : "#CC007A75"
-    property color arrowBody: ThemeController.isNight ? "#66FCF1" : "#00857C"
-    property color arrowFrame: ThemeController.isNight ? "#DDE7EE" : "#1A2530"
-    property color arrowShadow: ThemeController.isNight ? "#C002070C" : "#6607131A"
-    property color arrowHighlight: ThemeController.isNight ? "#B89DEFFF" : "#CC007A75"
+    property color mapFallback: ThemeController.isNight ? "#101923" : "#CED9E0"
+    property color mapFrame: ThemeController.isNight ? "#9966FCF1" : "#9900857C"
+    property color mapMarker: ThemeController.isNight ? "#66FCF1" : "#00857C"
+    property color mapMarkerOutline: ThemeController.isNight ? "#E6F4FB" : "#1A2530"
+    property color mapStatusFill: ThemeController.isNight ? "#CC111A24" : "#E6F2F7FA"
+    property color mapStatusBorder: ThemeController.isNight ? "#8066FCF1" : "#8000857C"
 
     property color tickLitMajor: ThemeController.isNight ? "#FFB3CC" : "#D81B60"
     property color tickLitMinor: ThemeController.isNight ? "#FFFFFF" : "#0E8F88"
@@ -57,20 +49,12 @@ QtObject {
     Behavior on glassPanelBase { ColorAnimation { duration: durationTheme } }
     Behavior on glassPanelBorder { ColorAnimation { duration: durationTheme } }
     Behavior on trackInactive { ColorAnimation { duration: durationTheme } }
-    Behavior on roadSurface { ColorAnimation { duration: durationTheme } }
-    Behavior on roadLaneMarker { ColorAnimation { duration: durationTheme } }
-    Behavior on roadHorizonGlow { ColorAnimation { duration: durationTheme } }
-    Behavior on encoderSky { ColorAnimation { duration: durationTheme } }
-    Behavior on encoderGround { ColorAnimation { duration: durationTheme } }
-    Behavior on hypercarBody { ColorAnimation { duration: durationTheme } }
-    Behavior on hypercarGlass { ColorAnimation { duration: durationTheme } }
-    Behavior on hypercarTailLamp { ColorAnimation { duration: durationTheme } }
-    Behavior on hypercarShadow { ColorAnimation { duration: durationTheme } }
-    Behavior on hypercarHighlight { ColorAnimation { duration: durationTheme } }
-    Behavior on arrowBody { ColorAnimation { duration: durationTheme } }
-    Behavior on arrowFrame { ColorAnimation { duration: durationTheme } }
-    Behavior on arrowShadow { ColorAnimation { duration: durationTheme } }
-    Behavior on arrowHighlight { ColorAnimation { duration: durationTheme } }
+    Behavior on mapFallback { ColorAnimation { duration: durationTheme } }
+    Behavior on mapFrame { ColorAnimation { duration: durationTheme } }
+    Behavior on mapMarker { ColorAnimation { duration: durationTheme } }
+    Behavior on mapMarkerOutline { ColorAnimation { duration: durationTheme } }
+    Behavior on mapStatusFill { ColorAnimation { duration: durationTheme } }
+    Behavior on mapStatusBorder { ColorAnimation { duration: durationTheme } }
     Behavior on tickLitMajor { ColorAnimation { duration: durationTheme } }
     Behavior on tickLitMinor { ColorAnimation { duration: durationTheme } }
     Behavior on tickDimMajor { ColorAnimation { duration: durationTheme } }
@@ -111,14 +95,6 @@ QtObject {
     readonly property int spaceLg: 10
     readonly property int spaceXl: 24
     readonly property int spaceXXl: 40
-
-    // Encoder chase scene geometry
-    readonly property real encoderRoadHorizon: 0.16
-    readonly property int encoderVehicleWidth: 228
-    readonly property int encoderVehicleHeight: 198
-    readonly property int encoderVehicleTravel: 66
-    readonly property real encoderVehicleScale: 0.70
-    readonly property int encoderVehicleBottomMargin: 8
 
     // Bezel Geometry
     readonly property real bezelMargin: 20

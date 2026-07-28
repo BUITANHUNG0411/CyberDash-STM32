@@ -65,18 +65,21 @@ target_link_libraries(tst_serial_pipeline
 
 add_test(NAME tst_serial_pipeline COMMAND tst_serial_pipeline)
 
-qt_add_executable(tst_encoder_drive
-    tst_encoder_drive.cpp
-    ../src/services/MockWheelTelemetryService.cpp
-    ../src/viewmodels/EncoderDriveViewModel.cpp
+find_package(Qt6 6.8 REQUIRED COMPONENTS Positioning)
+
+qt_add_executable(tst_map_navigation
+    tst_map_navigation.cpp
+    ../src/services/MockPositionSource.cpp
+    ../src/viewmodels/MapViewModel.cpp
 )
 
-target_include_directories(tst_encoder_drive PRIVATE ../src)
+target_include_directories(tst_map_navigation PRIVATE ../src)
 
-target_link_libraries(tst_encoder_drive
+target_link_libraries(tst_map_navigation
     PRIVATE
     Qt6::Core
+    Qt6::Positioning
     Qt6::Test
 )
 
-add_test(NAME tst_encoder_drive COMMAND tst_encoder_drive)
+add_test(NAME tst_map_navigation COMMAND tst_map_navigation)

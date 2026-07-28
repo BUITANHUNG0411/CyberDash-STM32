@@ -115,14 +115,6 @@
 - [x] DashboardScreen: third top-bar cycle button (icon = next mode), `gearSubText` bound to `DriveMode.driveModeLabel` (scooter "BATT %" override preserved), bottom-center `TRIP x.x km · ODO y km` line with click-to-reset MouseArea.
 - [x] Historical Phase 15 verification: its then-current Zero-JS grep reported clean but did not cover every `Math` helper or handler/control-flow variant; build, 28 viewmodel tests, 8s smoke, and drive-mode/theme screenshots were recorded. Repository-wide Zero-JS completion is recorded in Phase 17.
 
-## Phase 16: Center Hub (Music ⇄ Map) + Neon Map
-- [x] Historical implementation retained for traceability; the runtime neon map was superseded by Phase 18.
-- [x] Implement `MapViewModel` (TDD): `routeProgress` (0..1, fmod wrap) from odometer over an injectable `routeLengthKm` (default 2.0), context property `MapModel`, fed from `TripComputerViewModel::tripChanged` in `main.cpp`.
-- [x] Create `NeonMapView.qml`: Shapes-drawn neon map (street grid + grey side streets + accent-colored route loop with sibling-source MultiEffect bloom) in a 400×360 design space auto-scaled to fit; marker arrow positioned/rotated by `PathInterpolator { progress: MapModel.routeProgress }`; TRIP label reuses `TripComputer.tripDisplay`.
-- [x] Create `CenterHub.qml`: `SwipeView` (first QtQuick.Controls usage — static children never destroyed, MusicPlayer stays alive) with Music + Map pages and a custom neon `PageIndicator`.
-- [x] DashboardScreen: center panel hosts `CenterHub`; Phase-14 scooter/bike states retarget `musicPlayer` → `centerHub`; scooterCard/bike behavior unchanged (hub is Car-mode only).
-- [x] Historical Phase 16 verification: its then-current Zero-JS grep reported clean but did not cover every `Math` helper or handler/control-flow variant; build, 31 viewmodel tests, 8s smoke, and both hub-page screenshots were recorded. Repository-wide Zero-JS completion is recorded in Phase 17.
-
 ## Phase 17: Pre-Feature Baseline Repair
 - [x] Extract newline framing and checksum validation into `SerialTelemetryParser`, including partial-frame retention and the 4096-byte buffer boundary.
 - [x] Move raw serial-to-dashboard derivation into transport-independent `TelemetryMapper`, wired in `main.cpp`.
@@ -135,28 +127,13 @@
 - [x] Close the formal Task 5 review with in-scope C++ lint cleanup, direct Qt 6.11.1 `qmllint` triage, and a fresh full verification matrix.
 - [x] Close final branch-review follow-ups: direct connected-state fallback/reconnect regressions, test-safe music persistence, finite map invariants including tiny-route division overflow, and documentation/review-skill truth fixes (`4307a4d`, `1d863df`).
 - [x] Complete the final re-review with no remaining high-confidence Critical or Important findings; rerun configure, build, CTest 3/3, Zero-JS, module `qmllint`, range diff hygiene, and the 8-second offscreen smoke check.
-- [ ] Field-validate the serial pipeline with physical STM32 hardware.
+- [x] Historical checklist superseded by the canonical Phase 4 hardware-validation task.
 
-## Phase 18: Mock-Driven Perspective Road Visualizer (Historical; Superseded by Phase 19)
-- [x] Replace the generic neon route loop with one pseudo-3D road and a fixed vehicle marker.
-- [x] Implement `MockWheelTelemetryService` with deterministic straight → left → straight → right stages, injected targets, bounded intervals, and idempotent lifecycle behavior.
-- [x] Implement `RoadMotionViewModel` as a fixed 24-row `QAbstractListModel` with C++-owned speed, curvature, perspective geometry, phase recycling, accumulated lateral offset, input sanitization, and stale-input stop.
-- [x] Expose `RoadMotion` to passive QML and render it in `PerspectiveRoadView.qml`; retire `MapViewModel`, `MapModel`, `NeonMapView`, and `routeProgress`.
-- [x] Add and register `tst_road_motion` with 17 focused behavior tests covering the mock source and road-motion invariants.
-- [x] Close the final review's center-dash parity finding with a RED/GREEN partial-wrap regression and absolute segment ordinal.
-- [x] Complete focused C++/QML reviews with no remaining high-confidence defect in the Phase 18 implementation.
-- [x] Synchronize active Markdown while preserving Phase 16 as historical context.
-- [x] Complete and record the fresh Phase 18 configure/build/CTest/Zero-JS/QML-lint/smoke verification matrix.
-- [ ] Replace mock wheel input with field-validated, measured left/right encoder telemetry; do not substitute commanded PWM for motion feedback.
-
-## Phase 19: Encoder-Driven Arrow Road Scene
-- [x] Expand `MockWheelTelemetryService` to the seven-stage straight/gentle/strong scenario with bounded interpolation and elapsed time.
-- [x] Implement `EncoderDriveViewModel` with exact 5%/20% turn bands, sign-correct bounded pose, finite normalized continuous-road paths, and stale decay.
-- [x] Tune the mock demo and C++ visual response so strong encoder differences produce a pronounced road-direction arrow rotation plus a larger horizon bend while the near road shifts only subtly.
-- [x] Expose `EncoderDrive` to passive `EncoderDriveView`/`HypercarView`; render one road with no lane divider and retire the Phase 18 sliced/dashed-road runtime.
-- [x] Replace the vehicle visual with a centered road-direction arrow that rotates with the road instead of showing a car.
-- [x] Register `tst_encoder_drive` and retire `tst_road_motion`.
-- [x] Complete the repository Zero-JS scan and project `qt-cpp-review`/`qt-qml-review` workflows with no unresolved Critical or Important finding.
-- [x] Synchronize all active Markdown with the Phase 19 runtime.
-- [x] Complete and record the fresh configure/build/CTest 4/4/lint/diff/smoke verification matrix.
-- [ ] Integrate and field-validate physical STM32 left/right encoder firmware; commanded PWM remains prohibited as encoder feedback or odometry.
+## Phase 20: OSM Follow Mini-Map
+- [x] Implement `MockPositionSource` as a deterministic `QGeoPositionInfoSource` with bounded, testable route progression and bearing.
+- [x] Implement `MapViewModel` (TDD) for validated position/bearing, north-up marker state, Web-Mercator viewport pan/zoom, and follow/explore behavior.
+- [x] Add passive `OsmMiniMapView` and replace the Car-mode center page while preserving static MusicPlayer lifetime.
+- [x] Add Qt Location and Positioning build modules; configure the OSM User-Agent, visible attribution, and `NoPrefetching` policy.
+- [x] Register `tst_map_navigation` as the fourth deterministic CTest target and verify source, ViewModel, and gesture contracts without OSM network access.
+- [x] Remove retired synthetic navigation runtime and synchronize active documentation with the Phase 20 contract.
+- [x] Document that GNSS or encoder localization integration is separate future work; encoder counts and commanded PWM are not geographic position or odometry. The canonical physical STM32 UART field-validation item remains in Phase 4.

@@ -14,7 +14,7 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
 endif()
 
-find_package(Qt6 6.8 REQUIRED COMPONENTS Core Gui Qml Quick Test SerialPort Multimedia)
+find_package(Qt6 6.8 REQUIRED COMPONENTS Core Gui Qml Quick Test SerialPort Multimedia Location Positioning)
 
 qt_standard_project_setup(REQUIRES 6.8)
 
@@ -30,7 +30,7 @@ qt_add_executable(${PROJECT_NAME}
     src/services/SerialTelemetryParser.cpp
     src/services/TelemetryMapper.cpp
     src/services/MusicScanner.cpp
-    src/services/MockWheelTelemetryService.cpp
+    src/services/MockPositionSource.cpp
 )
 
 set_source_files_properties(qml/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
@@ -49,8 +49,7 @@ qt_add_qml_module(${PROJECT_NAME}
         qml/components/NeonIcon.qml
         qml/components/NeonIconButton.qml
         qml/components/RangeTripCard.qml
-        qml/components/EncoderDriveView.qml
-        qml/components/HypercarView.qml
+        qml/components/OsmMiniMapView.qml
         qml/components/CenterHub.qml
         qml/screens/DashboardScreen.qml
     RESOURCES
@@ -85,12 +84,12 @@ qt_add_qml_module(${PROJECT_NAME}
         src/viewmodels/DriveModeViewModel.cpp
         src/viewmodels/TripComputerViewModel.h
         src/viewmodels/TripComputerViewModel.cpp
-        src/viewmodels/EncoderDriveViewModel.h
-        src/viewmodels/EncoderDriveViewModel.cpp
+        src/viewmodels/MapViewModel.h
+        src/viewmodels/MapViewModel.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
-    PRIVATE Qt6::Core Qt6::Gui Qt6::Qml Qt6::Quick Qt6::SerialPort Qt6::Multimedia
+    PRIVATE Qt6::Core Qt6::Gui Qt6::Qml Qt6::Quick Qt6::SerialPort Qt6::Multimedia Qt6::Location Qt6::Positioning
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE src src/viewmodels)

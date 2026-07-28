@@ -39,19 +39,15 @@ Use declarative `State`, `PropertyChanges`, and `Transition`. The Car state rema
 
 ## 4. CenterHub
 
-Car mode uses `CenterHub.qml`, a `SwipeView` containing static Music and Encoder Drive pages:
+Car mode uses `CenterHub.qml`, a `SwipeView` containing static Music and OSM mini-map pages:
 
-- `MusicPlayer` preserves its lifetime while the user views the road.
-- `EncoderDriveView` renders `EncoderDriveViewModel`'s finite normalized road paths as one continuous road with no lane divider.
-- `HypercarView` is retained as the component filename but now draws a centered vector arrow entirely with Qt Quick vector shapes.
-- C++-owned road direction and curvature drive the arrow while C++-owned curvature bends the road; the response is straight below 5% relative wheel-speed difference, gentle from 5% through 20%, and strong above 20%. Strong turns should visibly rotate the arrow with the road direction and amplify the horizon bend, while the near road only shifts subtly so it remains visually calm around the arrow.
-- Road surface, horizon glow, arrow colors, and the page indicator use centralized `Theme` tokens.
+- `MusicPlayer` preserves its lifetime while the user views the map.
+- `OsmMiniMapView` is a rectangular glass-panel map with a dark fallback, cyan frame, a compact marker, and a restrained `FOLLOW`/`EXPLORE` status pill using centralized `Theme` tokens.
+- The map remains north-up; only the marker rotates from C++-provided bearing.
+- User drag, wheel, and pinch gestures directly call `MapModel` invokables. C++ owns Web-Mercator pan/zoom math, follow/explore state, and the four-second idle return to follow mode.
+- OSM attribution remains visible and must not be covered by the pill or page indicator. The OSM plugin uses the application User-Agent and `NoPrefetching`; do not add route lines, destination/search controls, routing, bulk downloads, or offline tile bundles.
 
-The road is a driving-state visualization, not a geographic map. Do not add a street grid,
-route loop, GPS marker, tile provider, lane divider, or QML-side steering math. Turn
-classification, curvature, vehicle pose, stale decay, and normalized path construction belong
-to `EncoderDriveViewModel`; QML may only bind C++ properties to `Shape` paths and presentation
-properties.
+`OsmMiniMapView` contains no QML-side map calculations, timers, or mutable interaction state. It binds declaratively to `MapModel.position`, `bearingDegrees`, `viewportCenter`, `zoomLevel`, and `followLabel`.
 
 Do not put window-drag handlers over this interactive region; the top drag strip must not steal gestures from `SwipeView`, `PathView`, or the scrubber.
 
@@ -89,7 +85,7 @@ Vehicle morphing uses the dip transition: fade and scale both arches down, apply
 > [!WARNING]
 > A `MultiEffect` source must not contain that effect. Never capture an ancestor such as `source: parent` when it creates recursive capture and frozen accumulated frames. Prefer a non-recursive sibling source.
 
-Hide a sibling source when it exists solely as an input to the effect, as with the music backdrop and some icon/text sources. A visible sibling is correct when the original must also render; gauge ticks and road edges are valid visible sources for their bloom effects.
+Hide a sibling source when it exists solely as an input to the effect, as with the music backdrop and some icon/text sources. A visible sibling is correct when the original must also render; gauge ticks are valid visible sources for their bloom effects.
 
 ## 7. Zero JavaScript
 
@@ -102,6 +98,6 @@ QML may use bindings, ternaries, declarative states, and a single direct call to
 - **Blur or glow freezes:** inspect `MultiEffect.source` for recursive parent capture and replace it with a sibling source.
 - **Text animation warns or jumps:** animate a numeric backing property and bind `Text.text` to its display value.
 - **Swipe or scrub drags the window:** restrict the window `DragHandler` to the top drag strip.
-- **Road looks like a top-down map:** preserve horizon convergence, near-field widening, the centered arrow, and one-road composition.
-- **A dashed divider reappears:** remove it; the Phase 19 scene intentionally uses one uninterrupted road surface.
-- **Road or pose logic appears in QML:** move it to `EncoderDriveViewModel` and expose only finite geometry/state properties.
+- **Map rotates with the marker:** keep `Map.bearing` at `0`; bind only the marker rotation to `MapModel.bearingDegrees`.
+- **Map stays in explore mode:** confirm all gesture updates restart the C++ follow timeout, then check that follow mode recenters and restores default zoom after four idle seconds.
+- **OSM attribution is hidden:** move the map status pill or page indicator; attribution must remain visible.

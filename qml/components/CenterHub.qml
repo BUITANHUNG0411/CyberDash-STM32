@@ -5,7 +5,7 @@ import QtQuick.Controls.Basic
 import com.showcase
 
 /*
- * Hub trung tâm lướt được (Car mode): Music ⇄ Encoder Drive.
+ * Hub trung tâm lướt được (Car mode): Music ⇄ OSM mini-map.
  * SwipeView giữ children tĩnh sống mãi — MusicPlayer không bao giờ bị hủy.
  */
 Item {
@@ -17,7 +17,7 @@ Item {
         clip: true
 
         MusicPlayer {}
-        EncoderDriveView {}
+        OsmMiniMapView {}
     }
 
     Component {

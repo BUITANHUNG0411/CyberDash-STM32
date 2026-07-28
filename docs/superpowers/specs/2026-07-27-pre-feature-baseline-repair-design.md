@@ -1,6 +1,6 @@
 # Archived: Pre-Feature Baseline Repair Design
 
 > Status: historical repair spec retained after the baseline cleanup was completed.
-> The active focus moved on to the encoder-driven arrow-road scene.
+> The current feature direction is the Phase 20 OSM follow mini-map.
 
-This spec captured the baseline reconciliation work for telemetry, tests, and docs before the later arrow-road feature.
+This spec captured the baseline reconciliation work for telemetry, tests, and docs before the current map feature.

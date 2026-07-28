@@ -19,6 +19,7 @@ private slots:
 
         viewModel.updateSensorSample(150, true);
         QCOMPARE(viewModel.proximityLevel(), ParkingAssistViewModel::Caution);
+        QCOMPARE(viewModel.statusText(), QStringLiteral("REAR CAUTION"));
         viewModel.updateSensorSample(31, true);
         QCOMPARE(viewModel.proximityLevel(), ParkingAssistViewModel::Caution);
         viewModel.updateSensorSample(30, true);

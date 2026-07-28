@@ -15,6 +15,8 @@ QtObject {
                                  ? (ThemeController.isNight ? "#FF7A00" : "#C25600")
                                  : (ThemeController.isNight ? "#66FCF1" : "#00857C")
     readonly property color warningRed: "#FF3B30"
+    property color parkingCaution: ThemeController.isNight ? "#FFB000" : "#A66800"
+    property color parkingUnavailable: ThemeController.isNight ? "#74808C" : "#66727D"
     property color textPrimary: ThemeController.isNight ? "#FFFFFF" : "#1A2530"
     property color textSecondary: ThemeController.isNight ? "#C5C6C7" : "#4A5A68"
     property color textOnAccent: ThemeController.isNight ? "#0B0C10" : "#F2F7FA"
@@ -37,6 +39,8 @@ QtObject {
     // Smooth cross-fade when the theme flips (single place for the whole app)
     Behavior on backgroundDeepSpace { ColorAnimation { duration: durationTheme } }
     Behavior on accentCyan { ColorAnimation { duration: durationTheme } }
+    Behavior on parkingCaution { ColorAnimation { duration: durationTheme } }
+    Behavior on parkingUnavailable { ColorAnimation { duration: durationTheme } }
     Behavior on textPrimary { ColorAnimation { duration: durationTheme } }
     Behavior on textSecondary { ColorAnimation { duration: durationTheme } }
     Behavior on textOnAccent { ColorAnimation { duration: durationTheme } }

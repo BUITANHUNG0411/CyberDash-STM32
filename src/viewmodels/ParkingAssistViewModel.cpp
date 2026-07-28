@@ -34,7 +34,7 @@ QString ParkingAssistViewModel::statusText() const
     case Clear:
         return QStringLiteral("REAR CLEAR");
     case Caution:
-        return QStringLiteral("CAUTION");
+        return QStringLiteral("REAR CAUTION");
     case Stop:
         return QStringLiteral("STOP");
     case Unavailable:

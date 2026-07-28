@@ -1,5 +1,6 @@
 #include "services/SerialService.h"
 #include "services/SimulatorService.h"
+#include "services/MockParkingSensorService.h"
 #include "services/TelemetryMapper.h"
 #include "viewmodels/VehicleStatusViewModel.h"
 #include "viewmodels/MusicPlayerViewModel.h"
@@ -7,6 +8,8 @@
 #include "viewmodels/VehicleModeViewModel.h"
 #include "viewmodels/DriveModeViewModel.h"
 #include "viewmodels/TripComputerViewModel.h"
+#include "viewmodels/ParkingAssistViewModel.h"
+#include "viewmodels/CenterHubViewModel.h"
 #include <QElapsedTimer>
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
@@ -18,6 +21,9 @@ int main(int argc, char *argv[]) {
 
   VehicleStatusViewModel vm;
   TripComputerViewModel tripVm;
+  MockParkingSensorService parkingSensorService;
+  ParkingAssistViewModel parkingAssistVm;
+  CenterHubViewModel centerHubVm(&parkingAssistVm);
   QElapsedTimer tripClock;
   tripClock.start();
 
@@ -60,6 +66,11 @@ int main(int argc, char *argv[]) {
       }
   });
 
+  QObject::connect(&parkingSensorService,
+                   &MockParkingSensorService::parkingSampleUpdated,
+                   &parkingAssistVm,
+                   &ParkingAssistViewModel::updateSensorSample);
+
   // Start Serial Service by default. It will emit connectionStatusChanged(false) if it fails,
   // triggering the SimulatorService to start as a fallback.
   serialService.startService();
@@ -77,6 +88,8 @@ int main(int argc, char *argv[]) {
   engine.rootContext()->setContextProperty("VehicleMode", &vehicleModeVm);
   engine.rootContext()->setContextProperty("DriveMode", &driveModeVm);
   engine.rootContext()->setContextProperty("TripComputer", &tripVm);
+  engine.rootContext()->setContextProperty("ParkingAssist", &parkingAssistVm);
+  engine.rootContext()->setContextProperty("CenterHubController", &centerHubVm);
 
   QObject::connect(&themeVm, &ThemeViewModel::windowMoveRequested, &engine, [&engine]() {
       const auto rootObjects = engine.rootObjects();
@@ -93,6 +106,8 @@ int main(int argc, char *argv[]) {
       []() { QCoreApplication::exit(-1); }, Qt::QueuedConnection);
 
   engine.loadFromModule("com.showcase", "Main");
+
+  parkingSensorService.start();
 
   themeVm.startBootSequence();
 

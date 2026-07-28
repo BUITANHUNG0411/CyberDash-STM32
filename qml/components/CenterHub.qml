@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Layouts
 import com.showcase
 
 /*
@@ -9,7 +10,18 @@ import com.showcase
 Item {
     id: root
 
-    MusicPlayer {
+    StackLayout {
         anchors.fill: parent
+        currentIndex: CenterHubController.activePage
+
+        MusicPlayer {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+        }
+
+        ParkingAssistView {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+        }
     }
 }

@@ -12,6 +12,8 @@ class ParkingAssistViewModel final : public QObject
     Q_PROPERTY(bool sensorAvailable READ sensorAvailable NOTIFY sensorAvailableChanged)
     Q_PROPERTY(int rearDistanceCm READ rearDistanceCm NOTIFY rearDistanceChanged)
     Q_PROPERTY(ProximityLevel proximityLevel READ proximityLevel NOTIFY proximityLevelChanged)
+    Q_PROPERTY(int proximitySegments READ proximitySegments NOTIFY proximitySegmentsChanged)
+    Q_PROPERTY(double proximityProgress READ proximityProgress NOTIFY proximityProgressChanged)
     Q_PROPERTY(QString distanceText READ distanceText NOTIFY displayChanged)
     Q_PROPERTY(QString statusText READ statusText NOTIFY displayChanged)
 
@@ -30,6 +32,8 @@ public:
     bool sensorAvailable() const;
     int rearDistanceCm() const;
     ProximityLevel proximityLevel() const;
+    int proximitySegments() const;
+    double proximityProgress() const;
     QString distanceText() const;
     QString statusText() const;
 
@@ -41,12 +45,15 @@ signals:
     void sensorAvailableChanged();
     void rearDistanceChanged();
     void proximityLevelChanged();
+    void proximitySegmentsChanged();
+    void proximityProgressChanged();
     void displayChanged();
 
 private:
     void transitionToUnavailable();
     void emitDisplayChangedIfNeeded(const QString &previousDistanceText,
                                     const QString &previousStatusText);
+    void emitPresentationChangedIfNeeded(int previousSegments, double previousProgress);
 
     bool m_reverseActive = false;
     bool m_sensorAvailable = false;

@@ -29,6 +29,35 @@ private slots:
         QCOMPARE(viewModel.proximityLevel(), ParkingAssistViewModel::Stop);
     }
 
+    void derivesPresentationSafeProximityProgress()
+    {
+        ParkingAssistViewModel viewModel;
+        QSignalSpy segmentsSpy(&viewModel, &ParkingAssistViewModel::proximitySegmentsChanged);
+        QSignalSpy progressSpy(&viewModel, &ParkingAssistViewModel::proximityProgressChanged);
+
+        viewModel.updateSensorSample(250, true);
+        QCOMPARE(viewModel.proximitySegments(), 1);
+        QCOMPARE(viewModel.proximityProgress(), 0.0);
+
+        viewModel.updateSensorSample(150, true);
+        QCOMPARE(viewModel.proximitySegments(), 4);
+        QVERIFY(qAbs(viewModel.proximityProgress() - (100.0 / 220.0)) < 0.000001);
+
+        viewModel.updateSensorSample(30, true);
+        QCOMPARE(viewModel.proximitySegments(), 8);
+        QCOMPARE(viewModel.proximityProgress(), 1.0);
+
+        viewModel.updateSensorSample(0, true);
+        QCOMPARE(viewModel.proximitySegments(), 0);
+        QCOMPARE(viewModel.proximityProgress(), 0.0);
+
+        QCOMPARE(segmentsSpy.count(), 4);
+        QCOMPARE(progressSpy.count(), 3);
+        viewModel.updateSensorSample(0, true);
+        QCOMPARE(segmentsSpy.count(), 4);
+        QCOMPARE(progressSpy.count(), 3);
+    }
+
     void invalidInputBecomesUnavailable()
     {
         ParkingAssistViewModel viewModel;

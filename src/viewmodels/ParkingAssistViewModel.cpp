@@ -19,6 +19,28 @@ ParkingAssistViewModel::ProximityLevel ParkingAssistViewModel::proximityLevel() 
     return m_proximityLevel;
 }
 
+int ParkingAssistViewModel::proximitySegments() const
+{
+    if (!m_sensorAvailable) {
+        return 0;
+    }
+
+    return qBound(1, 1 + static_cast<int>(proximityProgress() * 7.0), 8);
+}
+
+double ParkingAssistViewModel::proximityProgress() const
+{
+    if (!m_sensorAvailable) {
+        return 0.0;
+    }
+
+    constexpr double farDistanceCm = 250.0;
+    constexpr double stopDistanceCm = 30.0;
+    const double progress = (farDistanceCm - static_cast<double>(m_rearDistanceCm))
+        / (farDistanceCm - stopDistanceCm);
+    return qBound(0.0, progress, 1.0);
+}
+
 QString ParkingAssistViewModel::distanceText() const
 {
     if (!m_sensorAvailable) {
@@ -48,6 +70,8 @@ void ParkingAssistViewModel::updateSensorSample(int distanceCm, bool reverseActi
 {
     const QString previousDistanceText = distanceText();
     const QString previousStatusText = statusText();
+    const int previousSegments = proximitySegments();
+    const double previousProgress = proximityProgress();
 
     if (m_reverseActive != reverseActive) {
         m_reverseActive = reverseActive;
@@ -82,6 +106,7 @@ void ParkingAssistViewModel::updateSensorSample(int distanceCm, bool reverseActi
         emit proximityLevelChanged();
     }
     emitDisplayChangedIfNeeded(previousDistanceText, previousStatusText);
+    emitPresentationChangedIfNeeded(previousSegments, previousProgress);
 }
 
 void ParkingAssistViewModel::advanceStaleClock(qint64 elapsedMs)
@@ -100,6 +125,8 @@ void ParkingAssistViewModel::transitionToUnavailable()
 {
     const QString previousDistanceText = distanceText();
     const QString previousStatusText = statusText();
+    const int previousSegments = proximitySegments();
+    const double previousProgress = proximityProgress();
     const bool availabilityChanged = m_sensorAvailable;
     const bool distanceChanged = m_rearDistanceCm != 0;
     const bool levelChanged = m_proximityLevel != Unavailable;
@@ -120,6 +147,7 @@ void ParkingAssistViewModel::transitionToUnavailable()
         emit proximityLevelChanged();
     }
     emitDisplayChangedIfNeeded(previousDistanceText, previousStatusText);
+    emitPresentationChangedIfNeeded(previousSegments, previousProgress);
 }
 
 void ParkingAssistViewModel::emitDisplayChangedIfNeeded(const QString &previousDistanceText,
@@ -127,5 +155,16 @@ void ParkingAssistViewModel::emitDisplayChangedIfNeeded(const QString &previousD
 {
     if (previousDistanceText != distanceText() || previousStatusText != statusText()) {
         emit displayChanged();
+    }
+}
+
+void ParkingAssistViewModel::emitPresentationChangedIfNeeded(int previousSegments,
+                                                              double previousProgress)
+{
+    if (previousSegments != proximitySegments()) {
+        emit proximitySegmentsChanged();
+    }
+    if (previousProgress != proximityProgress()) {
+        emit proximityProgressChanged();
     }
 }

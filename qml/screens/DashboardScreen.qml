@@ -140,8 +140,8 @@ Item {
         }
 
         // Center Panel (Media/Nav)
-        // centerPanel: intentional z:-1 inset between the two gauge bezels.
-        // DO NOT convert to horizontalCenter — it would break the depth layering.
+        // centerPanel stays behind the gauge faces, with a tokenized clear gap
+        // on both sides to avoid the central surface touching their tick rings.
         Item {
             id: centerPanel
             anchors.verticalCenter: parent.verticalCenter
@@ -149,8 +149,8 @@ Item {
             height: 450
             anchors.left: leftPanel.right
             anchors.right: rightPanel.left
-            anchors.leftMargin: -20
-            anchors.rightMargin: -20
+            anchors.leftMargin: Theme.centerPanelGap
+            anchors.rightMargin: Theme.centerPanelGap
             z: -1 // Push slightly behind the gauges to create depth and prevent overlapping the glowing ticks
             opacity: ThemeController.bootStage < 2 ? 0.0 : 1.0
             Behavior on opacity { NumberAnimation { duration: Theme.durationSlow } }

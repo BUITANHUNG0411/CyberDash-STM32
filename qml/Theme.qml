@@ -92,6 +92,14 @@ QtObject {
     readonly property real bezelMargin: 20
     readonly property real dashboardMargin: 10
     readonly property real panelLift: 30
-    readonly property real gaugeInsetLeft: 260
-    readonly property real gaugeInsetRight: 880
+    // The arch shoulders move out while their outermost edge remains within the
+    // framed window. Keep all bezel and dashboard spacing decisions together.
+    readonly property real bezelArchLeftX: 190
+    readonly property real bezelArchRightX: 970
+    readonly property real bezelArchRadiusX: 170
+    readonly property real bezelArchRadiusY: 380
+    readonly property real bezelReflectionInset: 4
+    readonly property real gaugeInsetLeft: 220
+    readonly property real gaugeInsetRight: 920
+    readonly property real centerPanelGap: 20
 }

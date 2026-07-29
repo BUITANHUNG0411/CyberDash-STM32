@@ -38,13 +38,13 @@ Window {
 
                 // Đường dẫn SVG tinh chỉnh cho mượt hoàn hảo bằng Cubic Bezier (C/S)
                 PathSvg {
-                    path: "M 270 0 " +
+                    path: "M " + Theme.bezelArchLeftX + " 0 " +
                           "C 420 0, 480 50, 580 50 " +
-                          "S 740 0, 890 0 " +
-                          "A 250 380 0 0 1 890 760 " +
+                          "S 740 0, " + Theme.bezelArchRightX + " 0 " +
+                          "A " + Theme.bezelArchRadiusX + " " + Theme.bezelArchRadiusY + " 0 0 1 " + Theme.bezelArchRightX + " 760 " +
                           "C 740 760, 680 710, 580 710 " +
-                          "S 420 760, 270 760 " +
-                          "A 250 380 0 0 1 270 0 Z"
+                          "S 420 760, " + Theme.bezelArchLeftX + " 760 " +
+                          "A " + Theme.bezelArchRadiusX + " " + Theme.bezelArchRadiusY + " 0 0 1 " + Theme.bezelArchLeftX + " 0 Z"
                 }
             }
 
@@ -56,13 +56,13 @@ Window {
 
                 // Thu nhỏ (inset) 4 pixel so với viền ngoài
                 PathSvg {
-                    path: "M 270 4 " +
+                    path: "M " + (Theme.bezelArchLeftX + Theme.bezelReflectionInset) + " " + Theme.bezelReflectionInset + " " +
                           "C 420 4, 480 54, 580 54 " +
-                          "S 740 4, 890 4 " +
-                          "A 246 376 0 0 1 886 756 " +
+                          "S 740 4, " + (Theme.bezelArchRightX - Theme.bezelReflectionInset) + " " + Theme.bezelReflectionInset + " " +
+                          "A " + (Theme.bezelArchRadiusX - Theme.bezelReflectionInset) + " " + (Theme.bezelArchRadiusY - Theme.bezelReflectionInset) + " 0 0 1 " + (Theme.bezelArchRightX - Theme.bezelReflectionInset) + " 756 " +
                           "C 740 756, 680 706, 580 706 " +
-                          "S 420 756, 270 756 " +
-                          "A 246 376 0 0 1 274 4 Z"
+                          "S 420 756, " + (Theme.bezelArchLeftX + Theme.bezelReflectionInset) + " 756 " +
+                          "A " + (Theme.bezelArchRadiusX - Theme.bezelReflectionInset) + " " + (Theme.bezelArchRadiusY - Theme.bezelReflectionInset) + " 0 0 1 " + (Theme.bezelArchLeftX + Theme.bezelReflectionInset) + " " + Theme.bezelReflectionInset + " Z"
                 }
             }
         }

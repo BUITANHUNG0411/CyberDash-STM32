@@ -1,6 +1,6 @@
 # Brainstorming Ideas Into Designs
 
-> **AI Context**: Đây là quy trình bắt buộc (Workflow SOP) dành cho AI Agent khi User yêu cầu thiết kế tính năng mới hoặc lên ý tưởng kiến trúc. AI phải tuân thủ tuyệt đối các bước dưới đây thay vì lao vào viết code.
+> **AI Context**: This mandatory workflow SOP applies when a user requests a new feature design or an architectural idea. The AI must follow the steps below instead of immediately writing code.
 
 ## Purpose
 

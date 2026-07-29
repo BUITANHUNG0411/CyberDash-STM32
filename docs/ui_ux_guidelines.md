@@ -37,7 +37,15 @@ Drive mode selects the active accent:
 
 Use declarative `State`, `PropertyChanges`, and `Transition`. The Car state remains the base binding set so leaving Bike/Scooter restores original bindings.
 
-## 4. CenterHub
+## 4. Cockpit Context Rail
+
+`CockpitContextRail` is a non-interactive, five-pill chrome rail anchored below the top bar. It is
+hidden until boot stage 2 and remains visible in Car, Bike, and Scooter modes. It displays
+C++-owned vehicle mode, drive mode, theme, telemetry source, and Safety Lab state. It uses only
+Theme tokens and must not overlap gauges or the center panel, introduce QML state or calculations,
+or alter Safety Lab availability.
+
+## 5. CenterHub
 
 Car mode uses `CenterHub.qml` as the persistent home of `MusicPlayer`. The player owns no navigation state; its library, playback, and scrubber remain C++-backed through `MusicViewModel`.
 
@@ -67,7 +75,7 @@ Do not put window-drag handlers over the player controls, `PathView`, or the scr
 CenterHub drag handler is a separate null-target handler that only commits a horizontal page
 change after the gesture threshold; ordinary clicks remain available to child controls.
 
-## 5. Cyber Safety Mock Lab
+## 6. Cyber Safety Mock Lab
 
 The Car-only `SafetyScenarioOverlay` is an anchored sibling above `CenterHub` in the existing
 center panel; it is not a third CenterHub page and does not change the root vehicle state or its
@@ -85,7 +93,7 @@ or a claim of vehicle control. Severity reuses `Theme.accentCyan`, `Theme.parkin
 `Theme.warningRed`; only numeric `x`, opacity, and scale may animate. Do not add a CenterHub page,
 root state, local QML timeline, or local acknowledgement state.
 
-## 6. Animation Rules
+## 7. Animation Rules
 
 Animate numeric visual properties, not strings. For example:
 
@@ -114,14 +122,14 @@ Never apply `NumberAnimation` to `Text.text`. Keep formatting in C++ when it nee
 
 Vehicle morphing uses the dip transition: fade and scale both arches down, apply property swaps while invisible, then restore opacity and scale with an OutBack rise. Animate opacity and scale, not complex subtree width/height.
 
-## 7. MultiEffect Safety
+## 8. MultiEffect Safety
 
 > [!WARNING]
 > A `MultiEffect` source must not contain that effect. Never capture an ancestor such as `source: parent` when it creates recursive capture and frozen accumulated frames. Prefer a non-recursive sibling source.
 
 Hide a sibling source when it exists solely as an input to the effect, as with the music backdrop and some icon/text sources. A visible sibling is correct when the original must also render; gauge ticks are valid visible sources for their bloom effects.
 
-## 8. Zero JavaScript
+## 9. Zero JavaScript
 
 QML may use bindings, ternaries, declarative states, and a single direct call to a C++ invokable. Interaction state and calculations belong in C++. The music scrubber is the reference implementation: QML forwards pointer coordinates, while `MusicPlayerViewModel` owns drag state, clamping, normalization, and seek requests.
 

@@ -66,6 +66,7 @@ A scalable, highly interactive Qt 6 / QML PC application simulating a digital au
 | **C++ Audio Playback** | `QMediaPlayer` is managed entirely within `MusicPlayerViewModel`. Playback state and progress are exposed to QML via `Q_PROPERTY` to ensure Zero JS. |
 | **Rear Parking Assist** | `MockParkingSensorService` emits one bounded ultrasonic distance sample and reverse state to `ParkingAssistViewModel`; `CenterHubViewModel` keeps Music visible during clear/caution, auto-selects Parking Assist only for a live critical sample below 30 cm, and also accepts a C++-owned horizontal drag between the two tabs. The ViewModel owns hysteresis, live/stale/unavailable health, formatted distance, `proximityProgress` (`0.0..1.0`), and `proximitySegments` (`0..8`) so passive QML only renders the state. A critical live sample always overrides a manual request to hide the warning. Future STM32 input must provide the same high-level sample boundary; no camera, raw echo timing, or sensor parsing belongs in QML. |
 | **Independent Mock-only Cyber Safety Lab** | `MockSafetyScenarioService` drives a deterministic script through `SafetyScenarioViewModel` into a passive overlay. A C++ gate allows presentation only in Car mode while Parking Assist is not critical, and stops the lab when that condition is lost. The lab never mutates UART, telemetry, or CenterHub navigation; it continuously states `DEMO ONLY — NO REAL SENSOR / NO VEHICLE CONTROL`. |
+| **Cockpit Context Rail** | `CockpitContextViewModel` derives five compact labels from existing chrome, Safety, Parking, and serial connection status. `CockpitContextRail` is passive, non-interactive, token-only, boot-gated, and present in every vehicle mode. |
 | **One-ViewModel-per-Concern** | UI chrome state lives in dedicated small VMs (`ThemeViewModel`, `VehicleModeViewModel`, …) with their own context properties — independent lifecycles, focused TDD, never mixed into telemetry (`VehicleStatusViewModel`). |
 | **Centralized Theme Ternaries** | `Theme.qml` color tokens are ternaries on chrome VMs (`ThemeController.isNight`, …) with `Behavior { ColorAnimation }` declared INSIDE the singleton — the whole app cross-fades with zero per-component changes. |
 | **C++-Driven Boot Choreography** | Startup sequence (`bootStage`/`bootProgress`) is a `QSequentialAnimationGroup` timeline in `ThemeViewModel`; QML only binds ternaries (telltale self-test → gauge sweep → content fade-in). |
@@ -75,7 +76,7 @@ A scalable, highly interactive Qt 6 / QML PC application simulating a digital au
 ## 6. Project Layout (Do not deviate without reason)
 ```text
 src/viewmodels/   src/services/  (flat: SimulatorService, SerialService, SerialTelemetryParser, TelemetryMapper, MockScenarioEngine, MusicScanner, MockParkingSensorService, MockSafetyScenarioService)
-src/viewmodels/  (flat: VehicleStatusViewModel, MusicPlayerViewModel, ThemeViewModel, VehicleModeViewModel, DriveModeViewModel, TripComputerViewModel, ParkingAssistViewModel, CenterHubViewModel, SafetyScenarioViewModel)
+src/viewmodels/  (flat: VehicleStatusViewModel, MusicPlayerViewModel, ThemeViewModel, VehicleModeViewModel, DriveModeViewModel, TripComputerViewModel, ParkingAssistViewModel, CenterHubViewModel, SafetyScenarioViewModel, CockpitContextViewModel)
 qml/components/   qml/screens/   resources/   docs/   .agents/
 ```
 

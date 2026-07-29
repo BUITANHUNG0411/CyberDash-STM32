@@ -2,30 +2,32 @@
 
 > **AI Context**: Repository overview for the C++17/Qt 6.8 Neon Cyberpunk dashboard, its verified software interfaces, deterministic tests, and pending hardware field validation.
 
-A Qt Quick automotive dashboard with Car, Bike, and Scooter layouts, C++-owned state, a music player, one-sensor rear Parking Assist, and STM32F103C8T6 telemetry over UART. The application falls back to an in-process simulator whenever serial telemetry is unavailable.
+A Qt Quick automotive dashboard with Car, Bike, and Scooter layouts, C++-owned state, a music player, one-sensor rear Parking Assist, a mock-only Cyber Safety Lab, and STM32F103C8T6 telemetry over UART. The application falls back to an in-process simulator whenever serial telemetry is unavailable.
 
 ![Dashboard preview](resources/media/dashboard-preview.png)
 
 ## Features
 
-- Strict MVVM: eight C++ ViewModels are exposed to passive QML.
+- Strict MVVM: ten C++ ViewModels are exposed to passive QML.
 - Zero-JS policy: stateful interaction and domain logic live in C++.
 - Car, Bike, and Scooter layouts driven by declarative QML states.
 - Day/night themes and ECO/NORMAL/SPORT accent palettes.
 - Tick-lit double-arch gauges, glass panels, telltales, boot choreography, and dip transitions.
 - Car-mode CenterHub with a persistent Music player page.
 - Mock-first rear Parking Assist with one ultrasonic distance sample; Music stays visible for clear/caution, the panel auto-selects only for a live critical sample below 30 cm, and the two center tabs can be changed with a horizontal drag.
+- Car-only, mock-only Cyber Safety Lab with an explicit no-sensor/no-vehicle-control disclaimer.
+- Boot-gated Cockpit Context Rail showing vehicle mode, drive mode, theme, telemetry source, and Safety Lab availability in every vehicle layout.
 - C++ `QMediaPlayer`, C++-owned scrubber state, and worker-thread music scanning.
 - Qt Multimedia disables optional FFmpeg video hardware probing at startup and defers `QMediaPlayer` construction until playback, so a missing VDPAU/NVIDIA backend cannot prevent the audio dashboard from launching; this does not modify host drivers.
 - Implemented serial parser, telemetry mapper, watchdog, reconnect, and simulator fallback.
-- Four deterministic Qt Test/CTest targets.
+- Six deterministic Qt Test/CTest targets.
 
 > [!NOTE]
 > The serial software pipeline and no-hardware fallback transitions are automated and verified. Live STM32 firmware, USB-TTL wiring, unplug/replug behavior, and motor control still need field validation.
 
 ## Architecture
 
-`src/main.cpp` owns both services and all eight context ViewModels:
+`src/main.cpp` owns both services and all ten context ViewModels:
 
 | QML context | Responsibility |
 |---|---|
@@ -37,6 +39,8 @@ A Qt Quick automotive dashboard with Car, Bike, and Scooter layouts, C++-owned s
 | `TripComputer` | Odometer, trip, average speed, formatted displays |
 | `ParkingAssist` | One rear distance, reverse state, hysteresis-stabilized proximity/health state, and C++-formatted display |
 | `CenterHubController` | C++-owned Music/Parking Assist page selection |
+| `SafetyScenario` | Mock-only Safety Lab presentation and actions |
+| `CockpitContext` | Compact vehicle, drive, theme, telemetry-source, and Safety Lab labels |
 
 The transport contracts are deliberately different:
 
@@ -51,9 +55,21 @@ flowchart LR
     Gate --> Trip[TripComputerViewModel]
     ParkingSource[MockParkingSensorService] --> Parking[ParkingAssistViewModel]
     Parking --> Hub[CenterHubViewModel]
+    SafetySource[MockSafetyScenarioService] --> Safety[SafetyScenarioViewModel]
+    VehicleMode[VehicleModeViewModel] --> SafetyGate[main.cpp presentation gate]
+    Parking --> SafetyGate
+    SafetyGate --> Safety
+    VehicleMode --> Context[CockpitContextViewModel]
+    DriveMode[DriveModeViewModel] --> Context
+    Theme[ThemeViewModel] --> Context
+    Serial -->|connection status| Context
+    Parking --> Context
+    Safety --> Context
     Vehicle --> DashboardQML[Dashboard QML view]
     Hub --> DashboardQML
     Parking --> DashboardQML
+    Safety --> DashboardQML
+    Context --> DashboardQML
 ```
 
 `SimulatorService::telemetryUpdated(...)` supplies all dashboard fields. `SerialService::rawTelemetryUpdated(...)` supplies only parsed wire values. `TelemetryMapper::fromSerial(...)` derives dashboard fields outside the transport, and `main.cpp` updates the shared ViewModel surface. QML never selects a telemetry source.
@@ -74,6 +90,7 @@ CyberDash-STM32/
 │   ├── services/
 │   │   ├── MockScenarioEngine.{h,cpp}
 │   │   ├── MockParkingSensorService.{h,cpp}
+│   │   ├── MockSafetyScenarioService.{h,cpp}
 │   │   ├── MusicScanner.{h,cpp}
 │   │   ├── SerialService.{h,cpp}
 │   │   ├── SerialTelemetryParser.{h,cpp}
@@ -84,6 +101,8 @@ CyberDash-STM32/
 │       ├── MusicPlayerViewModel.{h,cpp}
 │       ├── ParkingAssistViewModel.{h,cpp}
 │       ├── CenterHubViewModel.{h,cpp}
+│       ├── CockpitContextViewModel.{h,cpp}
+│       ├── SafetyScenarioViewModel.{h,cpp}
 │       ├── ThemeViewModel.{h,cpp}
 │       ├── TripComputerViewModel.{h,cpp}
 │       ├── VehicleModeViewModel.{h,cpp}
@@ -93,6 +112,7 @@ CyberDash-STM32/
 │   ├── Theme.qml
 │   ├── components/
 │   │   ├── CenterHub.qml
+│   │   ├── CockpitContextRail.qml
 │   │   ├── EnergyBlocks.qml
 │   │   ├── GlassPanel.qml
 │   │   ├── GlowingText.qml
@@ -101,7 +121,8 @@ CyberDash-STM32/
 │   │   ├── NeonIconButton.qml
 │   │   ├── NeonTickGauge.qml
 │   │   ├── ParkingAssistView.qml
-│   │   └── RangeTripCard.qml
+│   │   ├── RangeTripCard.qml
+│   │   └── SafetyScenarioOverlay.qml
 │   └── screens/
 │       └── DashboardScreen.qml
 ├── resources/
@@ -114,6 +135,8 @@ CyberDash-STM32/
 │   ├── main.cpp
 │   ├── tst_music_playback.cpp
 │   ├── tst_parking_assist.cpp
+│   ├── tst_safety_scenario.cpp
+│   ├── tst_cockpit_context.cpp
 │   └── tst_serial_pipeline.cpp
 ├── docs/
 │   ├── DOCUMENTATION_STANDARDS.md
@@ -148,7 +171,7 @@ The host currently constructs `SerialService` for `/dev/ttyUSB0`. If the open fa
 
 ## Testing
 
-CTest registers exactly four targets:
+CTest registers exactly six targets:
 
 | Target | Actual responsibilities |
 |---|---|
@@ -156,6 +179,8 @@ CTest registers exactly four targets:
 | `tst_music_playback` | Playback state controls and C++ scrubber clamping/drag state; CTest supplies `QT_QPA_PLATFORM=offscreen` |
 | `tst_serial_pipeline` | Parser, checksum, buffering, mapper, and no-hardware connection transitions |
 | `tst_parking_assist` | Thresholds/hysteresis, sensor health, invalid/stale input, deterministic mock progression without automatic STOP, formatting, notifications, manual CenterHub swipe/page selection, and STOP-only handoff |
+| `tst_safety_scenario` | Mock Safety Lab timeline, presentation state, availability gate, acknowledgement/replay lifecycle, and notification behavior |
+| `tst_cockpit_context` | Compact context-label mappings and effective notification behavior |
 
 Run the deterministic baseline:
 
@@ -219,6 +244,8 @@ The current canonical reference is the preview at the top of this README. `qml/T
 - `DashboardScreen` supports Car, Bike, and Scooter states.
 - The Car CenterHub contains the persistent Music player page.
 - While reverse is active, `CenterHubController` keeps Music visible until a live distance is below 30 cm, then selects the passive Parking Assist panel; the user can also drag horizontally between Music and Distance Warning, while a critical live sample always keeps the warning selected. MusicPlayer remains alive and resumes afterward. The panel shows only a centered ultrasonic zone, distance, health, and OEM-style status text — never a fake camera image.
+- The Cyber Safety Lab is a Car-only mock overlay, never an ADAS or vehicle-control feature; it stops when Parking Assist becomes critical.
+- The non-interactive Cockpit Context Rail is boot-gated and remains visible across Car, Bike, and Scooter layouts without changing any source or Safety Lab state.
 - Vehicle changes use the fade/scale dip transition.
 - Every `MultiEffect` captures a sibling source; recursive `source: parent` is forbidden.
 
@@ -256,6 +283,8 @@ Historical detail is preserved in [tasks_board.md](docs/tasks_board.md).
 | 23 | Lazy multimedia backend startup | `QMediaPlayer` startup deferred until first playback request; offscreen smoke no longer reports VDPAU |
 | 24 | CenterHub pointer-handler compile fix | Removed invalid `DragHandler` anchors assignment |
 | 25 | Code review and section close | Parking STOP recovery regression fixed; review evidence and follow-up backlog recorded |
+| 26 | Cyber Safety Mock Lab | Car-only mock overlay, deterministic lifecycle, and availability gate complete |
+| 27 | Cockpit Context Rail | Passive five-pill vehicle, drive, theme, source, and Safety Lab context complete |
 
 Phase 17 repaired the parser/mapper boundary, made serial fallback transitions deterministic, moved scrubber and volume normalization into C++, removed the remaining QML `Math` helpers, isolated test-only music persistence, hardened finite numeric inputs, synchronized active documentation, and completed the pre-feature build/test/lint/smoke verification matrix. Physical STM32/USB-TTL field validation remains pending.
 

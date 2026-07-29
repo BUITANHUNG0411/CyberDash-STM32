@@ -193,3 +193,9 @@
 - [x] Complete focused TDD and lifecycle regressions for the service and ViewModel, including deterministic clock boundaries, notifier suppression, acknowledgement, terminal completion, replay, service destruction, and availability-gate hiding.
 - [x] Run C++ and QML deep reviews; no high-confidence actionable issue remained. `qmllint` was unavailable on this host and was not recorded as a passing check.
 - [x] Run the fresh final matrix: configure and full build passed; CTest passed 5/5; the Zero-JS scan found only existing comment-only matches; project QML lint passed; the offscreen smoke ended with expected timeout `124` and only a host PulseAudio warning, with no QML/runtime error; and `git diff --check` passed.
+
+## Phase 27: Cockpit Context Rail
+- [x] Add a focused `CockpitContextViewModel` and `tst_cockpit_context` coverage for the effective compact context labels and notification contract.
+- [x] Wire vehicle mode, drive mode, theme, Parking Assist, Safety Lab, and serial connection status without changing transport, mock, or Safety Lab contracts.
+- [x] Render a passive, boot-gated five-pill context rail with token-only styling and collision-safe placement in Car, Bike, and Scooter modes.
+- [x] Complete fresh configure/build/CTest verification with all six registered targets passing.

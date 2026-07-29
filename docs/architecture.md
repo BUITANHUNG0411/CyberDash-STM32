@@ -1,10 +1,10 @@
 # 🏗️ Architecture: MVVM, Services, and Zero JavaScript
 
-> **AI Context**: Active specification of ownership and data flow between the C++17 services, nine context ViewModels, and passive QML view.
+> **AI Context**: Active specification of ownership and data flow between the C++17 services, ten context ViewModels, and passive QML view.
 
 ## 1. Ownership and Lifetime
 
-`main.cpp` owns all application services and the nine ViewModels exposed through the `QQmlContext`. They remain alive for the duration of `app.exec()`.
+`main.cpp` owns all application services and the ten ViewModels exposed through the `QQmlContext`. They remain alive for the duration of `app.exec()`.
 
 | Context property | C++ owner/type | Concern |
 |---|---|---|
@@ -17,6 +17,7 @@
 | `ParkingAssist` | `ParkingAssistViewModel` | One rear ultrasonic distance, reverse state, hysteresis-stabilized proximity level, live/stale/unavailable health, formatted display, and presentation-safe progress |
 | `CenterHubController` | `CenterHubViewModel` | C++-owned Music/Parking Assist page selection |
 | `SafetyScenario` | `SafetyScenarioViewModel` | Mock-only forward-hazard lab presentation and user actions |
+| `CockpitContext` | `CockpitContextViewModel` | Glanceable vehicle, drive, theme, telemetry-source, and Safety Lab context |
 
 `SimulatorService`, `SerialService`, `MockSafetyScenarioService`, and `QElapsedTimer` are also stack-owned in `main.cpp`. QObject parent ownership covers each service's internal timers and serial port.
 
@@ -51,11 +52,18 @@ flowchart LR
     Parking --> SafetyGate
     SafetyGate -->|setPresentationAllowed| Safety[SafetyScenarioViewModel]
     SafetySource[MockSafetyScenarioService<br/>deterministic mock timeline] --> Safety
+    VehicleMode --> Cockpit[CockpitContextViewModel]
+    DriveMode[DriveModeViewModel] --> Cockpit
+    Theme[ThemeViewModel] --> Cockpit
+    Serial -->|connection status| Cockpit
+    Parking --> Cockpit
+    Safety --> Cockpit
     Status --> DashboardQML[Passive dashboard QML]
     Trip --> DashboardQML
     Hub --> DashboardQML
     Parking --> DashboardQML
     Safety --> DashboardQML
+    Cockpit --> DashboardQML
 ```
 
 The `isHardwareConnected` gate ensures simulator updates are accepted only while serial is disconnected and serial updates only after a valid frame establishes the connection. A source switch restarts the trip clock so disconnected time is not integrated as distance.
@@ -88,6 +96,12 @@ passive sibling above `CenterHub`, not a page or vehicle-layout state, so the la
 real sensing nor controls the vehicle. Its header reserves the C++-supplied title and instruction
 on the left and the direct `EXIT` invokable action on the right, avoiding an overlapping
 presentation command.
+
+`CockpitContextViewModel` is a GUI-thread-only presentation adapter. It derives five compact
+effective labels from existing vehicle mode, drive mode, theme, serial connection, Parking Assist,
+and Safety Lab state; it never writes telemetry, UART state, CenterHub selection, Parking Assist,
+or Safety Lab state. `CockpitContextRail.qml` only renders those labels and is not an interaction
+surface.
 
 ## 3. Parser and Mapper Boundaries
 

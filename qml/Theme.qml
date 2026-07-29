@@ -102,4 +102,7 @@ QtObject {
     readonly property real gaugeInsetRight: 880
     // Negative margins preserve the original bezel/CenterHub overlap depth.
     readonly property real centerPanelGap: -20
+    // Keeps the top context rail clear of the CenterHub and Scooter card
+    // without moving either gauge centre or changing the overlap gap.
+    readonly property real contextRailClearance: spaceXl
 }

@@ -99,6 +99,14 @@ Item {
         }
     }
 
+    CockpitContextRail {
+        anchors {
+            top: topBar.bottom
+            topMargin: Theme.spaceLg
+            horizontalCenter: parent.horizontalCenter
+        }
+    }
+
     // Main 3-Panel Layout
     Item {
         anchors.fill: parent
@@ -156,7 +164,8 @@ Item {
         Item {
             id: centerPanel
             anchors.verticalCenter: parent.verticalCenter
-            anchors.verticalCenterOffset: -Theme.panelLift
+            // The rail reserves top chrome; gauge centres retain their baseline positions.
+            anchors.verticalCenterOffset: -Theme.panelLift + Theme.contextRailClearance
             height: 450
             anchors.left: leftPanel.right
             anchors.right: rightPanel.left

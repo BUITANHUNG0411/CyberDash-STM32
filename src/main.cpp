@@ -11,6 +11,7 @@
 #include "viewmodels/TripComputerViewModel.h"
 #include "viewmodels/ParkingAssistViewModel.h"
 #include "viewmodels/CenterHubViewModel.h"
+#include "viewmodels/CockpitContextViewModel.h"
 #include "viewmodels/SafetyScenarioViewModel.h"
 #include <QElapsedTimer>
 #include <QGuiApplication>
@@ -43,6 +44,10 @@ int main(int argc, char *argv[]) {
   MockSafetyScenarioService safetyScenarioService;
   SafetyScenarioViewModel safetyScenarioVm(&safetyScenarioService);
   CenterHubViewModel centerHubVm(&parkingAssistVm);
+  ThemeViewModel themeVm;
+  DriveModeViewModel driveModeVm;
+  CockpitContextViewModel cockpitContextVm(&vehicleModeVm, &driveModeVm, &themeVm,
+                                           &parkingAssistVm, &safetyScenarioVm);
   QElapsedTimer tripClock;
   tripClock.start();
 
@@ -54,6 +59,7 @@ int main(int argc, char *argv[]) {
   // Handle hardware connection status
   QObject::connect(&serialService, &SerialService::connectionStatusChanged, [&](bool connected) {
       isHardwareConnected = connected;
+      cockpitContextVm.setHardwareConnected(connected);
       tripClock.restart(); // drop the dead-time gap when the telemetry source switches
       if (connected) {
           qDebug() << "Hardware connected! Using SerialService.";
@@ -105,8 +111,6 @@ int main(int argc, char *argv[]) {
 
   // Expose ViewModels to QML
   MusicPlayerViewModel musicVm;
-  ThemeViewModel themeVm;
-  DriveModeViewModel driveModeVm;
   engine.rootContext()->setContextProperty("VehicleStatus", &vm);
   engine.rootContext()->setContextProperty("MusicViewModel", &musicVm);
   engine.rootContext()->setContextProperty("ThemeController", &themeVm);
@@ -116,6 +120,7 @@ int main(int argc, char *argv[]) {
   engine.rootContext()->setContextProperty("ParkingAssist", &parkingAssistVm);
   engine.rootContext()->setContextProperty("CenterHubController", &centerHubVm);
   engine.rootContext()->setContextProperty("SafetyScenario", &safetyScenarioVm);
+  engine.rootContext()->setContextProperty("CockpitContext", &cockpitContextVm);
 
   const auto updateSafetyPresentation = [&vehicleModeVm, &parkingAssistVm, &safetyScenarioVm]() {
       safetyScenarioVm.setPresentationAllowed(

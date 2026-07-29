@@ -54,6 +54,7 @@ qt_add_qml_module(${PROJECT_NAME}
         qml/components/NeonIconButton.qml
         qml/components/RangeTripCard.qml
         qml/components/CenterHub.qml
+        qml/components/CockpitContextRail.qml
         qml/components/ParkingAssistView.qml
         qml/components/SafetyScenarioOverlay.qml
         qml/screens/DashboardScreen.qml
@@ -94,6 +95,8 @@ qt_add_qml_module(${PROJECT_NAME}
         src/viewmodels/ParkingAssistViewModel.cpp
         src/viewmodels/CenterHubViewModel.h
         src/viewmodels/CenterHubViewModel.cpp
+        src/viewmodels/CockpitContextViewModel.h
+        src/viewmodels/CockpitContextViewModel.cpp
         src/services/MockSafetyScenarioService.h
         src/viewmodels/SafetyScenarioViewModel.h
 )

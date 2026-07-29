@@ -85,3 +85,18 @@ qt_add_executable(tst_safety_scenario
 target_include_directories(tst_safety_scenario PRIVATE ../src)
 target_link_libraries(tst_safety_scenario PRIVATE Qt6::Core Qt6::Test)
 add_test(NAME tst_safety_scenario COMMAND tst_safety_scenario)
+
+qt_add_executable(tst_cockpit_context
+    tst_cockpit_context.cpp
+    ../src/services/MockSafetyScenarioService.cpp
+    ../src/viewmodels/CockpitContextViewModel.cpp
+    ../src/viewmodels/DriveModeViewModel.cpp
+    ../src/viewmodels/ParkingAssistViewModel.cpp
+    ../src/viewmodels/SafetyScenarioViewModel.cpp
+    ../src/viewmodels/ThemeViewModel.cpp
+    ../src/viewmodels/VehicleModeViewModel.cpp
+)
+
+target_include_directories(tst_cockpit_context PRIVATE ../src)
+target_link_libraries(tst_cockpit_context PRIVATE Qt6::Core Qt6::Test)
+add_test(NAME tst_cockpit_context COMMAND tst_cockpit_context)

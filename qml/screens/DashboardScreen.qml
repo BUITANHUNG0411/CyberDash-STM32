@@ -86,6 +86,17 @@ Item {
             defaultColor: Theme.textSecondary
             onClicked: DriveMode.cycleDriveMode()
         }
+
+        NeonIconButton {
+            enabled: SafetyScenario.canStart && !ThemeController.isBooting
+            opacity: enabled ? 1.0 : 0.4
+            source: "qrc:/qt/qml/com/showcase/resources/icons/safety-lab.svg"
+            sourceSize: Qt.size(28, 28)
+            defaultColor: Theme.textSecondary
+            Layout.preferredWidth: 28
+            Layout.preferredHeight: 28
+            onClicked: SafetyScenario.startDemo()
+        }
     }
 
     // Main 3-Panel Layout
@@ -140,8 +151,8 @@ Item {
         }
 
         // Center Panel (Media/Nav)
-        // centerPanel stays behind the gauge faces, with a tokenized clear gap
-        // on both sides to avoid the central surface touching their tick rings.
+        // centerPanel stays behind the gauge faces, with the original overlap
+        // margin preserving the established Double Arch depth layering.
         Item {
             id: centerPanel
             anchors.verticalCenter: parent.verticalCenter
@@ -159,8 +170,19 @@ Item {
                 id: centerHub
                 anchors.fill: parent
                 anchors.margins: 10
-                opacity: 1
+                opacity: SafetyScenario.presentationVisible ? 0.0 : 1.0
                 visible: opacity > 0
+
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: Theme.durationNormal
+                    }
+                }
+            }
+
+            SafetyScenarioOverlay {
+                anchors.fill: parent
+                anchors.margins: 10
             }
 
             // Card Range/Trip cho Scooter — Loader tự unload sau khi fade xong (Zero-JS)

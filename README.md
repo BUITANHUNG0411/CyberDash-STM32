@@ -14,8 +14,9 @@ A Qt Quick automotive dashboard with Car, Bike, and Scooter layouts, C++-owned s
 - Day/night themes and ECO/NORMAL/SPORT accent palettes.
 - Tick-lit double-arch gauges, glass panels, telltales, boot choreography, and dip transitions.
 - Car-mode CenterHub with a persistent Music player page.
-- Mock-first rear Parking Assist with one ultrasonic distance sample; it automatically replaces Music while reverse is active and restores Music afterward.
+- Mock-first rear Parking Assist with one ultrasonic distance sample; Music stays visible for clear/caution, the panel auto-selects only for a live critical sample below 30 cm, and the two center tabs can be changed with a horizontal drag.
 - C++ `QMediaPlayer`, C++-owned scrubber state, and worker-thread music scanning.
+- Qt Multimedia disables optional FFmpeg video hardware probing at startup and defers `QMediaPlayer` construction until playback, so a missing VDPAU/NVIDIA backend cannot prevent the audio dashboard from launching; this does not modify host drivers.
 - Implemented serial parser, telemetry mapper, watchdog, reconnect, and simulator fallback.
 - Four deterministic Qt Test/CTest targets.
 
@@ -34,7 +35,7 @@ A Qt Quick automotive dashboard with Car, Bike, and Scooter layouts, C++-owned s
 | `VehicleMode` | Car/Bike/Scooter state |
 | `DriveMode` | NORMAL/SPORT/ECO state |
 | `TripComputer` | Odometer, trip, average speed, formatted displays |
-| `ParkingAssist` | One rear distance, reverse state, proximity level, and formatted display |
+| `ParkingAssist` | One rear distance, reverse state, hysteresis-stabilized proximity/health state, and C++-formatted display |
 | `CenterHubController` | C++-owned Music/Parking Assist page selection |
 
 The transport contracts are deliberately different:
@@ -154,7 +155,7 @@ CTest registers exactly four targets:
 | `tst_viewmodels` | Vehicle telemetry properties; theme/boot; vehicle and drive modes; trip computer |
 | `tst_music_playback` | Playback state controls and C++ scrubber clamping/drag state; CTest supplies `QT_QPA_PLATFORM=offscreen` |
 | `tst_serial_pipeline` | Parser, checksum, buffering, mapper, and no-hardware connection transitions |
-| `tst_parking_assist` | One-sensor thresholds, invalid/stale input, deterministic mock progression, notifications, and CenterHub page handoff |
+| `tst_parking_assist` | Thresholds/hysteresis, sensor health, invalid/stale input, deterministic mock progression without automatic STOP, formatting, notifications, manual CenterHub swipe/page selection, and STOP-only handoff |
 
 Run the deterministic baseline:
 
@@ -217,7 +218,7 @@ The current canonical reference is the preview at the top of this README. `qml/T
 - ECO is green, NORMAL is cyan/teal, and SPORT is orange; warning red stays distinct.
 - `DashboardScreen` supports Car, Bike, and Scooter states.
 - The Car CenterHub contains the persistent Music player page.
-- While reverse is active, `CenterHubController` selects the passive Parking Assist panel; MusicPlayer remains alive and resumes when reverse ends. The panel shows only a centered ultrasonic zone, distance, and OEM-style status text — never a fake camera image.
+- While reverse is active, `CenterHubController` keeps Music visible until a live distance is below 30 cm, then selects the passive Parking Assist panel; the user can also drag horizontally between Music and Distance Warning, while a critical live sample always keeps the warning selected. MusicPlayer remains alive and resumes afterward. The panel shows only a centered ultrasonic zone, distance, health, and OEM-style status text — never a fake camera image.
 - Vehicle changes use the fade/scale dip transition.
 - Every `MultiEffect` captures a sibling source; recursive `source: parent` is forbidden.
 
@@ -248,6 +249,13 @@ Historical detail is preserved in [tasks_board.md](docs/tasks_board.md).
 | 16 | CenterHub introduction | Complete |
 | 17 | Pre-Feature Baseline Repair | Software implementation and full verification complete; physical field validation pending |
 | 18 | Rear Parking Assist | Mock implementation and verification complete; STM32 ultrasonic adapter pending |
+| 19 | Parking Assist UI + bezel clearance | OEM panel complete; compact baseline geometry restored after visual review |
+| 20 | STOP-gated Parking Assist polish | Music retained for clear/caution; live critical auto-page, health states, hysteresis, and mock override seam complete |
+| 21 | CenterHub manual swipe | Horizontal Music/Distance Warning drag restored with critical safety override and C++ gesture state |
+| 22 | Qt Creator VDPAU runtime investigation | Process-local diagnostics and FFmpeg probing mitigation documented; host GPU configuration unchanged |
+| 23 | Lazy multimedia backend startup | `QMediaPlayer` startup deferred until first playback request; offscreen smoke no longer reports VDPAU |
+| 24 | CenterHub pointer-handler compile fix | Removed invalid `DragHandler` anchors assignment |
+| 25 | Code review and section close | Parking STOP recovery regression fixed; review evidence and follow-up backlog recorded |
 
 Phase 17 repaired the parser/mapper boundary, made serial fallback transitions deterministic, moved scrubber and volume normalization into C++, removed the remaining QML `Math` helpers, isolated test-only music persistence, hardened finite numeric inputs, synchronized active documentation, and completed the pre-feature build/test/lint/smoke verification matrix. Physical STM32/USB-TTL field validation remains pending.
 

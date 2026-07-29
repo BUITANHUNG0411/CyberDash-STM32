@@ -140,6 +140,56 @@
 ## Phase 19: Parking Assist UI + Bezel Clearance
 - [x] Expose C++-derived `proximityProgress` (`0.0..1.0`) and `proximitySegments` (`0..8`) with focused notification coverage (`9bc7b78`).
 - [x] Replace the static parking bars with a passive OEM hierarchy: sensor health, large distance, abstract centre obstacle/buffer zone, segmented track, and STOP-only pulse (`06e6295`).
-- [x] Widen the Double Arch through centralized Theme geometry and use a positive CenterHub clearance gap instead of overlap margins (`898855f`).
+- [x] Record the widened Double Arch/positive CenterHub-gap experiment (`898855f`); it is superseded by the compact baseline restoration below.
+- [x] Restore the original compact bezel, cluster positions, and CenterHub overlap margins after visual review.
 - [x] Synchronize active architecture, UI/UX, routing, and journal documentation with the committed implementation.
 - [x] Run and record the final cross-feature verification matrix: configure/build pass, CTest 4/4, Zero-JS comment-only matches, repository QML lint pass, module `qmllint` pass, and offscreen smoke reached the expected timeout with no QML/runtime errors.
+
+## Phase 20: STOP-Gated Parking Assist Polish
+- [x] Keep Music visible for clear/caution and auto-select Parking Assist only for live samples below `30` cm.
+- [x] Remove the automatic `<=30` cm STOP sample from `MockParkingSensorService`; retain the high-level sample seam for manual/mock overrides and future STM32 input.
+- [x] Add C++-owned live/stale/unavailable health, hysteresis, critical-proximity state, and animated-distance formatting.
+- [x] Bind the passive QML view to the health state and numeric animation without JavaScript or mock-specific logic.
+- [x] Verify the full configure/build/CTest/Zero-JS/QML-lint/module-qmllint/offscreen matrix and synchronize active documentation.
+
+## Phase 21: CenterHub Manual Swipe
+- [x] Add C++-owned page selection and an 80 px horizontal swipe threshold between Music and Distance Warning.
+- [x] Add a null-target QML `DragHandler` that forwards pointer lifecycle/translation without JavaScript or window movement.
+- [x] Keep the warning page manually inspectable for clear/caution/stale/unavailable states while preserving live `<30` cm automatic selection.
+- [x] Enforce critical safety precedence and invalid-page rejection in `CenterHubViewModel` tests.
+- [x] Run the complete configure/build/CTest/Zero-JS/QML-lint/module-qmllint/offscreen matrix and record fresh evidence before commit.
+
+## Phase 22: Qt Creator VDPAU Runtime Investigation
+- [x] Capture the Qt Creator-only startup failure and separate the optional VDPAU warning from the successful compiler/build result.
+- [x] Keep the mitigation process-local in `main.cpp`; do not change host GPU drivers, environment-wide settings, or hardware.
+- [x] Record the research evidence and the remaining Qt Creator rerun step in the runtime report.
+
+## Phase 23: Lazy Multimedia Backend Startup
+- [x] Defer `QMediaPlayer` construction until the first playback request while retaining the existing C++ audio contract.
+- [x] Preserve headless test behavior and the MusicPlayer QML object graph.
+- [x] Verify that offscreen startup no longer emits the VDPAU message; host PulseAudio warnings remain environmental.
+
+## Phase 24: CenterHub Pointer Handler Compile Fix
+- [x] Remove `anchors.fill` from the non-visual `DragHandler` that caused `Invalid property name "anchors"`.
+- [x] Keep the C++ gesture forwarding contract and window drag handler unchanged.
+- [x] Rebuild the Desktop Debug target and record the fix independently from the multimedia investigation.
+
+## Phase 25: Code Review and Section Close
+- [x] Remove the invalid `anchors` assignment from `CenterHub.qml`'s non-visual `DragHandler`.
+- [x] Add and pass a regression for critical STOP → reverse-off page recovery in `tst_parking_assist`.
+- [x] Run the C++ and QML review workflows; confirm no high-confidence actionable issue in the reviewed change set and no executable JavaScript in QML.
+- [x] Re-run configure, full build, CTest 4/4, Desktop Debug build, module `qmllint`, offscreen smoke, and `git diff --check`.
+- [x] Record the section-close evidence and keep the mock-data/hardware boundary explicit in the journal.
+- [ ] Follow-up: make repeated `SerialService::startService()` idempotent before reopening an active port.
+- [ ] Follow-up: validate positive `maxDeltaMs`, `staleIntervalMs`, and animation durations at C++ API boundaries.
+- [ ] Follow-up: add bounded ID3/APIC frame-size and remaining-file checks in `MusicScanner`.
+
+## Phase 26: Cyber Safety Mock Lab
+- [x] Add `MockSafetyScenarioService` with a deterministic 72-second Normal → Advisory → Critical → Recovery → Complete mock script, bounded GUI-thread timer, direct `advance(qint64)` test seam, acknowledgement window, terminal lifecycle, and replay/reset behavior.
+- [x] Add `SafetyScenarioViewModel` with effective-value notifications, mock-only copy/disclaimer, presentation-safe risk/threat/segment properties, acknowledgement/replay actions, and fail-safe availability handling.
+- [x] Wire the stack-owned service and ViewModel as `SafetyScenario`; the one C++ gate allows it only in Car mode without critical parking proximity and never mutates UART, telemetry, or CenterHub state.
+- [x] Add a passive Car overlay and top-bar launch control: the overlay remains a sibling above CenterHub, uses the abstract forward gate and eight declarative segments, and keeps the mock-only disclaimer visible without QML logic.
+- [x] Make the lab an unambiguous center-panel takeover: fade the CenterHub render without destroying it, use concise C++-owned English copy (`SAFETY LAB` and `FORWARD HAZARD SIMULATION`), and reserve a non-overlapping `EXIT` action in the header.
+- [x] Complete focused TDD and lifecycle regressions for the service and ViewModel, including deterministic clock boundaries, notifier suppression, acknowledgement, terminal completion, replay, service destruction, and availability-gate hiding.
+- [x] Run C++ and QML deep reviews; no high-confidence actionable issue remained. `qmllint` was unavailable on this host and was not recorded as a passing check.
+- [x] Run the fresh final matrix: configure and full build passed; CTest passed 5/5; the Zero-JS scan found only existing comment-only matches; project QML lint passed; the offscreen smoke ended with expected timeout `124` and only a host PulseAudio warning, with no QML/runtime error; and `git diff --check` passed.

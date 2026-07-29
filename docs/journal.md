@@ -7,10 +7,46 @@
 
 ## 2026-07-29
 
+### Phase 25: Code Review and Section Close
+- **CenterHub compile fix:** Removed the invalid `anchors.fill: parent` assignment from the non-visual `DragHandler` in `CenterHub.qml`. The handler remains `target: null` and forwards only pointer state/translation to the C++ ViewModel; Qt documents `DragHandler` as a pointer handler with parent-scoped event handling, not an `Item` with anchor geometry ([Qt DragHandler documentation](https://doc.qt.io/qt-6/qml-qtquick-draghandler.html)).
+- **Parking safety regression:** Added a red test for the critical `<30` cm → reverse-off transition. The failure showed that `CenterHubViewModel` could remain on the warning page after STOP was cleared. `ParkingAssistViewModel` now emits the critical-proximity change using the pre-transition state, and `tst_parking_assist` passes with the page returning to Music.
+- **Review result:** The C++ review found no ownership/threading regression in the reviewed change set. The QML review found no high-confidence actionable issue, no executable JavaScript, and no blocking `qmllint` diagnostic. Existing style/performance advisories remain documented as non-blocking debt.
+- **Verification evidence:** `cmake -S . -B build`, `cmake --build build -j2`, and CTest all pass; all four registered targets (`tst_viewmodels`, `tst_music_playback`, `tst_serial_pipeline`, `tst_parking_assist`) are green. Desktop Debug also builds, module `qmllint` exits `0`, `git diff --check` is clean, and the offscreen smoke reaches the expected timeout with only the host PulseAudio permission warning. The repository QML review script reports advisory findings (exit `1`), not JavaScript or type errors.
+- **Follow-up backlog (not part of this section):** validate repeated `SerialService::startService()` calls; reject non-positive `TripComputerViewModel::maxDeltaMs`; validate `ParkingAssistViewModel::staleIntervalMs` before timer conversion; reject invalid `ThemeViewModel` animation durations; and bound ID3/APIC frame sizes in `MusicScanner` before allocation/read.
+- **Section status:** This feature section is closed at the reviewed mock-data boundary. Hardware STM32 field validation and the follow-up backlog remain separate tasks; no commit or push is performed by this review-only closeout.
+
+### Phase 24: CenterHub Pointer Handler Compile Fix
+- **Root cause:** `DragHandler` is a non-visual pointer handler; it has a `parent` scope but no `anchors` property. `CenterHub.qml:32` therefore failed with `Invalid property name "anchors"`.
+- **Fix:** Removed only `anchors.fill: parent`; a handler declared inside the CenterHub `Item` already receives events within that parent scope. The C++ swipe contract and `target: null` remain unchanged.
+- **Verification:** Desktop Debug rebuild, full Release build, CTest `4/4`, QML lint, and offscreen smoke passed. The VDPAU process-local mitigation remains recorded in Phase 22/23 and is independent of this QML syntax error.
+
+### Phase 22: Qt Creator VDPAU Runtime Investigation
+- **Symptom:** Qt Creator launched `build/Desktop_Debug/QtStmAutomotiveSimulator`, printed a missing `libvdpau_nvidia.so` warning, and stopped with exit code `255`; terminal compilation still returned `0`.
+- **Root-cause hypothesis:** The VDPAU message is an optional Qt/FFmpeg backend warning. Qt's `QT_FATAL_WARNINGS` behavior can promote a warning to process termination in debug environments, while the project itself contains no NVIDIA/VDPAU references.
+- **Mitigation:** `main.cpp` now unsets `QT_FATAL_WARNINGS` for this process, disables optional FFmpeg decode hardware probing unless explicitly configured, and logs QML warnings/root-creation failures. No host driver or GPU setting is changed.
+- **Research report:** See `docs/research_vdpau_qtcreator_runtime.md` for local evidence, official Qt references, and the verification matrix.
+
+### Phase 23: Lazy Multimedia Backend Startup
+- **Root-cause isolation:** The Qt 6.11 debug binary still exited with `255` after process-local FFmpeg settings because `QMediaPlayer` was constructed before QML root creation. A temporary no-player build confirmed that the early Multimedia path was coupled to startup; retaining `QAudioOutput` was required for the existing QML object graph to load.
+- **Runtime boundary:** `MusicPlayerViewModel` now creates `QAudioOutput` during normal construction and creates `QMediaPlayer` only from `play()`/track selection. The first playback request still uses the same C++ signal wiring, source loading, resume behavior, and audio output.
+- **Verification:** Desktop Debug configure/build and `tst_music_playback` pass; offscreen smoke reaches the expected timeout with only the known PulseAudio permission warning and no VDPAU message. Qt Creator must be rerun after this binary is rebuilt.
+
+### Phase 20: STOP-Gated Parking Assist Polish
+- **CenterHub policy:** `CenterHubViewModel` keeps Music visible for clear/caution and switches the existing `StackLayout` to Parking Assist only when a live high-level sample is below `30` cm. At that phase no manual swipe was present; the follow-up Phase 21 restores it without changing the safety contract.
+- **Mock boundary:** The deterministic mock no longer emits an automatic `<=30` cm sample, so STOP is available only through the existing `distanceCm + reverseActive` seam for manual/mock overrides and future hardware input.
+- **ViewModel polish:** `ParkingAssistViewModel` owns hysteresis release points, `LIVE`/`STALE`/`UNAVAILABLE` health, `criticalProximity`, and C++ distance formatting. QML only animates a numeric backing property and renders the returned string.
+- **Verification:** Focused `tst_parking_assist` passes 13/13; full CTest passes 4/4; configure/build, Zero-JS, repository QML lint, module `qmllint`, and offscreen smoke pass with only the known PulseAudio permission warning.
+
+### Phase 21: CenterHub Manual Swipe
+- **Gesture contract:** `CenterHub.qml` retains a stable `StackLayout` and adds a null-target `DragHandler`. QML forwards only `active` and `translation.x`; `CenterHubViewModel` commits an 80 px left drag to Distance Warning and a right drag to Music.
+- **Safety precedence:** Manual page requests are validated in C++. Invalid pages are rejected, and a live critical `<30` cm sample prevents a manual request from hiding the warning. Clear/caution/stale/unavailable data can still be inspected by manually opening the warning tab.
+- **View lifetime:** `MusicPlayer` and `ParkingAssistView` remain static siblings, so playback state is not destroyed while changing tabs. The window drag handler remains confined to the top bezel strip.
+- **Verification:** The focused parking target passes 15/15 after adding manual swipe and safety-override coverage; configure/build and CTest pass 4/4, Zero-JS has comment-only matches, repository QML lint and module `qmllint` pass, offscreen smoke reaches the expected timeout with only the known PulseAudio permission warning, and `git diff --check` passes.
+
 ### Phase 19: Parking Assist UI + Bezel Clearance
 - **Presentation contract:** `ParkingAssistViewModel` remains the sole owner of ultrasonic meaning. In addition to distance/status/level, it exposes `proximityProgress` (`0.0..1.0`, far or unavailable to stop) and `proximitySegments` (`0..8`, unavailable to closest). QML only binds these values; it neither thresholds nor normalizes distance.
-- **OEM hierarchy:** The reverse panel is a rectangular dark-glass sensor display with health header, large distance, status, centred abstract obstacle block, bumper line, and eight-segment track. The block deliberately has no lateral claim because one rear ultrasonic sample cannot locate an obstacle left or right. STOP alone pulses; text remains unanimated.
-- **Bezel clearance:** The double-arch endpoints and gauge centres are widened through `Theme.qml` as one geometry contract. `DashboardScreen.centerPanel` now keeps a positive gap on both sides rather than overlapping illuminated gauge rings with negative margins.
+- **OEM hierarchy:** The reverse panel is a rectangular dark-glass sensor display with a compact two-row title/health header, large distance, status, centred abstract obstacle block, bumper line, and eight-segment track. The stacked header prevents title and health text from colliding on the narrow CenterHub panel. The block deliberately has no lateral claim because one rear ultrasonic sample cannot locate an obstacle left or right. STOP alone pulses; text remains unanimated.
+- **Bezel follow-up:** The widened-bezel experiment was intentionally reverted after visual review. `Theme.qml` now restores the original `270/890` arch endpoints, `250` horizontal radius, `260/880` gauge centres, and `-20` CenterHub margins; Parking Assist remains unchanged.
 - **Mock-only boundary:** The new presentation properties derive exclusively from the existing high-level `distanceCm + reverseActive` sample. They do not add a UART field, camera, raw echo-time measurement, or object-position model. A future STM32 adapter must retain that boundary or introduce a separately specified sensor contract.
 - **Verification evidence:** Configure and full build passed; all four registered CTest targets passed; the repository Zero-JS scan found only comment text; project QML lint and module `qmllint` passed; offscreen smoke ran until the expected timeout with only the known PulseAudio permission warning.
 

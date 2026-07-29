@@ -44,7 +44,7 @@
 - Consumes `ParkingAssist.distanceText`, `statusText`, `sensorAvailable`, `proximityLevel`, `proximityProgress`, and `proximitySegments`.
 - Keeps `CenterHub.qml` and all C++ transport code unchanged.
 
-- [x] Replace the three static bars with a header (`REAR PARK ASSIST`, `ULTRASONIC ONLINE`), large distance readout, segmented proximity track, and a small obstacle block that moves toward the bumper using `proximityProgress`.
+- [x] Replace the three static bars with a compact two-row header (`REAR PARK ASSIST`, `ULTRASONIC ONLINE`), large distance readout, segmented proximity track, and a small obstacle block that moves toward the bumper using `proximityProgress`.
 - [x] Bind all colors to `Theme` tokens; pulse only the STOP state and animate numeric/position properties, never text.
 - [x] Keep the component passive and avoid QML JavaScript or imperative state.
 - [x] Run the repository Zero-JS scan and `qt_qml_lint.py all qml` after the component change.
@@ -85,5 +85,12 @@
 - [x] Run `ctest --test-dir build --output-on-failure`.
 - [x] Run the exact Zero-JS scan and `python3 .agents/skills/qt-qml-review/references/lint-scripts/qt_qml_lint.py all qml`.
 - [x] Run `QT_QPA_PLATFORM=offscreen timeout 8s ./build/QtStmAutomotiveSimulator`; treat exit 124 as expected only if there are no QML/runtime errors.
-- [ ] Run `git diff --check`, inspect the diff, commit with a focused message, and try `git push`.
-- [ ] If push is rejected because `main` has no permission/upstream, report the exact manual command and commit hash.
+- [x] Run `git diff --check`, inspect the diff, commit with a focused message (`17f4b55`), and push `main` to `origin` successfully.
+- [x] Push succeeded; no manual push fallback was required.
+
+### Post-plan visual correction
+
+The widened bezel and positive CenterHub clearance from Task 3 were intentionally reverted after
+visual review. The active baseline restores the original compact geometry: arch endpoints `270/890`,
+horizontal radius `250`, gauge centres `260/880`, and CenterHub margins `-20`. Parking Assist and
+its two-row header remain unchanged.

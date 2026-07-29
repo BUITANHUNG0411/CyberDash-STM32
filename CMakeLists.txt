@@ -31,8 +31,10 @@ qt_add_executable(${PROJECT_NAME}
     src/services/TelemetryMapper.cpp
     src/services/MusicScanner.cpp
     src/services/MockParkingSensorService.cpp
+    src/services/MockSafetyScenarioService.cpp
     src/viewmodels/ParkingAssistViewModel.cpp
     src/viewmodels/CenterHubViewModel.cpp
+    src/viewmodels/SafetyScenarioViewModel.cpp
 )
 
 set_source_files_properties(qml/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
@@ -53,6 +55,7 @@ qt_add_qml_module(${PROJECT_NAME}
         qml/components/RangeTripCard.qml
         qml/components/CenterHub.qml
         qml/components/ParkingAssistView.qml
+        qml/components/SafetyScenarioOverlay.qml
         qml/screens/DashboardScreen.qml
     RESOURCES
         resources/icons/play.svg
@@ -73,6 +76,7 @@ qt_add_qml_module(${PROJECT_NAME}
         resources/icons/drive-eco.svg
         resources/icons/drive-normal.svg
         resources/icons/drive-sport.svg
+        resources/icons/safety-lab.svg
     SOURCES
         src/viewmodels/VehicleStatusViewModel.h
         src/viewmodels/VehicleStatusViewModel.cpp
@@ -90,6 +94,8 @@ qt_add_qml_module(${PROJECT_NAME}
         src/viewmodels/ParkingAssistViewModel.cpp
         src/viewmodels/CenterHubViewModel.h
         src/viewmodels/CenterHubViewModel.cpp
+        src/services/MockSafetyScenarioService.h
+        src/viewmodels/SafetyScenarioViewModel.h
 )
 
 target_link_libraries(${PROJECT_NAME}

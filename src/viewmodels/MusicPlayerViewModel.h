@@ -133,6 +133,7 @@ signals:
     void scrubberStateChanged();
 
 private:
+    bool ensurePlayer();
     void updatePlaybackState();
     void saveResumeNow();
     void scheduleResumeSave();
@@ -157,6 +158,7 @@ private:
     qint64 m_lastPos = 0;
     bool m_resumePending = false;
     bool m_persistenceEnabled = true;
+    bool m_multimediaEnabled = true;
     bool m_scrubberDragging = false;
     float m_scrubberRatio = 0.0f;
 

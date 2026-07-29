@@ -91,7 +91,12 @@ Parser, mapper, and no-hardware connection transitions have deterministic automa
 The current Parking Assist release is mock-first and uses one rear ultrasonic sensor. The
 high-level sample boundary is `distanceCm` plus `reverseActive`; the ViewModel accepts only
 integer distances from `1` through `250` cm and marks the sensor unavailable after one second
-without a valid update while reverse is active.
+without a valid update while reverse is active. It applies hysteresis around the Clear/Caution and
+Caution/Stop boundaries, reports `LIVE`, `STALE`, or `UNAVAILABLE`, and requests the CenterHub
+Parking Assist page only for a live sample below `30` cm. The CenterHub also exposes a
+transport-independent manual horizontal page gesture; it changes presentation state only and
+does not alter the ultrasonic sample contract. A live critical sample takes precedence over a
+manual request to return to Music.
 
 The STM32F103 should later measure echo timing and convert it to centimetres on the MCU or in a
 dedicated C++ adapter before emitting a validated high-level sample. No camera stream, raw echo

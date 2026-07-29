@@ -1,6 +1,7 @@
 #include "services/SerialService.h"
 #include "services/SimulatorService.h"
 #include "services/MockParkingSensorService.h"
+#include "services/MockSafetyScenarioService.h"
 #include "services/TelemetryMapper.h"
 #include "viewmodels/VehicleStatusViewModel.h"
 #include "viewmodels/MusicPlayerViewModel.h"
@@ -10,19 +11,37 @@
 #include "viewmodels/TripComputerViewModel.h"
 #include "viewmodels/ParkingAssistViewModel.h"
 #include "viewmodels/CenterHubViewModel.h"
+#include "viewmodels/SafetyScenarioViewModel.h"
 #include <QElapsedTimer>
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QQmlError>
 #include <QWindow>
 
 int main(int argc, char *argv[]) {
+  // Qt Creator/debug environments may promote qWarning() to process
+  // termination through QT_FATAL_WARNINGS. Optional graphics backend probes
+  // must never make this dashboard exit before the UI is created.
+  qunsetenv("QT_FATAL_WARNINGS");
+
+  // The dashboard uses QMediaPlayer for audio. Disable optional FFmpeg video
+  // hardware probing so a missing VDPAU backend cannot abort startup on AMD
+  // systems; audio playback remains unchanged and future hardware can opt in
+  // through the standard QT_FFMPEG_DECODING_HW_DEVICE_TYPES environment setting.
+  if (!qEnvironmentVariableIsSet("QT_FFMPEG_DECODING_HW_DEVICE_TYPES")) {
+    qputenv("QT_FFMPEG_DECODING_HW_DEVICE_TYPES", QByteArrayLiteral(","));
+  }
+
   QGuiApplication app(argc, argv);
 
   VehicleStatusViewModel vm;
   TripComputerViewModel tripVm;
   MockParkingSensorService parkingSensorService;
   ParkingAssistViewModel parkingAssistVm;
+  VehicleModeViewModel vehicleModeVm;
+  MockSafetyScenarioService safetyScenarioService;
+  SafetyScenarioViewModel safetyScenarioVm(&safetyScenarioService);
   CenterHubViewModel centerHubVm(&parkingAssistVm);
   QElapsedTimer tripClock;
   tripClock.start();
@@ -77,10 +96,16 @@ int main(int argc, char *argv[]) {
 
   QQmlApplicationEngine engine;
 
+  QObject::connect(&engine, &QQmlEngine::warnings, &app,
+                   [](const QList<QQmlError> &warnings) {
+                       for (const QQmlError &warning : warnings) {
+                           qCritical().noquote() << warning.toString();
+                       }
+                   });
+
   // Expose ViewModels to QML
   MusicPlayerViewModel musicVm;
   ThemeViewModel themeVm;
-  VehicleModeViewModel vehicleModeVm;
   DriveModeViewModel driveModeVm;
   engine.rootContext()->setContextProperty("VehicleStatus", &vm);
   engine.rootContext()->setContextProperty("MusicViewModel", &musicVm);
@@ -90,6 +115,18 @@ int main(int argc, char *argv[]) {
   engine.rootContext()->setContextProperty("TripComputer", &tripVm);
   engine.rootContext()->setContextProperty("ParkingAssist", &parkingAssistVm);
   engine.rootContext()->setContextProperty("CenterHubController", &centerHubVm);
+  engine.rootContext()->setContextProperty("SafetyScenario", &safetyScenarioVm);
+
+  const auto updateSafetyPresentation = [&vehicleModeVm, &parkingAssistVm, &safetyScenarioVm]() {
+      safetyScenarioVm.setPresentationAllowed(
+          vehicleModeVm.vehicleMode() == QStringLiteral("car")
+          && !parkingAssistVm.criticalProximity());
+  };
+  QObject::connect(&vehicleModeVm, &VehicleModeViewModel::vehicleModeChanged,
+                   &safetyScenarioVm, updateSafetyPresentation);
+  QObject::connect(&parkingAssistVm, &ParkingAssistViewModel::criticalProximityChanged,
+                   &safetyScenarioVm, updateSafetyPresentation);
+  updateSafetyPresentation();
 
   QObject::connect(&themeVm, &ThemeViewModel::windowMoveRequested, &engine, [&engine]() {
       const auto rootObjects = engine.rootObjects();
@@ -103,7 +140,10 @@ int main(int argc, char *argv[]) {
 
   QObject::connect(
       &engine, &QQmlApplicationEngine::objectCreationFailed, &app,
-      []() { QCoreApplication::exit(-1); }, Qt::QueuedConnection);
+      [](const QUrl &url) {
+          qCritical().noquote() << "QML object creation failed:" << url.toString();
+          QCoreApplication::exit(-1);
+      }, Qt::QueuedConnection);
 
   engine.loadFromModule("com.showcase", "Main");
 

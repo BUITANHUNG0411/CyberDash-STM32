@@ -3,11 +3,10 @@
 #include <array>
 
 namespace {
-constexpr std::array<std::pair<int, bool>, 6> kSamples{{
+constexpr std::array<std::pair<int, bool>, 5> kSamples{{
     {0, false},
     {250, true},
     {150, true},
-    {30, true},
     {0, true},
     {0, false},
 }};

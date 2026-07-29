@@ -17,19 +17,12 @@ MusicPlayerViewModel::MusicPlayerViewModel(QObject *parent,
                                            bool persistenceEnabled)
     : QAbstractListModel(parent),
       m_persistenceEnabled(persistenceEnabled),
+      m_multimediaEnabled(multimediaEnabled),
       m_scanner(new MusicScanner()),
       m_settings(QSettings::IniFormat, QSettings::UserScope, kOrgName, kAppName)
 {
     if (multimediaEnabled) {
-        m_player = new QMediaPlayer(this);
         m_audioOutput = new QAudioOutput(this);
-        m_player->setAudioOutput(m_audioOutput);
-
-        connect(m_player, &QMediaPlayer::playingChanged, this, &MusicPlayerViewModel::isPlayingChanged);
-        connect(m_player, &QMediaPlayer::positionChanged, this, &MusicPlayerViewModel::onPositionChanged);
-        connect(m_player, &QMediaPlayer::durationChanged, this, &MusicPlayerViewModel::onDurationChanged);
-        connect(m_player, &QMediaPlayer::mediaStatusChanged, this, &MusicPlayerViewModel::onMediaStatusChanged);
-        connect(m_player, &QMediaPlayer::errorOccurred, this, &MusicPlayerViewModel::onErrorOccurred);
         m_audioOutput->setVolume(m_volume);
     }
 
@@ -54,6 +47,32 @@ MusicPlayerViewModel::MusicPlayerViewModel(QObject *parent,
     connect(&m_scannerThread, &QThread::finished, m_scanner, &QObject::deleteLater);
 
     m_scannerThread.start();
+}
+
+bool MusicPlayerViewModel::ensurePlayer()
+{
+    if (!m_multimediaEnabled) {
+        return false;
+    }
+    if (m_player) {
+        return true;
+    }
+
+    // Delay the FFmpeg-backed player until a real track is requested. The
+    // audio output remains available during QML startup, while optional video
+    // backend discovery cannot block the dashboard root object.
+    m_player = new QMediaPlayer(this);
+    if (!m_audioOutput) {
+        m_audioOutput = new QAudioOutput(this);
+        m_audioOutput->setVolume(m_volume);
+    }
+    m_player->setAudioOutput(m_audioOutput);
+    connect(m_player, &QMediaPlayer::playingChanged, this, &MusicPlayerViewModel::isPlayingChanged);
+    connect(m_player, &QMediaPlayer::positionChanged, this, &MusicPlayerViewModel::onPositionChanged);
+    connect(m_player, &QMediaPlayer::durationChanged, this, &MusicPlayerViewModel::onDurationChanged);
+    connect(m_player, &QMediaPlayer::mediaStatusChanged, this, &MusicPlayerViewModel::onMediaStatusChanged);
+    connect(m_player, &QMediaPlayer::errorOccurred, this, &MusicPlayerViewModel::onErrorOccurred);
+    return true;
 }
 
 MusicPlayerViewModel::~MusicPlayerViewModel()
@@ -115,7 +134,7 @@ void MusicPlayerViewModel::setCurrentIndex(int index)
         m_progress = 0.0f;
         emit progressChanged();
 
-        if (m_player) {
+        if (ensurePlayer()) {
             m_player->setSource(QUrl::fromLocalFile(m_songs[m_currentIndex].filePath));
             m_player->play();
         }
@@ -302,7 +321,12 @@ void MusicPlayerViewModel::play(int index)
 {
     if (index != -1 && index != m_currentIndex) {
         setCurrentIndex(index);
-    } else if (m_player && m_currentIndex >= 0 && m_currentIndex < m_songs.count()) {
+    } else if (m_currentIndex >= 0 && m_currentIndex < m_songs.count()
+               && ensurePlayer()) {
+        const QUrl source = QUrl::fromLocalFile(m_songs[m_currentIndex].filePath);
+        if (m_player->source() != source) {
+            m_player->setSource(source);
+        }
         m_player->play();
     }
 }
@@ -315,14 +339,11 @@ void MusicPlayerViewModel::pause()
 
 void MusicPlayerViewModel::togglePlayPause()
 {
-    if (!m_player)
-        return;
-
-    if (m_player->isPlaying()) {
+    if (m_player && m_player->isPlaying()) {
         m_player->pause();
     } else {
         if (m_currentIndex >= 0 && m_currentIndex < m_songs.count()) {
-            m_player->play();
+            play();
         } else if (!m_songs.isEmpty()) {
             setCurrentIndex(0);
         }

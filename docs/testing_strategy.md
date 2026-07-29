@@ -20,9 +20,10 @@
 | `tst_viewmodels` | `VehicleStatusViewModel` property READ/WRITE/NOTIFY behavior; theme and boot state; vehicle/drive mode cycles; trip integration |
 | `tst_music_playback` | Repeat/shuffle/volume/seek/playback state and C++-owned scrubber clamping/drag state; multimedia-disabled construction for deterministic tests |
 | `tst_serial_pipeline` | Parser framing/checksum/buffer boundaries; raw-to-dashboard mapper; initial, valid-frame, stop, resource-error, and parser-reset connection transitions |
-| `tst_parking_assist` | One-sensor distance thresholds, invalid/unavailable input, stale timeout, duplicate-notification suppression, mock progression, and CenterHub page handoff |
+| `tst_parking_assist` | One-sensor thresholds and hysteresis, live/stale/unavailable health, invalid input, stale timeout, duplicate-notification suppression, mock progression without automatic STOP, distance formatting, STOP-only CenterHub handoff, and manual CenterHub swipe/page-selection policy |
+| `tst_safety_scenario` | Deterministic mock-lab timeline, English presentation-copy contract, presentation ViewModel, availability gate, acknowledgement/replay lifecycle, and effective notification behavior |
 
-CTest configures `QT_QPA_PLATFORM=offscreen` and a 20-second timeout for `tst_music_playback`, so the multimedia-facing test is deterministic in a headless environment. The serial tests use controlled/no-hardware paths and do not require an attached STM32.
+CTest configures `QT_QPA_PLATFORM=offscreen` and a 20-second timeout for `tst_music_playback`, so the multimedia-facing test is deterministic in a headless environment. The serial tests use controlled/no-hardware paths and do not require an attached STM32. `tst_safety_scenario` drives `MockSafetyScenarioService::advance(qint64)` directly, so its timeline needs neither wall-clock waits nor hardware input.
 
 ## 3. Coverage Requirements
 
@@ -31,7 +32,8 @@ CTest configures `QT_QPA_PLATFORM=offscreen` and a 20-second timeout for `tst_mu
 - Mapper tests must prove dashboard derivation occurs outside `SerialService`.
 - Connection tests must cover initial disconnected publication, valid-frame connection, idempotent resource errors, stop behavior, and partial-frame clearing.
 - Music interaction tests must cover scrubber normalization, clamping, zero-width input, drag state, and signal emission.
-- Parking tests must cover valid `1..250` cm thresholds, invalid values, reverse page selection, stale expiry after one second, effective-value notifications, and deterministic mock progression.
+- Parking tests must cover valid `1..250` cm thresholds, hysteresis release points, live/stale/unavailable health, invalid values, Music retention for clear/caution, critical page selection below `30` cm, manual left/right swipe commit and short-drag rejection, invalid page requests, critical safety override, stale expiry after one second, effective-value notifications, C++ distance formatting, and deterministic mock progression without a built-in STOP sample.
+- Safety-scenario tests must use the direct deterministic clock seam and cover Normal/Advisory/Critical/Recovery/Complete boundaries, the concise English display-copy contract (`SAFETY LAB`, `FORWARD HAZARD SIMULATION`, `BRAKE ADVISORY`), risk/segment/threat presentation, the bounded acknowledgement window, non-positive clock no-ops, effective service and ViewModel notification suppression, terminal completion, replay/reset, injected-service destruction, and the availability gate stopping and hiding an active mock lab. They must never require UART, telemetry, a camera, or a real sensor.
 - QML interaction handlers remain direct invokable calls; no QML-local scrubber state or math.
 
 ## 4. Deterministic Verification Commands

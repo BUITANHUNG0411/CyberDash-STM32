@@ -29,6 +29,49 @@ private slots:
         QCOMPARE(viewModel.proximityLevel(), ParkingAssistViewModel::Stop);
     }
 
+    void hysteresisPreventsThresholdFlicker()
+    {
+        ParkingAssistViewModel viewModel;
+        viewModel.updateSensorSample(250, true);
+        QCOMPARE(viewModel.proximityLevel(), ParkingAssistViewModel::Clear);
+
+        viewModel.updateSensorSample(150, true);
+        QCOMPARE(viewModel.proximityLevel(), ParkingAssistViewModel::Caution);
+        viewModel.updateSensorSample(152, true);
+        QCOMPARE(viewModel.proximityLevel(), ParkingAssistViewModel::Caution);
+        viewModel.updateSensorSample(156, true);
+        QCOMPARE(viewModel.proximityLevel(), ParkingAssistViewModel::Clear);
+
+        viewModel.updateSensorSample(30, true);
+        QCOMPARE(viewModel.proximityLevel(), ParkingAssistViewModel::Stop);
+        viewModel.updateSensorSample(34, true);
+        QCOMPARE(viewModel.proximityLevel(), ParkingAssistViewModel::Stop);
+        viewModel.updateSensorSample(35, true);
+        QCOMPARE(viewModel.proximityLevel(), ParkingAssistViewModel::Caution);
+    }
+
+    void healthStateDistinguishesLiveStaleAndUnavailable()
+    {
+        ParkingAssistViewModel viewModel(1000);
+        QSignalSpy healthSpy(&viewModel, &ParkingAssistViewModel::sensorHealthChanged);
+        viewModel.updateSensorSample(90, true);
+        QCOMPARE(viewModel.sensorHealth(), ParkingAssistViewModel::Live);
+        QCOMPARE(viewModel.healthText(), QStringLiteral("ULTRASONIC LIVE"));
+
+        viewModel.advanceStaleClock(1000);
+        QCOMPARE(viewModel.sensorHealth(), ParkingAssistViewModel::Stale);
+        QVERIFY(!viewModel.sensorAvailable());
+        QCOMPARE(viewModel.healthText(), QStringLiteral("ULTRASONIC STALE"));
+        QCOMPARE(viewModel.statusText(), QStringLiteral("SENSOR STALE"));
+
+        viewModel.updateSensorSample(90, true);
+        QCOMPARE(viewModel.sensorHealth(), ParkingAssistViewModel::Live);
+        viewModel.updateSensorSample(0, true);
+        QCOMPARE(viewModel.sensorHealth(), ParkingAssistViewModel::SensorUnavailable);
+        QCOMPARE(viewModel.healthText(), QStringLiteral("ULTRASONIC UNAVAILABLE"));
+        QCOMPARE(healthSpy.count(), 4);
+    }
+
     void derivesPresentationSafeProximityProgress()
     {
         ParkingAssistViewModel viewModel;
@@ -58,6 +101,14 @@ private slots:
         QCOMPARE(progressSpy.count(), 3);
     }
 
+    void formatsAnimatedDistanceInCPlusPlus()
+    {
+        ParkingAssistViewModel viewModel;
+        QCOMPARE(viewModel.formatDistance(249.4), QStringLiteral("249 CM"));
+        QCOMPARE(viewModel.formatDistance(249.6), QStringLiteral("250 CM"));
+        QCOMPARE(viewModel.formatDistance(0.0), QStringLiteral("—"));
+    }
+
     void invalidInputBecomesUnavailable()
     {
         ParkingAssistViewModel viewModel;
@@ -74,15 +125,61 @@ private slots:
         QVERIFY(!viewModel.sensorAvailable());
     }
 
-    void reverseStateSelectsParkingPage()
+    void centerHubShowsParkingOnlyBelowCriticalDistance()
     {
         ParkingAssistViewModel parking;
         CenterHubViewModel hub(&parking);
         QCOMPARE(hub.activePage(), CenterHubViewModel::MusicPage);
         parking.updateSensorSample(90, true);
+        QCOMPARE(hub.activePage(), CenterHubViewModel::MusicPage);
+        parking.updateSensorSample(30, true);
+        QCOMPARE(hub.activePage(), CenterHubViewModel::MusicPage);
+        parking.updateSensorSample(29, true);
+        QCOMPARE(hub.activePage(), CenterHubViewModel::ParkingPage);
+        parking.updateSensorSample(35, true);
+        QCOMPARE(hub.activePage(), CenterHubViewModel::MusicPage);
+        parking.updateSensorSample(29, true);
         QCOMPARE(hub.activePage(), CenterHubViewModel::ParkingPage);
         parking.updateSensorSample(0, false);
         QCOMPARE(hub.activePage(), CenterHubViewModel::MusicPage);
+    }
+
+    void centerHubSupportsManualHorizontalSwipe()
+    {
+        ParkingAssistViewModel parking;
+        CenterHubViewModel hub(&parking);
+
+        hub.setSwipeActive(true);
+        hub.updateSwipeTranslation(-79.0);
+        hub.setSwipeActive(false);
+        QCOMPARE(hub.activePage(), CenterHubViewModel::MusicPage);
+
+        hub.setSwipeActive(true);
+        hub.updateSwipeTranslation(-80.0);
+        hub.setSwipeActive(false);
+        QCOMPARE(hub.activePage(), CenterHubViewModel::ParkingPage);
+
+        hub.setSwipeActive(true);
+        hub.updateSwipeTranslation(80.0);
+        hub.setSwipeActive(false);
+        QCOMPARE(hub.activePage(), CenterHubViewModel::MusicPage);
+    }
+
+    void centerHubManualSelectionHonorsCriticalSafetyOverride()
+    {
+        ParkingAssistViewModel parking;
+        CenterHubViewModel hub(&parking);
+
+        QVERIFY(hub.selectPage(CenterHubViewModel::ParkingPage));
+        QCOMPARE(hub.activePage(), CenterHubViewModel::ParkingPage);
+        QVERIFY(hub.selectPage(CenterHubViewModel::MusicPage));
+        QCOMPARE(hub.activePage(), CenterHubViewModel::MusicPage);
+
+        parking.updateSensorSample(29, true);
+        QCOMPARE(hub.activePage(), CenterHubViewModel::ParkingPage);
+        QVERIFY(!hub.selectPage(CenterHubViewModel::MusicPage));
+        QCOMPARE(hub.activePage(), CenterHubViewModel::ParkingPage);
+        QVERIFY(!hub.selectPage(42));
     }
 
     void nullParkingViewModelDefaultsToMusicPage()
@@ -125,9 +222,11 @@ private slots:
         service.advance(MockParkingSensorService::updateIntervalMs());
         QCOMPARE(viewModel.proximityLevel(), ParkingAssistViewModel::Caution);
         service.advance(MockParkingSensorService::updateIntervalMs());
-        QCOMPARE(viewModel.proximityLevel(), ParkingAssistViewModel::Stop);
-        service.advance(MockParkingSensorService::updateIntervalMs());
         QCOMPARE(viewModel.proximityLevel(), ParkingAssistViewModel::Unavailable);
+
+        // STOP remains available through the high-level sample seam for a manual/mock override.
+        viewModel.updateSensorSample(29, true);
+        QCOMPARE(viewModel.proximityLevel(), ParkingAssistViewModel::Stop);
     }
 };
 

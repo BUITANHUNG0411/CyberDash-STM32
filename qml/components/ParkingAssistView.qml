@@ -4,6 +4,7 @@ import com.showcase
 Item {
     id: root
 
+    property real displayedDistanceCm: ParkingAssist.rearDistanceCm
     readonly property bool stopActive: ParkingAssist.proximityLevel === 3
     readonly property color proximityColor: ParkingAssist.proximityLevel === 3
                                            ? Theme.warningRed
@@ -13,53 +14,69 @@ Item {
                                                ? Theme.accentCyan
                                                : Theme.parkingUnavailable
 
-    visible: ParkingAssist.reverseActive
+    Behavior on displayedDistanceCm {
+        NumberAnimation {
+            duration: Theme.durationNormal
+            easing.type: Easing.OutCubic
+        }
+    }
 
     GlassPanel {
         anchors.fill: parent
     }
 
-    Text {
-        id: titleLabel
+    Column {
+        id: header
+        spacing: Theme.spaceXs
         anchors {
             left: parent.left
+            right: parent.right
             leftMargin: Theme.spaceXl
+            rightMargin: Theme.spaceXl
             top: parent.top
             topMargin: Theme.spaceXl
         }
-        color: Theme.textPrimary
-        text: "REAR PARK ASSIST"
-        font {
-            family: Theme.fontMain
-            pixelSize: Theme.textXs
-            letterSpacing: 1.8
-        }
-    }
 
-    Text {
-        anchors {
-            right: parent.right
-            rightMargin: Theme.spaceXl
-            verticalCenter: titleLabel.verticalCenter
+        Text {
+            width: parent.width
+            color: Theme.textPrimary
+            elide: Text.ElideRight
+            horizontalAlignment: Text.AlignLeft
+            text: "REAR PARK ASSIST"
+            font {
+                family: Theme.fontMain
+                pixelSize: Theme.textXs
+                letterSpacing: 1.8
+            }
         }
-        color: ParkingAssist.sensorAvailable ? Theme.accentCyan : Theme.parkingUnavailable
-        text: ParkingAssist.sensorAvailable ? "ULTRASONIC ONLINE" : "ULTRASONIC UNAVAILABLE"
-        font {
-            family: Theme.fontMain
-            pixelSize: Theme.textXs
-            letterSpacing: 1.1
+
+        Text {
+            width: parent.width
+            color: ParkingAssist.sensorHealth === 1
+                   ? Theme.accentCyan
+                   : ParkingAssist.sensorHealth === 2
+                     ? Theme.parkingCaution
+                     : Theme.parkingUnavailable
+            elide: Text.ElideRight
+            horizontalAlignment: Text.AlignRight
+            text: ParkingAssist.healthText
+            font {
+                family: Theme.fontMain
+                pixelSize: Theme.textXs
+                letterSpacing: 1.1
+            }
         }
     }
 
     Text {
         id: distanceReadout
+        color: Theme.textPrimary
+        text: ParkingAssist.sensorAvailable ? ParkingAssist.formatDistance(root.displayedDistanceCm) : "—"
         anchors {
             horizontalCenter: parent.horizontalCenter
-            top: titleLabel.bottom
+            top: header.bottom
             topMargin: Theme.spaceLg
         }
-        color: Theme.textPrimary
-        text: ParkingAssist.distanceText
         font {
             family: Theme.fontDisplay
             pixelSize: Theme.displayMd
@@ -69,12 +86,12 @@ Item {
 
     Text {
         id: statusLabel
+        color: root.proximityColor
+        text: ParkingAssist.statusText
         anchors {
             horizontalCenter: parent.horizontalCenter
             top: distanceReadout.bottom
         }
-        color: root.proximityColor
-        text: ParkingAssist.statusText
         font {
             family: Theme.fontMain
             pixelSize: Theme.textSm
@@ -160,12 +177,12 @@ Item {
 
     Row {
         id: segmentTrack
+        spacing: Theme.spaceSm
         anchors {
             horizontalCenter: parent.horizontalCenter
             bottom: parent.bottom
             bottomMargin: Theme.spaceXl
         }
-        spacing: Theme.spaceSm
 
         Rectangle {
             width: (root.width - Theme.spaceXXl * 2 - Theme.spaceSm * 7) / 8

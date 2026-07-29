@@ -22,6 +22,10 @@ public:
 
     int activePage() const;
 
+    Q_INVOKABLE bool selectPage(int page);
+    Q_INVOKABLE void setSwipeActive(bool active);
+    Q_INVOKABLE void updateSwipeTranslation(qreal translationX);
+
 signals:
     void activePageChanged();
 
@@ -30,4 +34,6 @@ private:
 
     ParkingAssistViewModel *m_parkingAssist;
     int m_activePage = MusicPage;
+    bool m_swipeActive = false;
+    qreal m_swipeTranslation = 0.0;
 };

@@ -43,10 +43,20 @@ Car mode uses `CenterHub.qml` as the persistent home of `MusicPlayer`. The playe
 
 While reverse is active, the C++-owned `CenterHubViewModel` selects `ParkingAssistView` and
 keeps `MusicPlayer` alive as a static sibling. Parking Assist is a rectangular dark-glass OEM
-panel: one centered rear-sensor zone, a large integer centimetre value, and `REAR CLEAR`,
-`CAUTION`, `STOP`, or `SENSOR UNAVAILABLE`. The only visual accents are the centralized cyan,
-amber, warning-red, and unavailable Theme tokens; it does not render a camera image or fake
-obstacle geometry. Leaving reverse returns to Music automatically.
+panel. Its hierarchy is a left-aligned `REAR PARK ASSIST` header, a right-aligned ultrasonic
+health label, a large centred distance readout, a status label, an abstract centre obstacle block
+above a bumper line, and an eight-segment proximity track at the bottom. The obstacle block moves
+only along the centre axis from `ParkingAssist.proximityProgress`; a single rear sensor does not
+claim left/right obstacle position. `ParkingAssist.proximitySegments` lights the track without
+QML-side calculations. Cyan represents clear, amber caution, warning-red stop, and the
+unavailable Theme token stale/invalid input. Only the STOP bumper pulse repeats; position, opacity,
+and colour may animate, never text. This is a sensor UI, not a camera image. Leaving reverse
+returns to Music automatically.
+
+The widened Double Arch geometry is also centralized in `Theme.qml`. The bezel path endpoints and
+the two gauge centres are moved outward together; `DashboardScreen.centerPanel` uses a positive
+`Theme.centerPanelGap` on both sides. Do not use negative panel margins to recover space, because
+the CenterHub must remain visibly separated from both illuminated gauge rings across vehicle modes.
 
 Do not put window-drag handlers over the player controls, `PathView`, or the scrubber.
 
@@ -97,3 +107,5 @@ QML may use bindings, ternaries, declarative states, and a single direct call to
 - **Blur or glow freezes:** inspect `MultiEffect.source` for recursive parent capture and replace it with a sibling source.
 - **Text animation warns or jumps:** animate a numeric backing property and bind `Text.text` to its display value.
 - **Swipe or scrub drags the window:** restrict the window `DragHandler` to the top drag strip.
+- **Center panel touches a gauge:** adjust the centralized bezel/gauge geometry and positive
+  `Theme.centerPanelGap` together; never compensate with overlap margins in a component.

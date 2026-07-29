@@ -136,3 +136,10 @@
 - [x] Add passive Neon Cyberpunk/OEM `ParkingAssistView` with centralized theme tokens and no camera illustration.
 - [x] Register `tst_parking_assist` and verify threshold, stale, mock progression, notification, and page-handoff contracts.
 - [x] Document the future STM32 high-level distance/reverse boundary without changing the current UART protocol.
+
+## Phase 19: Parking Assist UI + Bezel Clearance
+- [x] Expose C++-derived `proximityProgress` (`0.0..1.0`) and `proximitySegments` (`0..8`) with focused notification coverage (`9bc7b78`).
+- [x] Replace the static parking bars with a passive OEM hierarchy: sensor health, large distance, abstract centre obstacle/buffer zone, segmented track, and STOP-only pulse (`06e6295`).
+- [x] Widen the Double Arch through centralized Theme geometry and use a positive CenterHub clearance gap instead of overlap margins (`898855f`).
+- [x] Synchronize active architecture, UI/UX, routing, and journal documentation with the committed implementation.
+- [ ] Run and record the final cross-feature verification matrix before section close.

@@ -7,6 +7,12 @@
 
 ## 2026-07-29
 
+### Phase 19: Parking Assist UI + Bezel Clearance
+- **Presentation contract:** `ParkingAssistViewModel` remains the sole owner of ultrasonic meaning. In addition to distance/status/level, it exposes `proximityProgress` (`0.0..1.0`, far or unavailable to stop) and `proximitySegments` (`0..8`, unavailable to closest). QML only binds these values; it neither thresholds nor normalizes distance.
+- **OEM hierarchy:** The reverse panel is a rectangular dark-glass sensor display with health header, large distance, status, centred abstract obstacle block, bumper line, and eight-segment track. The block deliberately has no lateral claim because one rear ultrasonic sample cannot locate an obstacle left or right. STOP alone pulses; text remains unanimated.
+- **Bezel clearance:** The double-arch endpoints and gauge centres are widened through `Theme.qml` as one geometry contract. `DashboardScreen.centerPanel` now keeps a positive gap on both sides rather than overlapping illuminated gauge rings with negative margins.
+- **Mock-only boundary:** The new presentation properties derive exclusively from the existing high-level `distanceCm + reverseActive` sample. They do not add a UART field, camera, raw echo-time measurement, or object-position model. A future STM32 adapter must retain that boundary or introduce a separately specified sensor contract.
+
 ### Phase 18: Rear Parking Assist
 - **Runtime contract:** `MockParkingSensorService -> ParkingAssistViewModel -> CenterHubViewModel -> ParkingAssistView`. One mock ultrasonic distance and reverse-state sample drives a passive OEM-style panel; no camera image or QML-side logic is used.
 - **Safety states:** Valid distances are `1..250` cm. Clear is `151..250`, Caution is `31..150`, Stop is `1..30`; invalid input or a one-second stale interval renders `SENSOR UNAVAILABLE` without retaining an old distance.

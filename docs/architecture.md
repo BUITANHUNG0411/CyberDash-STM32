@@ -14,7 +14,7 @@
 | `VehicleMode` | `VehicleModeViewModel` | Car, Bike, and Scooter state |
 | `DriveMode` | `DriveModeViewModel` | NORMAL, SPORT, and ECO state |
 | `TripComputer` | `TripComputerViewModel` | Odometer, trip, and average speed |
-| `ParkingAssist` | `ParkingAssistViewModel` | One rear ultrasonic distance, reverse state, proximity level, and formatted display |
+| `ParkingAssist` | `ParkingAssistViewModel` | One rear ultrasonic distance, reverse state, proximity level, formatted display, and presentation-safe proximity progress |
 | `CenterHubController` | `CenterHubViewModel` | C++-owned Music/Parking Assist page selection |
 
 `SimulatorService`, `SerialService`, and `QElapsedTimer` are also stack-owned in `main.cpp`. QObject parent ownership covers each service's internal timers and serial port.
@@ -49,11 +49,13 @@ The `isHardwareConnected` gate ensures simulator updates are accepted only while
 The rear parking pipeline is independent of dashboard telemetry. `MockParkingSensorService`
 emits one deterministic distance sample in centimetres together with reverse state;
 `ParkingAssistViewModel` validates `1..250` cm, derives Clear/Caution/Stop/Unavailable, and
-expires valid input after one second while reverse remains active. `CenterHubViewModel` observes
-only `reverseActive` and selects Music page `0` or Parking Assist page `1`. Both ViewModels and
-the mock timer remain GUI-thread objects. A future STM32 adapter must convert ultrasonic echo
-timing into this high-level sample before it reaches the ViewModel; QML never parses UART or
-hardware timing.
+expires valid input after one second while reverse remains active. It also derives the
+presentation-only properties `proximityProgress` (`0.0..1.0`: far/unavailable to stop) and
+`proximitySegments` (`0..8`: unavailable to closest), avoiding distance math in QML.
+`CenterHubViewModel` observes only `reverseActive` and selects Music page `0` or Parking Assist
+page `1`. Both ViewModels and the mock timer remain GUI-thread objects. A future STM32 adapter
+must convert ultrasonic echo timing into this high-level sample before it reaches the ViewModel;
+QML never parses UART or hardware timing.
 
 ## 3. Parser and Mapper Boundaries
 

@@ -12,6 +12,7 @@
 - **OEM hierarchy:** The reverse panel is a rectangular dark-glass sensor display with health header, large distance, status, centred abstract obstacle block, bumper line, and eight-segment track. The block deliberately has no lateral claim because one rear ultrasonic sample cannot locate an obstacle left or right. STOP alone pulses; text remains unanimated.
 - **Bezel clearance:** The double-arch endpoints and gauge centres are widened through `Theme.qml` as one geometry contract. `DashboardScreen.centerPanel` now keeps a positive gap on both sides rather than overlapping illuminated gauge rings with negative margins.
 - **Mock-only boundary:** The new presentation properties derive exclusively from the existing high-level `distanceCm + reverseActive` sample. They do not add a UART field, camera, raw echo-time measurement, or object-position model. A future STM32 adapter must retain that boundary or introduce a separately specified sensor contract.
+- **Verification evidence:** Configure and full build passed; all four registered CTest targets passed; the repository Zero-JS scan found only comment text; project QML lint and module `qmllint` passed; offscreen smoke ran until the expected timeout with only the known PulseAudio permission warning.
 
 ### Phase 18: Rear Parking Assist
 - **Runtime contract:** `MockParkingSensorService -> ParkingAssistViewModel -> CenterHubViewModel -> ParkingAssistView`. One mock ultrasonic distance and reverse-state sample drives a passive OEM-style panel; no camera image or QML-side logic is used.

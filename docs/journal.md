@@ -5,6 +5,14 @@
 > [!IMPORTANT]
 > The active guides (`AGENTS.md`, `README.md`, and the current `docs/*.md`) are the source of truth for present behavior.
 
+## 2026-07-30
+
+### Visual Bezel Trial Closure
+- **Outcome:** The owner rejected every uncommitted visual bezel trial after direct review. The runtime source was restored exactly to the compact Double Arch baseline at commit `f561572`; no Titanium Halo, Precision Double Arch, visor, aperture, or molded double-pod geometry remains active.
+- **Scope:** The rollback restores `qml/Main.qml`, `qml/Theme.qml`, `qml/screens/DashboardScreen.qml`, and the temporary visual-contract test registration. It does not change telemetry, ViewModels, vehicle modes, CenterHub behavior, services, or hardware integration.
+- **Decision:** Treat the original Double Arch as the active visual baseline. Rejected trial notes are not implementation direction; a future bezel effort requires a separately approved visual specification before any QML geometry change.
+- **Verification:** Fresh configure and `-j2` build passed; all six registered CTest targets passed. The runtime diff is empty after the rollback.
+
 ## 2026-07-29
 
 ### Phase 25: Code Review and Section Close

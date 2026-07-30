@@ -142,6 +142,7 @@
 - [x] Replace the static parking bars with a passive OEM hierarchy: sensor health, large distance, abstract centre obstacle/buffer zone, segmented track, and STOP-only pulse (`06e6295`).
 - [x] Record the widened Double Arch/positive CenterHub-gap experiment (`898855f`); it is superseded by the compact baseline restoration below.
 - [x] Restore the original compact bezel, cluster positions, and CenterHub overlap margins after visual review.
+- [x] Close the 2026-07-30 uncommitted bezel-trial loop: visual review rejected every variant and the runtime was restored to the `f561572` compact Double Arch baseline; no trial geometry is retained.
 - [x] Synchronize active architecture, UI/UX, routing, and journal documentation with the committed implementation.
 - [x] Run and record the final cross-feature verification matrix: configure/build pass, CTest 4/4, Zero-JS comment-only matches, repository QML lint pass, module `qmllint` pass, and offscreen smoke reached the expected timeout with no QML/runtime errors.
 

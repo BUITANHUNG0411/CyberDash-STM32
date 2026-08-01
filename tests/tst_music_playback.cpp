@@ -249,11 +249,19 @@ private slots:
         QVERIFY(file.open(QIODevice::ReadOnly | QIODevice::Text));
         const QString qml = QString::fromUtf8(file.readAll());
 
-        QVERIFY(qml.contains(QStringLiteral("id: trackInfo")));
-        QVERIFY(qml.contains(QStringLiteral("anchors {")));
-        QVERIFY(qml.contains(QStringLiteral("right: scanButton.left")));
-        QVERIFY(qml.contains(QStringLiteral("rightMargin: Theme.spaceMd")));
-        QVERIFY(qml.contains(QStringLiteral("id: scanButton")));
+        const qsizetype trackInfoStart = qml.indexOf(QStringLiteral("id: trackInfo"));
+        const qsizetype scanButtonStart = qml.indexOf(QStringLiteral("id: scanButton"),
+                                                       trackInfoStart);
+        QVERIFY(trackInfoStart >= 0);
+        QVERIFY(scanButtonStart > trackInfoStart);
+
+        const QString trackInfoBlock = qml.mid(trackInfoStart,
+                                               scanButtonStart - trackInfoStart);
+        QVERIFY(trackInfoBlock.contains(QStringLiteral("anchors {")));
+        QVERIFY(trackInfoBlock.contains(QStringLiteral("left: parent.left")));
+        QVERIFY(trackInfoBlock.contains(QStringLiteral("right: scanButton.left")));
+        QVERIFY(trackInfoBlock.contains(QStringLiteral("rightMargin: Theme.spaceMd")));
+        QCOMPARE(trackInfoBlock.count(QStringLiteral("width: parent.width")), 2);
         QVERIFY(!qml.contains(QStringLiteral("width: parent.width - 80")));
     }
 

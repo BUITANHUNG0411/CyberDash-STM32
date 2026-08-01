@@ -1,5 +1,6 @@
 #include <QtTest>
 #include <QCoreApplication>
+#include <QFile>
 #include <QImage>
 #include <QSettings>
 #include <QTemporaryDir>
@@ -239,6 +240,21 @@ private slots:
         MusicScanner::applyQtMetaData(song, metadata);
 
         QCOMPARE(song.coverArt, QStringLiteral("fallback-cover"));
+    }
+
+    void track_info_has_explicit_width_without_scan_overlap_test() {
+        const QString path = QFINDTESTDATA("../qml/components/MusicPlayer.qml");
+        QVERIFY2(!path.isEmpty(), "MusicPlayer.qml test data was not found");
+        QFile file(path);
+        QVERIFY(file.open(QIODevice::ReadOnly | QIODevice::Text));
+        const QString qml = QString::fromUtf8(file.readAll());
+
+        QVERIFY(qml.contains(QStringLiteral("id: trackInfo")));
+        QVERIFY(qml.contains(QStringLiteral("anchors {")));
+        QVERIFY(qml.contains(QStringLiteral("right: scanButton.left")));
+        QVERIFY(qml.contains(QStringLiteral("rightMargin: Theme.spaceMd")));
+        QVERIFY(qml.contains(QStringLiteral("id: scanButton")));
+        QVERIFY(!qml.contains(QStringLiteral("width: parent.width - 80")));
     }
 
 private:

@@ -251,7 +251,13 @@ Item {
                     height: 48
 
                     Column {
-                        anchors.centerIn: parent
+                        id: trackInfo
+                        anchors {
+                            left: parent.left
+                            right: scanButton.left
+                            rightMargin: Theme.spaceMd
+                            verticalCenter: parent.verticalCenter
+                        }
                         spacing: 2
                         Text {
                             text: MusicViewModel.currentTitle !== "" ? MusicViewModel.currentTitle : (MusicViewModel.isScanning ? "Scanning..." : "No Music")
@@ -259,8 +265,7 @@ Item {
                             font.pixelSize: Theme.textMd
                             font.bold: true
                             color: Theme.textPrimary
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            width: parent.width - 80
+                            width: parent.width
                             horizontalAlignment: Text.AlignHCenter
                             elide: Text.ElideRight
                         }
@@ -269,14 +274,14 @@ Item {
                             font.family: Theme.fontMain
                             font.pixelSize: Theme.textXs
                             color: Theme.textSecondary
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            width: parent.width - 80
+                            width: parent.width
                             horizontalAlignment: Text.AlignHCenter
                             elide: Text.ElideRight
                         }
                     }
 
                     Rectangle {
+                        id: scanButton
                         anchors.right: parent.right
                         anchors.verticalCenter: parent.verticalCenter
                         width: 60

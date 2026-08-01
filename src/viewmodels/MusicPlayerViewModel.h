@@ -44,6 +44,7 @@ public:
     enum SongRoles {
         TitleRole = Qt::UserRole + 1,
         ArtistRole,
+        AlbumRole,
         FilePathRole,
         Color1Role,
         Color2Role,

@@ -2,6 +2,7 @@
 #include <QCoreApplication>
 #include <QSettings>
 #include <QTemporaryDir>
+#include <QMediaMetaData>
 #include "viewmodels/MusicPlayerViewModel.h"
 
 using namespace MusicEnums;
@@ -157,6 +158,38 @@ private slots:
         vm.beginScrub(20.0, 0.0);
         QCOMPARE(vm.scrubberDragging(), true);
         QCOMPARE(vm.scrubberRatio(), 0.0f);
+    }
+
+    void first_scanned_song_becomes_current_test() {
+        MusicPlayerViewModel vm(nullptr, false, false);
+        SongData song;
+        song.title = QStringLiteral("Qt FLAC Title");
+        song.artist = QStringLiteral("Qt FLAC Artist");
+        song.filePath = QStringLiteral("/tmp/qt-flac-title.flac");
+
+        QCOMPARE(vm.currentIndex(), -1);
+        QVERIFY(QMetaObject::invokeMethod(&vm, "onSongFound", Qt::DirectConnection,
+                                          Q_ARG(SongData, song)));
+        QCOMPARE(vm.rowCount(), 1);
+        QCOMPARE(vm.currentIndex(), 0);
+        QCOMPARE(vm.data(vm.index(0, 0), MusicPlayerViewModel::TitleRole).toString(),
+                 QStringLiteral("Qt FLAC Title"));
+    }
+
+    void qt_metadata_overrides_filename_fallback_test() {
+        SongData song;
+        song.title = QStringLiteral("file name");
+        song.artist = QStringLiteral("Unknown Artist");
+        QMediaMetaData metadata;
+        metadata.insert(QMediaMetaData::Title, QStringLiteral("Tag title"));
+        metadata.insert(QMediaMetaData::ContributingArtist, QStringLiteral("Tag artist"));
+        metadata.insert(QMediaMetaData::AlbumTitle, QStringLiteral("Tag album"));
+
+        MusicScanner::applyQtMetaData(song, metadata);
+
+        QCOMPARE(song.title, QStringLiteral("Tag title"));
+        QCOMPARE(song.artist, QStringLiteral("Tag artist"));
+        QCOMPARE(song.album, QStringLiteral("Tag album"));
     }
 
 private:

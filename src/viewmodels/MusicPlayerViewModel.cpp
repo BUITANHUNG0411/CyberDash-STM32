@@ -41,6 +41,7 @@ MusicPlayerViewModel::MusicPlayerViewModel(QObject *parent,
     // Setup Scanner Thread
     m_scanner->moveToThread(&m_scannerThread);
 
+    qRegisterMetaType<SongData>("SongData");
     connect(this, &MusicPlayerViewModel::requestScan, m_scanner, &MusicScanner::scanLibrary);
     connect(m_scanner, &MusicScanner::songFound, this, &MusicPlayerViewModel::onSongFound);
     connect(m_scanner, &MusicScanner::scanFinished, this, &MusicPlayerViewModel::onScanFinished);
@@ -98,6 +99,7 @@ QVariant MusicPlayerViewModel::data(const QModelIndex &index, int role) const
     switch (role) {
         case TitleRole: return song.title;
         case ArtistRole: return song.artist;
+        case AlbumRole: return song.album;
         case FilePathRole: return song.filePath;
         case Color1Role: return song.color1;
         case Color2Role: return song.color2;
@@ -111,6 +113,7 @@ QHash<int, QByteArray> MusicPlayerViewModel::roleNames() const
     QHash<int, QByteArray> roles;
     roles[TitleRole] = "title";
     roles[ArtistRole] = "artist";
+    roles[AlbumRole] = "album";
     roles[FilePathRole] = "filePath";
     roles[Color1Role] = "color1";
     roles[Color2Role] = "color2";
@@ -391,6 +394,11 @@ void MusicPlayerViewModel::onSongFound(const SongData& song)
     beginInsertRows(QModelIndex(), static_cast<int>(m_songs.count()), static_cast<int>(m_songs.count()));
     m_songs.append(song);
     endInsertRows();
+
+    if (m_currentIndex < 0 && m_songs.size() == 1) {
+        m_currentIndex = 0;
+        emit currentIndexChanged();
+    }
 }
 
 void MusicPlayerViewModel::onScanFinished()

@@ -24,6 +24,9 @@ class MusicPlayerViewModel : public QAbstractListModel
 {
     Q_OBJECT
     Q_PROPERTY(int currentIndex READ currentIndex WRITE setCurrentIndex NOTIFY currentIndexChanged)
+    Q_PROPERTY(QString currentTitle READ currentTitle NOTIFY currentTrackChanged)
+    Q_PROPERTY(QString currentArtist READ currentArtist NOTIFY currentTrackChanged)
+    Q_PROPERTY(QString currentCoverArt READ currentCoverArt NOTIFY currentTrackChanged)
     Q_PROPERTY(bool isPlaying READ isPlaying NOTIFY isPlayingChanged)
     Q_PROPERTY(float progress READ progress NOTIFY progressChanged)
     Q_PROPERTY(bool isScanning READ isScanning NOTIFY isScanningChanged)
@@ -62,6 +65,9 @@ public:
 
     int currentIndex() const;
     void setCurrentIndex(int index);
+    QString currentTitle() const;
+    QString currentArtist() const;
+    QString currentCoverArt() const;
 
     bool isPlaying() const;
     float progress() const;
@@ -116,6 +122,7 @@ private slots:
 
 signals:
     void currentIndexChanged();
+    void currentTrackChanged();
     void isPlayingChanged();
     void progressChanged();
     void isScanningChanged();

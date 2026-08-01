@@ -172,6 +172,8 @@ private slots:
                                           Q_ARG(SongData, song)));
         QCOMPARE(vm.rowCount(), 1);
         QCOMPARE(vm.currentIndex(), 0);
+        QCOMPARE(vm.currentTitle(), QStringLiteral("Qt FLAC Title"));
+        QCOMPARE(vm.currentArtist(), QStringLiteral("Qt FLAC Artist"));
         QCOMPARE(vm.data(vm.index(0, 0), MusicPlayerViewModel::TitleRole).toString(),
                  QStringLiteral("Qt FLAC Title"));
     }

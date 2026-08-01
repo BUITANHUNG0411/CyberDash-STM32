@@ -24,7 +24,7 @@ Item {
             visible: false
             Image {
                 anchors.fill: parent
-                source: pathView.currentItem !== null ? pathView.currentItem.coverArt : ""
+                source: MusicViewModel.currentCoverArt
                 fillMode: Image.PreserveAspectCrop
                 visible: source.toString() !== ""
             }
@@ -254,7 +254,7 @@ Item {
                         anchors.centerIn: parent
                         spacing: 2
                         Text {
-                            text: pathView.currentItem ? pathView.currentItem.songTitle : (MusicViewModel.isScanning ? "Scanning..." : "No Music")
+                            text: MusicViewModel.currentTitle !== "" ? MusicViewModel.currentTitle : (MusicViewModel.isScanning ? "Scanning..." : "No Music")
                             font.family: Theme.fontMain
                             font.pixelSize: Theme.textMd
                             font.bold: true
@@ -265,7 +265,7 @@ Item {
                             elide: Text.ElideRight
                         }
                         Text {
-                            text: pathView.currentItem ? pathView.currentItem.songArtist : ""
+                            text: MusicViewModel.currentArtist
                             font.family: Theme.fontMain
                             font.pixelSize: Theme.textXs
                             color: Theme.textSecondary

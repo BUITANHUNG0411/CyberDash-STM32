@@ -126,12 +126,34 @@ int MusicPlayerViewModel::currentIndex() const
     return m_currentIndex;
 }
 
+QString MusicPlayerViewModel::currentTitle() const
+{
+    return m_currentIndex >= 0 && m_currentIndex < m_songs.count()
+        ? m_songs.at(m_currentIndex).title
+        : QString();
+}
+
+QString MusicPlayerViewModel::currentArtist() const
+{
+    return m_currentIndex >= 0 && m_currentIndex < m_songs.count()
+        ? m_songs.at(m_currentIndex).artist
+        : QString();
+}
+
+QString MusicPlayerViewModel::currentCoverArt() const
+{
+    return m_currentIndex >= 0 && m_currentIndex < m_songs.count()
+        ? m_songs.at(m_currentIndex).coverArt
+        : QString();
+}
+
 void MusicPlayerViewModel::setCurrentIndex(int index)
 {
     if (m_currentIndex == index) return;
     if (index >= 0 && index < m_songs.count()) {
         m_currentIndex = index;
         emit currentIndexChanged();
+        emit currentTrackChanged();
 
         // Reset progress when changing track
         m_progress = 0.0f;
@@ -381,6 +403,7 @@ void MusicPlayerViewModel::scanLibrary()
     m_currentIndex = -1;
     endResetModel();
     emit currentIndexChanged();
+    emit currentTrackChanged();
 
     m_isScanning = true;
     emit isScanningChanged();
@@ -398,6 +421,7 @@ void MusicPlayerViewModel::onSongFound(const SongData& song)
     if (m_currentIndex < 0 && m_songs.size() == 1) {
         m_currentIndex = 0;
         emit currentIndexChanged();
+        emit currentTrackChanged();
     }
 }
 
@@ -410,6 +434,7 @@ void MusicPlayerViewModel::onScanFinished()
     if (m_lastIndex >= 0 && m_lastIndex < m_songs.count()) {
         m_currentIndex = m_lastIndex;
         emit currentIndexChanged();
+        emit currentTrackChanged();
         m_progress = 0.0f;
         emit progressChanged();
         if (m_player)

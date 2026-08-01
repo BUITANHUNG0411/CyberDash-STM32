@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make the scanned song title and artist visible by removing the circular QML width dependency in the Music control panel.
+**Goal:** Make the scanned song title and artist visible and centered on the Music control-panel row while the Scan button stays fixed on the right.
 
-**Architecture:** Keep the verified C++ metadata pipeline unchanged. Give the QML track-information column explicit bounds from the row's left edge to the Scan button's left edge, and let both text items consume that bounded width.
+**Architecture:** Keep the verified C++ metadata pipeline unchanged. Give the QML track-information column explicit full-row bounds with symmetric margins derived from the Scan button width, and let both text items consume that bounded width.
 
 **Tech Stack:** Qt 6.11 Quick/QML, C++17 Qt Test source-contract regression, CMake/CTest.
 
@@ -13,12 +13,12 @@
 - Do not change `MusicScanner` or `MusicPlayerViewModel` behavior.
 - Do not add external libraries.
 - Keep QML declarative with zero imperative JavaScript.
-- Preserve the Scan button size, title/artist bindings, centered alignment, and elision.
+- Preserve the Scan button size/right alignment, title/artist bindings, centered alignment, and elision.
 - Preserve all unrelated user changes in the dirty worktree.
 
 ---
 
-### Task 1: Bound the track information area
+### Task 1: Center the track information area around the row
 
 **Files:**
 
@@ -28,11 +28,11 @@
 **Interfaces:**
 
 - Consumes: `MusicViewModel.currentTitle`, `MusicViewModel.currentArtist`, and the existing 60-pixel Scan button.
-- Produces: QML IDs `trackInfo` and `scanButton`, with `trackInfo` bounded to the left of `scanButton` and child text widths equal to `trackInfo.width`.
+- Produces: QML IDs `trackInfo` and `scanButton`, with `trackInfo` centered in the full row by equal margins of `scanButton.width + Theme.spaceMd` and child text widths equal to `trackInfo.width`.
 
 - [ ] **Step 1: Write the failing QML source-contract test**
 
-Add `#include <QFile>` and this Qt Test slot to `TestMusicPlayback`:
+Update the existing Qt Test slot in `TestMusicPlayback`:
 
 ```cpp
 void track_info_has_explicit_width_without_scan_overlap_test()
@@ -43,11 +43,21 @@ void track_info_has_explicit_width_without_scan_overlap_test()
     QVERIFY(file.open(QIODevice::ReadOnly | QIODevice::Text));
     const QString qml = QString::fromUtf8(file.readAll());
 
-    QVERIFY(qml.contains(QStringLiteral("id: trackInfo")));
-    QVERIFY(qml.contains(QStringLiteral("anchors.left: parent.left")));
-    QVERIFY(qml.contains(QStringLiteral("anchors.right: scanButton.left")));
-    QVERIFY(qml.contains(QStringLiteral("anchors.rightMargin: Theme.spaceMd")));
-    QVERIFY(qml.contains(QStringLiteral("id: scanButton")));
+    const qsizetype trackInfoStart = qml.indexOf(QStringLiteral("id: trackInfo"));
+    const qsizetype scanButtonStart = qml.indexOf(QStringLiteral("id: scanButton"),
+                                                   trackInfoStart);
+    QVERIFY(trackInfoStart >= 0);
+    QVERIFY(scanButtonStart > trackInfoStart);
+
+    const QString trackInfoBlock = qml.mid(trackInfoStart,
+                                           scanButtonStart - trackInfoStart);
+    QVERIFY(trackInfoBlock.contains(QStringLiteral("anchors {")));
+    QVERIFY(trackInfoBlock.contains(QStringLiteral("left: parent.left")));
+    QVERIFY(trackInfoBlock.contains(QStringLiteral("right: parent.right")));
+    QVERIFY(trackInfoBlock.contains(QStringLiteral("leftMargin: scanButton.width + Theme.spaceMd")));
+    QVERIFY(trackInfoBlock.contains(QStringLiteral("rightMargin: scanButton.width + Theme.spaceMd")));
+    QVERIFY(!trackInfoBlock.contains(QStringLiteral("right: scanButton.left")));
+    QCOMPARE(trackInfoBlock.count(QStringLiteral("width: parent.width")), 2);
     QVERIFY(!qml.contains(QStringLiteral("width: parent.width - 80")));
 }
 ```
@@ -59,7 +69,7 @@ cmake --build build -j2 --target tst_music_playback
 ctest --test-dir build -R tst_music_playback --output-on-failure
 ```
 
-Expected: the new test fails at `id: trackInfo` because the current QML has no bounded track-info item and still contains `width: parent.width - 80`.
+Expected: the updated test fails because the current QML still anchors `trackInfo` to `scanButton.left` and does not have symmetric Scan-width margins.
 
 - [ ] **Step 3: Implement the minimum declarative layout fix**
 
@@ -68,11 +78,14 @@ Change the track-information column and Scan button in `MusicPlayer.qml` to:
 ```qml
 Column {
     id: trackInfo
-    anchors.left: parent.left
-    anchors.right: scanButton.left
-    anchors.rightMargin: Theme.spaceMd
-    anchors.verticalCenter: parent.verticalCenter
     spacing: 2
+    anchors {
+        left: parent.left
+        right: parent.right
+        leftMargin: scanButton.width + Theme.spaceMd
+        rightMargin: scanButton.width + Theme.spaceMd
+        verticalCenter: parent.verticalCenter
+    }
 
     Text {
         text: MusicViewModel.currentTitle !== "" ? MusicViewModel.currentTitle : (MusicViewModel.isScanning ? "Scanning..." : "No Music")
@@ -119,13 +132,13 @@ cmake --build build --target QtStmAutomotiveSimulator_qmllint
 rg -n '\bMath\.|on[A-Z][A-Za-z]+\s*:\s*\{|\b(function|if|for|while|switch|var|let|const)\b' qml/components/MusicPlayer.qml
 ```
 
-Expected: project lint passes; module `qmllint` produces no new warning caused by the changed block; Zero-JavaScript matches are comment-only.
+Expected: focused project lint passes; module `qmllint` produces no new warning caused by the changed block; Zero-JavaScript matches are comment-only.
 
 - [ ] **Step 6: Commit the focused fix**
 
 ```bash
 git add tests/tst_music_playback.cpp qml/components/MusicPlayer.qml
-git commit -m "fix: show current music track information"
+git commit -m "fix: center music track information"
 ```
 
 ### Task 2: Verify the repository

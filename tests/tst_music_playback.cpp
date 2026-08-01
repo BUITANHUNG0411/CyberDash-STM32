@@ -1,5 +1,6 @@
 #include <QtTest>
 #include <QCoreApplication>
+#include <QImage>
 #include <QSettings>
 #include <QTemporaryDir>
 #include <QMediaMetaData>
@@ -192,6 +193,47 @@ private slots:
         QCOMPARE(song.title, QStringLiteral("Tag title"));
         QCOMPARE(song.artist, QStringLiteral("Tag artist"));
         QCOMPARE(song.album, QStringLiteral("Tag album"));
+    }
+
+    void qt_thumbnail_image_becomes_cover_art_test() {
+        SongData song;
+        QImage thumbnail(1, 1, QImage::Format_RGB32);
+        thumbnail.fill(Qt::cyan);
+        QMediaMetaData metadata;
+        metadata.insert(QMediaMetaData::ThumbnailImage, thumbnail);
+
+        MusicScanner::applyQtMetaData(song, metadata);
+
+        QVERIFY(song.coverArt.startsWith(QStringLiteral("data:image/png;base64,")));
+    }
+
+    void qt_cover_art_image_takes_precedence_test() {
+        SongData song;
+        QImage cover(1, 1, QImage::Format_RGB32);
+        cover.fill(Qt::red);
+        QImage thumbnail(1, 1, QImage::Format_RGB32);
+        thumbnail.fill(Qt::blue);
+        QMediaMetaData preferred;
+        preferred.insert(QMediaMetaData::CoverArtImage, cover);
+        QMediaMetaData both;
+        both.insert(QMediaMetaData::ThumbnailImage, thumbnail);
+        both.insert(QMediaMetaData::CoverArtImage, cover);
+
+        SongData expected;
+        MusicScanner::applyQtMetaData(expected, preferred);
+        MusicScanner::applyQtMetaData(song, both);
+
+        QCOMPARE(song.coverArt, expected.coverArt);
+    }
+
+    void qt_missing_images_preserve_cover_fallback_test() {
+        SongData song;
+        song.coverArt = QStringLiteral("fallback-cover");
+        QMediaMetaData metadata;
+
+        MusicScanner::applyQtMetaData(song, metadata);
+
+        QCOMPARE(song.coverArt, QStringLiteral("fallback-cover"));
     }
 
 private:

@@ -30,7 +30,10 @@ void MusicScanner::applyQtMetaData(SongData& song, const QMediaMetaData& metadat
     if (!album.isEmpty())
         song.album = album;
 
-    const QImage coverArt = metadata.value(QMediaMetaData::CoverArtImage).value<QImage>();
+    QImage coverArt = metadata.value(QMediaMetaData::CoverArtImage).value<QImage>();
+    if (coverArt.isNull())
+        coverArt = metadata.value(QMediaMetaData::ThumbnailImage).value<QImage>();
+
     if (!coverArt.isNull()) {
         QByteArray encodedCover;
         QBuffer buffer(&encodedCover);

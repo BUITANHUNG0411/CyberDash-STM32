@@ -255,8 +255,9 @@ Item {
                         spacing: 2
                         anchors {
                             left: parent.left
-                            right: scanButton.left
-                            rightMargin: Theme.spaceMd
+                            right: parent.right
+                            leftMargin: scanButton.width + Theme.spaceMd
+                            rightMargin: scanButton.width + Theme.spaceMd
                             verticalCenter: parent.verticalCenter
                         }
                         Text {

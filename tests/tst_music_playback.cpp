@@ -259,8 +259,10 @@ private slots:
                                                scanButtonStart - trackInfoStart);
         QVERIFY(trackInfoBlock.contains(QStringLiteral("anchors {")));
         QVERIFY(trackInfoBlock.contains(QStringLiteral("left: parent.left")));
-        QVERIFY(trackInfoBlock.contains(QStringLiteral("right: scanButton.left")));
-        QVERIFY(trackInfoBlock.contains(QStringLiteral("rightMargin: Theme.spaceMd")));
+        QVERIFY(trackInfoBlock.contains(QStringLiteral("right: parent.right")));
+        QVERIFY(trackInfoBlock.contains(QStringLiteral("leftMargin: scanButton.width + Theme.spaceMd")));
+        QVERIFY(trackInfoBlock.contains(QStringLiteral("rightMargin: scanButton.width + Theme.spaceMd")));
+        QVERIFY(!trackInfoBlock.contains(QStringLiteral("right: scanButton.left")));
         QCOMPARE(trackInfoBlock.count(QStringLiteral("width: parent.width")), 2);
         QVERIFY(!qml.contains(QStringLiteral("width: parent.width - 80")));
     }

@@ -252,13 +252,13 @@ Item {
 
                     Column {
                         id: trackInfo
+                        spacing: 2
                         anchors {
                             left: parent.left
                             right: scanButton.left
                             rightMargin: Theme.spaceMd
                             verticalCenter: parent.verticalCenter
                         }
-                        spacing: 2
                         Text {
                             text: MusicViewModel.currentTitle !== "" ? MusicViewModel.currentTitle : (MusicViewModel.isScanning ? "Scanning..." : "No Music")
                             font.family: Theme.fontMain

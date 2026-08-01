@@ -204,7 +204,12 @@ private slots:
 
         MusicScanner::applyQtMetaData(song, metadata);
 
-        QVERIFY(song.coverArt.startsWith(QStringLiteral("data:image/png;base64,")));
+        const QString prefix = QStringLiteral("data:image/png;base64,");
+        QVERIFY(song.coverArt.startsWith(prefix));
+        const QImage decoded = QImage::fromData(
+            QByteArray::fromBase64(song.coverArt.sliced(prefix.size()).toLatin1()), "PNG");
+        QVERIFY(!decoded.isNull());
+        QCOMPARE(decoded.pixelColor(0, 0), QColor(Qt::cyan));
     }
 
     void qt_cover_art_image_takes_precedence_test() {

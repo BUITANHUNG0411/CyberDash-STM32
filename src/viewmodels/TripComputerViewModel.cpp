@@ -1,5 +1,7 @@
 #include "TripComputerViewModel.h"
 
+#include <algorithm>
+
 namespace {
 constexpr double kMsPerHour = 3600000.0;
 }
@@ -31,8 +33,8 @@ void TripComputerViewModel::updateSpeed(double speedKmh, qint64 elapsedMs)
 {
     if (elapsedMs <= 0)
         return;
-    const qint64 dtMs = qMin(elapsedMs, m_maxDeltaMs);
-    const double distanceKm = qMax(0.0, speedKmh)
+    const qint64 dtMs = (std::min)(elapsedMs, m_maxDeltaMs);
+    const double distanceKm = (std::max)(0.0, speedKmh)
                               * (static_cast<double>(dtMs) / kMsPerHour);
     m_odometerKm += distanceKm;
     m_tripKm += distanceKm;

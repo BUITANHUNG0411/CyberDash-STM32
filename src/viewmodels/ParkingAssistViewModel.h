@@ -21,7 +21,7 @@ class ParkingAssistViewModel final : public QObject
     Q_PROPERTY(QString healthText READ healthText NOTIFY displayChanged)
 
 public:
-    enum ProximityLevel {
+    enum ProximityLevel : int {
         Unavailable,
         Clear,
         Caution,
@@ -29,7 +29,7 @@ public:
     };
     Q_ENUM(ProximityLevel)
 
-    enum SensorHealth {
+    enum SensorHealth : int {
         SensorUnavailable,
         Live,
         Stale

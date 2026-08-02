@@ -11,9 +11,6 @@ Window {
     color: "transparent"
     flags: Qt.Window | Qt.FramelessWindowHint
 
-    // Use the backend-injected ViewModel
-    property QtObject vm: VehicleStatus
-
     Shortcut {
         sequence: "Esc"
         onActivated: Qt.quit()

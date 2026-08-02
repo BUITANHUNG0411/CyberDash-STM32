@@ -160,8 +160,27 @@ private slots:
         QCOMPARE(hub.activePage(), CenterHubViewModel::ParkingPage);
 
         hub.setSwipeActive(true);
+        hub.updateSwipeTranslation(-80.0);
+        hub.setSwipeActive(false);
+        QCOMPARE(hub.activePage(), CenterHubViewModel::ParkingPage);
+
+        hub.setSwipeActive(true);
         hub.updateSwipeTranslation(80.0);
         hub.setSwipeActive(false);
+        QCOMPARE(hub.activePage(), CenterHubViewModel::MusicPage);
+
+        hub.setSwipeActive(true);
+        hub.updateSwipeTranslation(80.0);
+        hub.setSwipeActive(false);
+        QCOMPARE(hub.activePage(), CenterHubViewModel::MusicPage);
+    }
+
+    void centerHubRejectsInvalidPageRequest()
+    {
+        ParkingAssistViewModel parking;
+        CenterHubViewModel hub(&parking);
+
+        QVERIFY(!hub.selectPage(2));
         QCOMPARE(hub.activePage(), CenterHubViewModel::MusicPage);
     }
 
@@ -178,6 +197,8 @@ private slots:
         parking.updateSensorSample(29, true);
         QCOMPARE(hub.activePage(), CenterHubViewModel::ParkingPage);
         QVERIFY(!hub.selectPage(CenterHubViewModel::MusicPage));
+        QCOMPARE(hub.activePage(), CenterHubViewModel::ParkingPage);
+        QVERIFY(!hub.selectPage(2));
         QCOMPARE(hub.activePage(), CenterHubViewModel::ParkingPage);
         QVERIFY(!hub.selectPage(42));
     }

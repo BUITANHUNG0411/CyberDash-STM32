@@ -1,129 +1,23 @@
-# 📔 Project Journal (Chronological Decision Log)
+# Project Journal
 
-> **AI Context**: This file records important technical decisions and their rationale in chronological order. Reading it helps an AI recover the project's contextual memory.
+> **AI Context**: This file contains only durable decisions for the current product. Removed
+> presentation branches are not retained as historical feature entries.
 
-> [!IMPORTANT]
-> The active guides (`AGENTS.md`, `README.md`, and the current `docs/*.md`) are the source of truth for present behavior.
+## Current product contract
 
-## 2026-07-30
+- The application exposes one stable Car dashboard.
+- The active graph is limited to UART/simulator telemetry, day/night theme, Music, Parking
+  Assist, Trip Computer, and the C++-owned CenterHub page selection between Music and Parking.
+- QML is a passive view with zero executable JavaScript; behavior belongs in C++17 ViewModels and
+  services.
+- The simulator and SerialService share the same `VehicleStatusViewModel` boundary, with runtime
+  fallback when hardware is unavailable.
+- Parking Assist consumes one validated high-level `distanceCm + reverseActive` sample. It owns
+  thresholding, hysteresis, health, formatting, and critical-page precedence.
+- Physical STM32/USB-TTL field validation remains pending.
 
-### Visual Bezel Trial Closure
-- **Outcome:** The owner rejected every uncommitted visual bezel trial after direct review. The runtime source was restored exactly to the compact Double Arch baseline at commit `f561572`; no Titanium Halo, Precision Double Arch, visor, aperture, or molded double-pod geometry remains active.
-- **Scope:** The rollback restores `qml/Main.qml`, `qml/Theme.qml`, `qml/screens/DashboardScreen.qml`, and the temporary visual-contract test registration. It does not change telemetry, ViewModels, vehicle modes, CenterHub behavior, services, or hardware integration.
-- **Decision:** Treat the original Double Arch as the active visual baseline. Rejected trial notes are not implementation direction; a future bezel effort requires a separately approved visual specification before any QML geometry change.
-- **Verification:** Fresh configure and `-j2` build passed; all six registered CTest targets passed. The runtime diff is empty after the rollback.
+## Verification baseline
 
-## 2026-07-29
-
-### Phase 25: Code Review and Section Close
-- **CenterHub compile fix:** Removed the invalid `anchors.fill: parent` assignment from the non-visual `DragHandler` in `CenterHub.qml`. The handler remains `target: null` and forwards only pointer state/translation to the C++ ViewModel; Qt documents `DragHandler` as a pointer handler with parent-scoped event handling, not an `Item` with anchor geometry ([Qt DragHandler documentation](https://doc.qt.io/qt-6/qml-qtquick-draghandler.html)).
-- **Parking safety regression:** Added a red test for the critical `<30` cm → reverse-off transition. The failure showed that `CenterHubViewModel` could remain on the warning page after STOP was cleared. `ParkingAssistViewModel` now emits the critical-proximity change using the pre-transition state, and `tst_parking_assist` passes with the page returning to Music.
-- **Review result:** The C++ review found no ownership/threading regression in the reviewed change set. The QML review found no high-confidence actionable issue, no executable JavaScript, and no blocking `qmllint` diagnostic. Existing style/performance advisories remain documented as non-blocking debt.
-- **Verification evidence:** `cmake -S . -B build`, `cmake --build build -j2`, and CTest all pass; all four registered targets (`tst_viewmodels`, `tst_music_playback`, `tst_serial_pipeline`, `tst_parking_assist`) are green. Desktop Debug also builds, module `qmllint` exits `0`, `git diff --check` is clean, and the offscreen smoke reaches the expected timeout with only the host PulseAudio permission warning. The repository QML review script reports advisory findings (exit `1`), not JavaScript or type errors.
-- **Follow-up backlog (not part of this section):** validate repeated `SerialService::startService()` calls; reject non-positive `TripComputerViewModel::maxDeltaMs`; validate `ParkingAssistViewModel::staleIntervalMs` before timer conversion; reject invalid `ThemeViewModel` animation durations; and bound ID3/APIC frame sizes in `MusicScanner` before allocation/read.
-- **Section status:** This feature section is closed at the reviewed mock-data boundary. Hardware STM32 field validation and the follow-up backlog remain separate tasks; no commit or push is performed by this review-only closeout.
-
-### Phase 24: CenterHub Pointer Handler Compile Fix
-- **Root cause:** `DragHandler` is a non-visual pointer handler; it has a `parent` scope but no `anchors` property. `CenterHub.qml:32` therefore failed with `Invalid property name "anchors"`.
-- **Fix:** Removed only `anchors.fill: parent`; a handler declared inside the CenterHub `Item` already receives events within that parent scope. The C++ swipe contract and `target: null` remain unchanged.
-- **Verification:** Desktop Debug rebuild, full Release build, CTest `4/4`, QML lint, and offscreen smoke passed. The VDPAU process-local mitigation remains recorded in Phase 22/23 and is independent of this QML syntax error.
-
-### Phase 22: Qt Creator VDPAU Runtime Investigation
-- **Symptom:** Qt Creator launched `build/Desktop_Debug/QtStmAutomotiveSimulator`, printed a missing `libvdpau_nvidia.so` warning, and stopped with exit code `255`; terminal compilation still returned `0`.
-- **Root-cause hypothesis:** The VDPAU message is an optional Qt/FFmpeg backend warning. Qt's `QT_FATAL_WARNINGS` behavior can promote a warning to process termination in debug environments, while the project itself contains no NVIDIA/VDPAU references.
-- **Mitigation:** `main.cpp` now unsets `QT_FATAL_WARNINGS` for this process, disables optional FFmpeg decode hardware probing unless explicitly configured, and logs QML warnings/root-creation failures. No host driver or GPU setting is changed.
-- **Research report:** See `docs/research_vdpau_qtcreator_runtime.md` for local evidence, official Qt references, and the verification matrix.
-
-### Phase 23: Lazy Multimedia Backend Startup
-- **Root-cause isolation:** The Qt 6.11 debug binary still exited with `255` after process-local FFmpeg settings because `QMediaPlayer` was constructed before QML root creation. A temporary no-player build confirmed that the early Multimedia path was coupled to startup; retaining `QAudioOutput` was required for the existing QML object graph to load.
-- **Runtime boundary:** `MusicPlayerViewModel` now creates `QAudioOutput` during normal construction and creates `QMediaPlayer` only from `play()`/track selection. The first playback request still uses the same C++ signal wiring, source loading, resume behavior, and audio output.
-- **Verification:** Desktop Debug configure/build and `tst_music_playback` pass; offscreen smoke reaches the expected timeout with only the known PulseAudio permission warning and no VDPAU message. Qt Creator must be rerun after this binary is rebuilt.
-
-### Phase 20: STOP-Gated Parking Assist Polish
-- **CenterHub policy:** `CenterHubViewModel` keeps Music visible for clear/caution and switches the existing `StackLayout` to Parking Assist only when a live high-level sample is below `30` cm. At that phase no manual swipe was present; the follow-up Phase 21 restores it without changing the safety contract.
-- **Mock boundary:** The deterministic mock no longer emits an automatic `<=30` cm sample, so STOP is available only through the existing `distanceCm + reverseActive` seam for manual/mock overrides and future hardware input.
-- **ViewModel polish:** `ParkingAssistViewModel` owns hysteresis release points, `LIVE`/`STALE`/`UNAVAILABLE` health, `criticalProximity`, and C++ distance formatting. QML only animates a numeric backing property and renders the returned string.
-- **Verification:** Focused `tst_parking_assist` passes 13/13; full CTest passes 4/4; configure/build, Zero-JS, repository QML lint, module `qmllint`, and offscreen smoke pass with only the known PulseAudio permission warning.
-
-### Phase 21: CenterHub Manual Swipe
-- **Gesture contract:** `CenterHub.qml` retains a stable `StackLayout` and adds a null-target `DragHandler`. QML forwards only `active` and `translation.x`; `CenterHubViewModel` commits an 80 px left drag to Distance Warning and a right drag to Music.
-- **Safety precedence:** Manual page requests are validated in C++. Invalid pages are rejected, and a live critical `<30` cm sample prevents a manual request from hiding the warning. Clear/caution/stale/unavailable data can still be inspected by manually opening the warning tab.
-- **View lifetime:** `MusicPlayer` and `ParkingAssistView` remain static siblings, so playback state is not destroyed while changing tabs. The window drag handler remains confined to the top bezel strip.
-- **Verification:** The focused parking target passes 15/15 after adding manual swipe and safety-override coverage; configure/build and CTest pass 4/4, Zero-JS has comment-only matches, repository QML lint and module `qmllint` pass, offscreen smoke reaches the expected timeout with only the known PulseAudio permission warning, and `git diff --check` passes.
-
-### Phase 19: Parking Assist UI + Bezel Clearance
-- **Presentation contract:** `ParkingAssistViewModel` remains the sole owner of ultrasonic meaning. In addition to distance/status/level, it exposes `proximityProgress` (`0.0..1.0`, far or unavailable to stop) and `proximitySegments` (`0..8`, unavailable to closest). QML only binds these values; it neither thresholds nor normalizes distance.
-- **OEM hierarchy:** The reverse panel is a rectangular dark-glass sensor display with a compact two-row title/health header, large distance, status, centred abstract obstacle block, bumper line, and eight-segment track. The stacked header prevents title and health text from colliding on the narrow CenterHub panel. The block deliberately has no lateral claim because one rear ultrasonic sample cannot locate an obstacle left or right. STOP alone pulses; text remains unanimated.
-- **Bezel follow-up:** The widened-bezel experiment was intentionally reverted after visual review. `Theme.qml` now restores the original `270/890` arch endpoints, `250` horizontal radius, `260/880` gauge centres, and `-20` CenterHub margins; Parking Assist remains unchanged.
-- **Mock-only boundary:** The new presentation properties derive exclusively from the existing high-level `distanceCm + reverseActive` sample. They do not add a UART field, camera, raw echo-time measurement, or object-position model. A future STM32 adapter must retain that boundary or introduce a separately specified sensor contract.
-- **Verification evidence:** Configure and full build passed; all four registered CTest targets passed; the repository Zero-JS scan found only comment text; project QML lint and module `qmllint` passed; offscreen smoke ran until the expected timeout with only the known PulseAudio permission warning.
-
-### Phase 18: Rear Parking Assist
-- **Runtime contract:** `MockParkingSensorService -> ParkingAssistViewModel -> CenterHubViewModel -> ParkingAssistView`. One mock ultrasonic distance and reverse-state sample drives a passive OEM-style panel; no camera image or QML-side logic is used.
-- **Safety states:** Valid distances are `1..250` cm. Clear is `151..250`, Caution is `31..150`, Stop is `1..30`; invalid input or a one-second stale interval renders `SENSOR UNAVAILABLE` without retaining an old distance.
-- **CenterHub behavior:** Music and Parking Assist remain static children, and C++ selects page `0` or `1`; MusicPlayer is not destroyed during reverse.
-- **Hardware boundary:** Future STM32 integration must convert ultrasonic echo timing into a high-level distance/reverse sample. The existing UART protocol remains unchanged until a separately specified extension is verified.
-- **Verification:** `tst_parking_assist` covers thresholds, invalid samples, stale expiry, duplicate notifications, mock progression, and page handoff; the full matrix requires four CTest targets, Zero-JS, QML review, module `qmllint`, and offscreen smoke.
-
-## 2026-07-27
-
-### Phase 17: Pre-Feature Baseline Repair
-- **Why repair was required:** Active documentation and some historical status lines had diverged from the code. They described simulator and serial services as sharing a full-dashboard signal, implied serial derivation had already moved, claimed `GlassPanel` and `MockScenarioEngine::setScenario` were deleted, showed an invalid unchecked telemetry example, and treated the QML scrubber as Zero-JS while it still owned interaction math before Task 3.
-- **Parser boundary:** `SerialTelemetryParser` now exclusively owns byte accumulation, newline framing, field conversion, checksum validation, and the 4096-byte protection boundary. The checksum is `(rpm + int(vbat) + error) & 0xFF`; `TEL,118,11.8,0;129\n` is the canonical valid example.
-- **Mapping boundary:** `SerialService` is a transport and connection-state service. It emits raw RPM, battery voltage, and error code. `TelemetryMapper` derives dashboard fields outside the transport, and `main.cpp` feeds the same `VehicleStatusViewModel` surface used by the simulator.
-- **Connection boundary:** Port-open success is not connection success. The initial state is disconnected, the first valid frame establishes connected, and resource error/watchdog/stop close and clear the parser before publishing disconnected. Reopen attempts occur every 2000 ms; the watchdog is 500 ms.
-- **Thread boundary:** `QSerialPort::readyRead`, parsing, mapping, and ViewModel updates stay on the GUI thread as bounded non-blocking work. Only `MusicScanner` performs directory scanning on a worker thread.
-- **Interaction boundary:** `MusicPlayerViewModel` now owns scrubber drag state, normalization, clamping, and seek requests. `MusicPlayer.qml` contains only direct invokable calls for press/move/release/cancel.
-- **Zero-JS fix wave:** Follow-up review found volume normalization plus layout-size `Math` helpers outside the scrubber. Commit `58dae97` moved normalization to `MusicPlayerViewModel` and replaced layout helpers with ternary bindings. The exact repository scan returned no matches and the formal changed-line QML re-review reported no issues.
-- **Documentation boundary:** Active guides describe the current baseline and require H1, `AI Context`, tagged opening code fences, and Troubleshooting. Dated specs/plans/reports remain historical artifacts under their workflow-mandated metadata and must not be silently rewritten as current truth.
-- **Task 5 review fixes:** The repository-wide QML review found one executable short-circuit expression that the documented grep could not detect: `Main.qml` conditionally called `startSystemMove()` with `active && ...`. A RED `tst_viewmodels` compile proved the C++ forwarding API did not exist; `ThemeViewModel::handleWindowDragActive()` now owns the condition, `main.cpp` performs the window move, and focused GREEN verification passed `tst_viewmodels` 1/1. The C++ review also confirmed the prior Task 1 `numeric_limits` macro-safety note; parser bounds and the boundary test now use macro-safe `(std::numeric_limits<int>::min)()` and `(std::numeric_limits<int>::max)()` syntax, with `tst_serial_pipeline` passing 1/1.
-- **Formal Task 5 review follow-up:** The two new `QSignalSpy` assertions now use `spy.size()`; focused `qt-cpp-review` lint reports no `DEP-10` at those changed lines, and `tst_viewmodels` passes 1/1. Qt 6.11.1 `qmllint` was found at `/usr/lib/qt6/bin/qmllint`: module mode (`--module com.showcase -I build`) succeeds with zero warnings, while direct source-file mode exits 0 with 218 existing diagnostics across 13 QML files: 160 `unqualified`, 31 classic `PropertyChanges` syntax, 25 tooling-visible `missing-property`, and two unused-import infos. These diagnostics reflect the documented context-property architecture, implicit delegate/PathView data, and legacy QML style; no diagnostic has type `error`, and the only Task 5 QML line is the expected unqualified `ThemeController` context property at `Main.qml:82`.
-- **Fresh final verification:** After the formal review fixes, `cmake -S . -B build` exited 0 (the optional `WrapVulkanHeaders` probe remained unavailable); `cmake --build build -j2` exited 0 with no compiler warnings; and `ctest --test-dir build --output-on-failure` passed all 3/3 registered targets in 0.29 seconds: `tst_viewmodels`, `tst_music_playback`, and `tst_serial_pipeline`.
-- **Zero-JS and review evidence:** The exact union scan from `docs/testing_strategy.md` returned seven matches, each manually classified as a single-line `//` comment, with zero executable matches. The QML review covered all 13 QML files; its deterministic pass reported legacy style/performance advisories but no `JS_BAN`, direct `qmllint` produced warnings/info but no errors, and the semantic re-review found no remaining forbidden JavaScript or Simulator/Serial dependency. The C++ review covered the modified serial/music pipeline plus the mandatory `SimulatorService` timer path and the Task 5 forwarding fix; the parser macro-safety finding and new-test `DEP-10` findings were resolved, QObject ownership remained parented, timer/serial work remained GUI-thread confined, and no high-confidence defect remained in the Phase 17 changed lines.
-- **Smoke evidence:** `timeout 8s env QT_QPA_PLATFORM=offscreen ./build/QtStmAutomotiveSimulator` reached the event loop and exited 124 as expected. The only output was `pa_write() failed while trying to wake up the mainloop: Operation not permitted`, classified as a host audio-service warning; there were no QML load, type, binding, or source-swap errors.
-- **Remaining validation:** Physical STM32/USB-TTL field validation remains open separately and is not claimed by the software verification matrix.
-- **Final branch-review follow-up:** Added direct regressions for connected → resource-error/watchdog fallback and reconnect-open remaining disconnected until a valid frame. Headless music tests explicitly disable both multimedia and QSettings persistence; production construction keeps persistence enabled by default. Active workflow docs and the Phase 16 indicator spec now match the implemented architecture.
-- **Final re-review closure:** The active C++ review skill previously described obsolete length-prefixed UART framing. The documentation now records newline-delimited `TEL,<rpm>,<vbat>,<error>;<checksum>` records, and the bounded re-review reported no remaining high-confidence Critical or Important findings.
-- **Section-close verification:** On final HEAD, configure and the full `-j2` build exited 0; CTest passed all 3/3 registered targets in 0.30 seconds; module `qmllint` exited 0; the Zero-JS union scan returned seven comment-only matches and zero executable matches; merge-base-to-HEAD `git diff --check` was clean; and the 8-second offscreen smoke launch reached the event loop, exiting 124 with only the known host PulseAudio warning.
-
-## 2026-07-26
-
-### Phase 15: Drive Modes + Trip Computer
-- **Problem:** The cluster had no drive mode (static accent and hard-coded `COMFORT`) or odometer/trip, reducing its automotive depth; the `AGENTS.md` decision log also did not reflect the Phase 13/14 architecture.
-- **Decision 1 (two dedicated ViewModels):** `DriveModeViewModel` (chrome state using the same pattern as `VehicleModeViewModel`) and `TripComputerViewModel` (time-based integration) have distinct concerns and test strategies, consistent with One-ViewModel-per-Concern.
-- **Decision 2 (time injection):** `updateSpeed(double kmh, qint64 elapsedMs)` plus `QElapsedTimer::restart()` in the `main.cpp` telemetry lambda; `restart()` returns elapsed time and resets the clock in one call. Tests use pure arithmetic rather than wall clock time. The constructor accepts `maxDeltaMs = 1000` to clamp stale gaps during Serial ↔ Simulator source changes; the clock also restarts in `connectionStatusChanged`.
-- **Decision 3 (six accent variants):** The historical `accentCyan` token became a nested ternary for three drive modes × two themes, so existing component bindings receive the change automatically and the singleton `Behavior` supplies a 600 ms cross-fade. **SPORT uses orange `#FF7A00`/`#C25600`, not red**, to remain distinct from `warningRed` and the redline; ECO uses `#66FC8F`/`#1E8A4C`.
-- **Decision 4 (Zero-JS formatting):** `.toFixed()` and `.toUpperCase()` are forbidden in QML, so C++ provides formatted strings (`driveModeLabel`, `tripDisplay`, `odoDisplay`) following the `displaySpeed` precedent. The five TripComputer properties share one `tripChanged` notifier because they change together on every tick.
-- `gearSubText` binds to `DriveMode.driveModeLabel`; the Scooter state's `BATT %` override remains intact because `PropertyChanges` restores the original binding.
-- The `AGENTS.md` decision log was synchronized: State-Driven Layouts was marked IMPLEMENTED and five new decisions were recorded (One-ViewModel-per-Concern, Centralized Theme Ternaries, C++ Boot Choreography, Dip Transition Masking, and MultiEffect Sibling Source).
-
-### Phase 14: Vehicle Morphing (Bike / Scooter / Car)
-- **Problem:** The Product Vision pillar “morphs across form factors” had not been implemented: only a fixed Car layout existed and the repository had never used QML `States` or `Transitions`.
-- **Decision 1 (architecture):** A dedicated `VehicleModeViewModel` exposes the `VehicleMode` context property, `vehicleMode` string, and `cycleVehicleMode()` car → bike → scooter → car. This follows the decision-log rule that QML states bind to C++ string properties and the one-ViewModel-per-concern pattern. UART frames have no vehicle-type field, so this is UI-only state; the cycle control is disabled during boot (`enabled: !ThemeController.isBooting`) so the sweep cannot race a max-value change.
-- **Decision 2 (morph within an invariant frame):** The Double Arch bezel remains completely unchanged; only its contents morph. The `"car"` state is empty because base bindings are the Car layout, preserving pixel-identical startup. Classic `PropertyChanges` restores original bindings on state exit, so Bike's `bottomBar.opacity` override does not break the boot binding.
-- **Decision 3 (one state-rebound gauge):** The right arch uses one `NeonTickGauge`, changing `value: vm.rpm ↔ vm.battery` plus maximum value and tick count through state, rather than cross-fading two overlapping gauges and running two MultiEffect blooms. The Repeater's tick relabel is hidden by the dip transition: fade and scale both arches to zero → `PropertyAction` swaps while invisible → OutBack rise. Only opacity and scale animate, never width or height.
-- **Decision 4 (center swap):** `MusicPlayer` is not put in a Loader: it is the heaviest subtree, and unloading would reset the PathView during playback. Audio is C++-owned, so opacity plus `visible: opacity > 0` is sufficient and the MultiEffect stops rendering while invisible. The Scooter `RangeTripCard.qml` loads asynchronously with a Zero-JS unload seam: `active: VehicleMode.vehicleMode === "scooter" || opacity > 0`.
-- **Potential bug found:** `EnergyBlocks` was an Item with no implicit size (`0×0`), so it was invisible in a `Column`. The fix derives `implicitWidth` and `implicitHeight` from the inner Row, allowing the bottom bar and Scooter card to display the battery strip.
-- Spec/plan: `/home/buitanhung0411/.claude/plans/` (Phase 14); per-mode screenshots confirmed the invariant bezel in all three modes and both themes.
-- **Problem:** The cluster had only a fixed dark theme and an immediate startup, lacking automotive depth (self-test and gauge sweep) and a day mode.
-- **Decision 1 (architecture):** Create a dedicated `ThemeViewModel` (`ThemeController` context property) instead of placing it in `VehicleStatusViewModel`; UI chrome stays separate from telemetry and is reusable by Drive Modes and Vehicle Morphing. The boot timeline runs entirely in C++ (`QSequentialAnimationGroup` plus two `QVariantAnimation` legs, InOutQuad 900 ms each); the constructor accepts a duration so tests run in about 10 ms with `QSignalSpy` and `QTRY_COMPARE_WITH_TIMEOUT`.
-- **Decision 2 (theme):** `Theme.qml` color tokens became ternaries on `ThemeController.isNight`, with a centralized `Behavior { ColorAnimation }` in the singleton so the whole application cross-fades without changing components. Themed tokens cannot be `readonly` because a Behavior cannot attach to one. The Double Arch bezel remains the same in both themes through the new constant `bezelStroke` token, separated from the now-theme-dependent `textSecondary`; the Shape fill is the screen surface and still changes between dark and light.
-- **Decision 3 (boot):** QML only binds ternaries to `bootStage`, `isBooting`, and `bootProgress`: telltales all illuminate for the self-test, `NeonTickGauge.displayedValue` shows the sweep (`Behavior` enabled only when not booting, so it follows the C++ timeline), and the center panel plus bottom bar fade in at stage 2. `startBootSequence()` is idempotent and runs after `engine.loadFromModule`.
-- Spec: `docs/superpowers/specs/2026-07-26-day-night-theme-startup-animation-design.md`; plan: `docs/superpowers/plans/2026-07-26-day-night-theme-startup-animation.md`.
-- **Bug found during user testing (fixed):** `blurBackdrop` in `MusicPlayer.qml` used `MultiEffect { source: parent }`; the source contained the effect itself, creating recursive ShaderEffectSource capture. This was harmless on a static screen, but the 600 ms theme-toggle `ColorAnimation` repeatedly re-rendered the backdrop, accumulated blur in a feedback loop, covered both gauges with a pink field, and **froze permanently** after the animation stopped. The fix introduced a hidden `backdropSource` (`visible: false`) and used `MultiEffect { source: backdropSource }`, matching the `NeonIcon` and `NeonTickGauge` sibling-source pattern. **Rule learned: never point `MultiEffect.source` at an item that contains the effect itself.** The theme-toggle button also moved inside the `topBar` RowLayout so the four-icon group centers correctly; the previous external anchor shifted it right.
-
-### Completion of Phase 10 (Unit Tests) and Phase 12 (Functional Telltale Bar)
-- **Problem 1:** The final Phase 10 item referenced `updateRawTelemetry`, a method that did not exist; the actual `updateTelemetry` already had a test. The real gap was missing READ/WRITE/NOTIFY tests, required by `testing_strategy.md`, for `battery`, `range`, and `temperature`.
-- **Decision 1:** Add `testSetBattery`, `testSetRange`, and `testSetTemperature` to `tests/main.cpp` following the existing QSignalSpy pattern, and correct the task board to the actual method name.
-- **Problem 2:** The `DashboardScreen` top bar consisted of four decorative `Rectangle`s, only one of which used real data.
-- **Decision 2:** Replace them with three `NeonIcon` telltales bound to existing data: Warning (`isWarning`), Low Battery (`battery < 20`), and High Temperature (`temperature > 85`; the baseline temperature is 57 °C, but it lights when `ErrorInjection` simulates overheating). Turn signals and headlights were deliberately not added because they would require new backend properties; the user confirmed the scope should stay within existing data. No color token was added: `warningRed` and `textSecondary` are reused, and `NeonIcon` received `Behavior on opacity` for the smooth fade required by `ui_ux_guidelines.md`.
-
-## 2026-07-17
-
-### Documentation Architecture Update (Vibe Coding Optimization)
-- **Problem:** The Markdown structure was sound but lacked long-term memory mechanisms and explicit AI workflows.
-- **Decision:**
-  - Initialize this `journal.md` file as a chronological decision log.
-  - Keep the `> **AI Context**:` metadata structure because Gemini 3.1 Pro reads it very effectively without YAML's token cost.
-  - Create `.agents/workflows/` for multi-step procedures, beginning with `brainstorming.md`.
-  - Publish `DOCUMENTATION_STANDARDS.md` to standardize Markdown writing, including GFM alerts such as `> [!WARNING]` and explicit code-block identifiers.
+The repository baseline requires CMake configure, a full `-j2` build, all registered CTest
+targets, the repository Zero-JS scan, QML/C++ review workflows when applicable, and an offscreen
+smoke launch before completion claims.

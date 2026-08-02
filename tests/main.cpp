@@ -1,9 +1,8 @@
 #include <QtTest>
 #include <QCoreApplication>
+#include <QFile>
 #include "viewmodels/VehicleStatusViewModel.h"
 #include "viewmodels/ThemeViewModel.h"
-#include "viewmodels/VehicleModeViewModel.h"
-#include "viewmodels/DriveModeViewModel.h"
 #include "viewmodels/TripComputerViewModel.h"
 
 class TestViewModels : public QObject
@@ -15,6 +14,44 @@ public:
     ~TestViewModels() {}
 
 private slots:
+    void testApplicationGraphIsCarOnly() {
+        const QString cmakePath = QFINDTESTDATA("../CMakeLists.txt");
+        const QString mainPath = QFINDTESTDATA("../src/main.cpp");
+        const QString dashboardPath = QFINDTESTDATA("../qml/screens/DashboardScreen.qml");
+        QVERIFY(!cmakePath.isEmpty());
+        QVERIFY(!mainPath.isEmpty());
+        QVERIFY(!dashboardPath.isEmpty());
+
+        QFile cmakeFile(cmakePath);
+        QFile mainFile(mainPath);
+        QFile dashboardFile(dashboardPath);
+        QVERIFY(cmakeFile.open(QIODevice::ReadOnly | QIODevice::Text));
+        QVERIFY(mainFile.open(QIODevice::ReadOnly | QIODevice::Text));
+        QVERIFY(dashboardFile.open(QIODevice::ReadOnly | QIODevice::Text));
+
+        const QString cmake = QString::fromUtf8(cmakeFile.readAll());
+        const QString main = QString::fromUtf8(mainFile.readAll());
+        const QString dashboard = QString::fromUtf8(dashboardFile.readAll());
+        QVERIFY2(!cmake.contains("VehicleModeViewModel"), "VehicleMode must not be registered in CMake");
+        QVERIFY2(!cmake.contains("SafetyScenario"), "Safety Lab must not be registered in CMake");
+        QVERIFY2(!cmake.contains("CockpitContext"), "Context Rail must not be registered in CMake");
+        QVERIFY2(!cmake.contains("VehicleDiagnostics"), "Diagnostics must not be registered in CMake");
+        QVERIFY2(!cmake.contains("DriveMode"), "Drive Mode must not be registered in CMake");
+        QVERIFY2(!main.contains("VehicleMode"), "VehicleMode must not be constructed or exposed");
+        QVERIFY2(!main.contains("SafetyScenario"), "Safety Lab must not be constructed or exposed");
+        QVERIFY2(!main.contains("CockpitContext"), "Context Rail must not be constructed or exposed");
+        QVERIFY2(!main.contains("VehicleDiagnostics"), "Diagnostics must not be constructed or exposed");
+        QVERIFY2(!main.contains("DriveMode"), "Drive Mode must not be constructed or exposed");
+        QVERIFY2(!main.contains("bootStage"), "Boot choreography must not be exposed");
+        QVERIFY2(!main.contains("bootProgress"), "Boot choreography must not be exposed");
+        QVERIFY2(!dashboard.contains("VehicleMode"), "Dashboard must not contain vehicle-mode branching");
+        QVERIFY2(!dashboard.contains("RangeTripCard"), "Dashboard must not load Scooter content");
+        QVERIFY2(!dashboard.contains("SafetyScenario"), "Dashboard must not contain Safety Lab UI");
+        QVERIFY2(!dashboard.contains("CockpitContext"), "Dashboard must not contain Context Rail UI");
+        QVERIFY2(!dashboard.contains("VehicleDiagnostics"), "Dashboard must not contain Diagnostics UI");
+        QVERIFY2(!dashboard.contains("DriveMode"), "Dashboard must not contain Drive Mode UI");
+    }
+
     void testInitialValues() {
         VehicleStatusViewModel vm;
         QCOMPARE(vm.speed(), 0.0);
@@ -128,9 +165,6 @@ private slots:
     void testThemeDefaultIsNight() {
         ThemeViewModel theme;
         QCOMPARE(theme.isNight(), true);
-        QCOMPARE(theme.bootStage(), 0);
-        QCOMPARE(theme.isBooting(), true);
-        QCOMPARE(theme.bootProgress(), 0.0);
     }
 
     void testToggleTheme() {
@@ -155,119 +189,6 @@ private slots:
 
         theme.handleWindowDragActive(true);
         QCOMPARE(spy.size(), 1);
-    }
-
-    void testBootSequence() {
-        ThemeViewModel theme(10); // 10 ms per sweep leg -> full boot ~20 ms
-        QSignalSpy stageSpy(&theme, &ThemeViewModel::bootStageChanged);
-
-        qreal maxProgress = 0.0;
-        connect(&theme, &ThemeViewModel::bootProgressChanged, this, [&]() {
-            maxProgress = qMax(maxProgress, theme.bootProgress());
-        });
-
-        theme.startBootSequence();
-        QCOMPARE(theme.bootStage(), 1);
-
-        QTRY_COMPARE_WITH_TIMEOUT(theme.bootStage(), 2, 2000);
-        QCOMPARE(theme.isBooting(), false);
-        QVERIFY(maxProgress > 0.9);
-        QCOMPARE(theme.bootProgress(), 0.0);
-        QCOMPARE(stageSpy.count(), 2); // 0->1 and 1->2
-    }
-
-    void testBootSequenceIsIdempotent() {
-        ThemeViewModel theme(10);
-        QSignalSpy stageSpy(&theme, &ThemeViewModel::bootStageChanged);
-
-        theme.startBootSequence();
-        theme.startBootSequence(); // must be a no-op
-
-        QTRY_COMPARE_WITH_TIMEOUT(theme.bootStage(), 2, 2000);
-        QCOMPARE(stageSpy.count(), 2);
-    }
-
-    void testToggleDuringBoot() {
-        ThemeViewModel theme(50);
-        theme.startBootSequence();
-        QCOMPARE(theme.bootStage(), 1);
-
-        theme.toggleTheme(); // theme and boot are independent
-        QCOMPARE(theme.isNight(), false);
-
-        QTRY_COMPARE_WITH_TIMEOUT(theme.bootStage(), 2, 2000);
-        QCOMPARE(theme.isNight(), false);
-    }
-
-    // --- VehicleModeViewModel (Phase 14) ---
-
-    void testVehicleModeDefaultIsCar() {
-        VehicleModeViewModel mode;
-        QCOMPARE(mode.vehicleMode(), QString("car"));
-    }
-
-    void testCycleVehicleMode() {
-        VehicleModeViewModel mode;
-        QSignalSpy spy(&mode, &VehicleModeViewModel::vehicleModeChanged);
-
-        mode.cycleVehicleMode();
-        QCOMPARE(mode.vehicleMode(), QString("bike"));
-        QCOMPARE(spy.count(), 1);
-
-        mode.cycleVehicleMode();
-        QCOMPARE(mode.vehicleMode(), QString("scooter"));
-        QCOMPARE(spy.count(), 2);
-
-        mode.cycleVehicleMode();
-        QCOMPARE(mode.vehicleMode(), QString("car"));
-        QCOMPARE(spy.count(), 3);
-    }
-
-    void testCycleVehicleModeWrapsRepeatedly() {
-        VehicleModeViewModel mode;
-        QSignalSpy spy(&mode, &VehicleModeViewModel::vehicleModeChanged);
-
-        mode.cycleVehicleMode(); mode.cycleVehicleMode(); mode.cycleVehicleMode();
-        mode.cycleVehicleMode(); mode.cycleVehicleMode(); mode.cycleVehicleMode();
-        QCOMPARE(mode.vehicleMode(), QString("car"));
-        QCOMPARE(spy.count(), 6);
-    }
-
-    // --- DriveModeViewModel (Phase 15) ---
-
-    void testDriveModeDefaultIsNormal() {
-        DriveModeViewModel mode;
-        QCOMPARE(mode.driveMode(), QString("normal"));
-        QCOMPARE(mode.driveModeLabel(), QString("NORMAL"));
-    }
-
-    void testCycleDriveMode() {
-        DriveModeViewModel mode;
-        QSignalSpy spy(&mode, &DriveModeViewModel::driveModeChanged);
-
-        mode.cycleDriveMode();
-        QCOMPARE(mode.driveMode(), QString("sport"));
-        QCOMPARE(mode.driveModeLabel(), QString("SPORT"));
-        QCOMPARE(spy.count(), 1);
-
-        mode.cycleDriveMode();
-        QCOMPARE(mode.driveMode(), QString("eco"));
-        QCOMPARE(mode.driveModeLabel(), QString("ECO"));
-        QCOMPARE(spy.count(), 2);
-
-        mode.cycleDriveMode();
-        QCOMPARE(mode.driveMode(), QString("normal"));
-        QCOMPARE(spy.count(), 3);
-    }
-
-    void testCycleDriveModeWrapsRepeatedly() {
-        DriveModeViewModel mode;
-        QSignalSpy spy(&mode, &DriveModeViewModel::driveModeChanged);
-
-        mode.cycleDriveMode(); mode.cycleDriveMode(); mode.cycleDriveMode();
-        mode.cycleDriveMode(); mode.cycleDriveMode(); mode.cycleDriveMode();
-        QCOMPARE(mode.driveMode(), QString("normal"));
-        QCOMPARE(spy.count(), 6);
     }
 
     // --- TripComputerViewModel (Phase 15) ---

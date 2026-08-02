@@ -11,7 +11,10 @@ Item {
     id: root
 
     StackLayout {
-        anchors.fill: parent
+        anchors {
+            fill: parent
+            topMargin: Theme.spaceXl + 24 + Theme.spaceSm
+        }
         currentIndex: CenterHubController.activePage
 
         MusicPlayer {
@@ -23,6 +26,59 @@ Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
         }
+
+    }
+
+    RowLayout {
+        spacing: Theme.spaceSm
+        anchors {
+            top: parent.top
+            horizontalCenter: parent.horizontalCenter
+            topMargin: Theme.spaceMd
+        }
+
+        Rectangle {
+            radius: Theme.radiusSm
+            color: CenterHubController.activePage === 0 ? Theme.accentCyan : Theme.trackInactive
+            border.color: Theme.glassPanelBorder
+            border.width: 1
+            Layout.preferredWidth: 70
+            Layout.preferredHeight: 24
+
+            Text {
+                anchors.centerIn: parent
+                text: "MUSIC"
+                color: CenterHubController.activePage === 0 ? Theme.textOnAccent : Theme.textSecondary
+                font { family: Theme.fontMain; pixelSize: Theme.textXs; bold: true }
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                onClicked: CenterHubController.selectPage(0)
+            }
+        }
+
+        Rectangle {
+            radius: Theme.radiusSm
+            color: CenterHubController.activePage === 1 ? Theme.accentCyan : Theme.trackInactive
+            border.color: Theme.glassPanelBorder
+            border.width: 1
+            Layout.preferredWidth: 70
+            Layout.preferredHeight: 24
+
+            Text {
+                anchors.centerIn: parent
+                text: "PARK"
+                color: CenterHubController.activePage === 1 ? Theme.textOnAccent : Theme.textSecondary
+                font { family: Theme.fontMain; pixelSize: Theme.textXs; bold: true }
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                onClicked: CenterHubController.selectPage(1)
+            }
+        }
+
     }
 
     // The hub owns horizontal navigation; child MouseAreas still receive clicks,

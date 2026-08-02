@@ -22,27 +22,24 @@ Item {
             Layout.preferredHeight: 28
             source: "qrc:/qt/qml/com/showcase/resources/icons/warning-triangle.svg"
             sourceSize: Qt.size(28, 28)
-            colorizationColor: ThemeController.isBooting ? Theme.warningRed
-                               : (vm.isWarning ? Theme.warningRed : Theme.textSecondary)
-            opacity: ThemeController.isBooting ? 1.0 : (vm.isWarning ? 1.0 : 0.2)
+            colorizationColor: vm.isWarning ? Theme.warningRed : Theme.textSecondary
+            opacity: vm.isWarning ? 1.0 : 0.2
         }
         NeonIcon {
             Layout.preferredWidth: 28
             Layout.preferredHeight: 28
             source: "qrc:/qt/qml/com/showcase/resources/icons/battery-low.svg"
             sourceSize: Qt.size(28, 28)
-            colorizationColor: ThemeController.isBooting ? Theme.warningRed
-                               : (vm.battery < 20 ? Theme.warningRed : Theme.textSecondary)
-            opacity: ThemeController.isBooting ? 1.0 : (vm.battery < 20 ? 1.0 : 0.2)
+            colorizationColor: vm.battery < 20 ? Theme.warningRed : Theme.textSecondary
+            opacity: vm.battery < 20 ? 1.0 : 0.2
         }
         NeonIcon {
             Layout.preferredWidth: 28
             Layout.preferredHeight: 28
             source: "qrc:/qt/qml/com/showcase/resources/icons/temperature-high.svg"
             sourceSize: Qt.size(28, 28)
-            colorizationColor: ThemeController.isBooting ? Theme.warningRed
-                               : (vm.temperature > 85 ? Theme.warningRed : Theme.textSecondary)
-            opacity: ThemeController.isBooting ? 1.0 : (vm.temperature > 85 ? 1.0 : 0.2)
+            colorizationColor: vm.temperature > 85 ? Theme.warningRed : Theme.textSecondary
+            opacity: vm.temperature > 85 ? 1.0 : 0.2
         }
 
         // Theme toggle — icon shows the mode you will switch TO
@@ -57,54 +54,6 @@ Item {
             onClicked: ThemeController.toggleTheme()
         }
 
-        // Vehicle morph cycle — icon shows the mode you will switch TO
-        NeonIconButton {
-            Layout.preferredWidth: 28
-            Layout.preferredHeight: 28
-            enabled: !ThemeController.isBooting
-            opacity: enabled ? 1.0 : 0.4
-            source: VehicleMode.vehicleMode === "car"
-                    ? "qrc:/qt/qml/com/showcase/resources/icons/vehicle-bike.svg"
-                    : VehicleMode.vehicleMode === "bike"
-                      ? "qrc:/qt/qml/com/showcase/resources/icons/vehicle-scooter.svg"
-                      : "qrc:/qt/qml/com/showcase/resources/icons/vehicle-car.svg"
-            sourceSize: Qt.size(28, 28)
-            defaultColor: Theme.textSecondary
-            onClicked: VehicleMode.cycleVehicleMode()
-        }
-
-        // Drive mode cycle — icon shows the mode you will switch TO
-        NeonIconButton {
-            Layout.preferredWidth: 28
-            Layout.preferredHeight: 28
-            source: DriveMode.driveMode === "normal"
-                    ? "qrc:/qt/qml/com/showcase/resources/icons/drive-sport.svg"
-                    : DriveMode.driveMode === "sport"
-                      ? "qrc:/qt/qml/com/showcase/resources/icons/drive-eco.svg"
-                      : "qrc:/qt/qml/com/showcase/resources/icons/drive-normal.svg"
-            sourceSize: Qt.size(28, 28)
-            defaultColor: Theme.textSecondary
-            onClicked: DriveMode.cycleDriveMode()
-        }
-
-        NeonIconButton {
-            enabled: SafetyScenario.canStart && !ThemeController.isBooting
-            opacity: enabled ? 1.0 : 0.4
-            source: "qrc:/qt/qml/com/showcase/resources/icons/safety-lab.svg"
-            sourceSize: Qt.size(28, 28)
-            defaultColor: Theme.textSecondary
-            Layout.preferredWidth: 28
-            Layout.preferredHeight: 28
-            onClicked: SafetyScenario.startDemo()
-        }
-    }
-
-    CockpitContextRail {
-        anchors {
-            top: topBar.bottom
-            topMargin: Theme.spaceLg
-            horizontalCenter: parent.horizontalCenter
-        }
     }
 
     // Main 3-Panel Layout
@@ -164,47 +113,21 @@ Item {
         Item {
             id: centerPanel
             anchors.verticalCenter: parent.verticalCenter
-            // The rail reserves top chrome; gauge centres retain their baseline positions.
-            anchors.verticalCenterOffset: -Theme.panelLift + Theme.contextRailClearance
+            // Gauge centres retain their baseline positions within the bezel.
+            anchors.verticalCenterOffset: -Theme.panelLift
             height: 450
             anchors.left: leftPanel.right
             anchors.right: rightPanel.left
             anchors.leftMargin: Theme.centerPanelGap
             anchors.rightMargin: Theme.centerPanelGap
             z: -1 // Push slightly behind the gauges to create depth and prevent overlapping the glowing ticks
-            opacity: ThemeController.bootStage < 2 ? 0.0 : 1.0
-            Behavior on opacity { NumberAnimation { duration: Theme.durationSlow } }
 
             CenterHub {
                 id: centerHub
                 anchors.fill: parent
                 anchors.margins: 10
-                opacity: SafetyScenario.presentationVisible ? 0.0 : 1.0
-                visible: opacity > 0
-
-                Behavior on opacity {
-                    NumberAnimation {
-                        duration: Theme.durationNormal
-                    }
-                }
             }
 
-            SafetyScenarioOverlay {
-                anchors.fill: parent
-                anchors.margins: 10
-            }
-
-            // Card Range/Trip cho Scooter — Loader tự unload sau khi fade xong (Zero-JS)
-            Loader {
-                id: scooterCard
-                anchors.fill: parent
-                anchors.margins: Theme.spaceXXl
-                asynchronous: true
-                opacity: 0
-                visible: opacity > 0
-                active: VehicleMode.vehicleMode === "scooter" || opacity > 0
-                source: "../components/RangeTripCard.qml"
-            }
         }
 
         // Right Panel (Gear/RPM)
@@ -219,11 +142,9 @@ Item {
             anchors.left: parent.left
             anchors.leftMargin: Theme.gaugeInsetRight - width / 2
 
-            // Nhóm gauge RPM/Battery + chữ giữa — ẩn nguyên khối ở chế độ Bike
+            // Car RPM gauge and gear display.
             Item {
-                id: rightGaugeGroup
                 anchors.fill: parent
-                visible: opacity > 0
 
                 NeonTickGauge {
                     id: rightGauge
@@ -254,7 +175,7 @@ Item {
                     Text {
                         id: gearSubText
                         anchors.horizontalCenter: parent.horizontalCenter
-                        text: DriveMode.driveModeLabel
+                        text: "GEAR"
                         color: Theme.accentCyan
                         font.family: Theme.fontMain
                         font.pixelSize: Theme.textSm
@@ -263,39 +184,12 @@ Item {
                 }
             }
 
-            // Hiển thị % pin lớn cho chế độ Bike (thay gauge phải)
-            Column {
-                id: bikeBatteryDisplay
-                anchors.centerIn: parent
-                spacing: 0
-                opacity: 0
-                visible: opacity > 0
-                scale: 0.85
-
-                GlowingText {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    text: vm.battery + "%"
-                    font.pixelSize: Theme.displayLg
-                    glowColor: vm.battery < 20 ? Theme.warningRed : Theme.accentCyan
-                    color: Theme.textPrimary
-                }
-                Text {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    text: "BATTERY"
-                    color: Theme.textSecondary
-                    font.family: Theme.fontMain
-                    font.pixelSize: Theme.textMd
-                    font.letterSpacing: 2
-                }
-            }
         }
     }
 
     // Bottom Bar (Battery, Range, Temp)
     RowLayout {
         id: bottomBar
-        opacity: ThemeController.bootStage < 2 ? 0.0 : 1.0
-        Behavior on opacity { NumberAnimation { duration: Theme.durationSlow } }
         anchors.bottom: parent.bottom
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottomMargin: 80
@@ -377,71 +271,4 @@ Item {
         }
     }
 
-    // ── Vehicle Morphing: State-Driven Layouts (Decision Log) ──
-    // State "car" rỗng = base bindings chính là layout Car.
-    // PropertyChanges tự khôi phục binding gốc khi rời state.
-    state: VehicleMode.vehicleMode
-
-    states: [
-        State { name: "car" },
-
-        State {
-            name: "scooter"
-            PropertyChanges {
-                target: speedGauge
-                maxValue: 120
-                tickCount: 60
-                majorTickInterval: 10
-            }
-            PropertyChanges {
-                target: rightGauge
-                value: vm.battery
-                maxValue: 100
-                tickCount: 50
-                majorTickInterval: 10
-                redlineValue: -1
-            }
-            PropertyChanges { target: gearText; text: vm.battery }
-            PropertyChanges { target: gearSubText; text: "BATT %" }
-            PropertyChanges { target: centerHub; opacity: 0 }
-            PropertyChanges { target: scooterCard; opacity: 1 }
-        },
-
-        State {
-            name: "bike"
-            PropertyChanges {
-                target: speedGauge
-                maxValue: 60
-                tickCount: 60
-                majorTickInterval: 10
-            }
-            PropertyChanges { target: rightGaugeGroup; opacity: 0 }
-            PropertyChanges { target: bikeBatteryDisplay; opacity: 1; scale: 1.0 }
-            PropertyChanges { target: centerHub; opacity: 0 }
-            PropertyChanges { target: bottomBar; opacity: 0 }
-        }
-    ]
-
-    transitions: [
-        Transition {
-            SequentialAnimation {
-                // Pha A — "dip": chìm 2 vòm gauge để che khoảnh khắc relabel tick
-                ParallelAnimation {
-                    NumberAnimation { targets: [leftPanel, rightPanel]; property: "opacity"; to: 0.0; duration: Theme.durationNormal; easing.type: Easing.InQuad }
-                    NumberAnimation { targets: [leftPanel, rightPanel]; property: "scale"; to: 0.94; duration: Theme.durationNormal; easing.type: Easing.InQuad }
-                }
-                // Pha B — áp thay đổi tức thời khi đang ẩn
-                PropertyAction { targets: [speedGauge, rightGauge]; properties: "maxValue,tickCount,majorTickInterval,redlineValue,value" }
-                PropertyAction { targets: [gearText, gearSubText]; property: "text" }
-                PropertyAction { targets: [rightGaugeGroup, bikeBatteryDisplay]; property: "opacity" }
-                PropertyAction { target: bikeBatteryDisplay; property: "scale" }
-                // Pha C — nổi trở lại + cross-fade center/bottom song song
-                ParallelAnimation {
-                    NumberAnimation { targets: [leftPanel, rightPanel]; property: "opacity"; to: 1.0; duration: Theme.durationSlow; easing.type: Easing.OutCubic }
-                    NumberAnimation { targets: [leftPanel, rightPanel]; property: "scale"; to: 1.0; duration: Theme.durationSlow; easing.type: Easing.OutBack }
-                    NumberAnimation { targets: [centerHub, scooterCard, bottomBar]; property: "opacity"; duration: Theme.durationSlow; easing.type: Easing.OutQuad }
-                }
-            }
-        }
-    ]
 }

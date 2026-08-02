@@ -97,11 +97,8 @@ Item {
                     opacity: PathView.itemOpacity
                     z: PathView.itemZ
 
-                    // Expose properties to avoid binding errors
-                    property string songTitle: model.title
-                    property string songArtist: model.artist
+                    // Expose the roles used by the backdrop and cover image.
                     property string coverColor1: model.color1
-                    property string coverColor2: model.color2
                     property string coverArt: model.coverArt !== undefined ? model.coverArt : ""
 
                     // Base container for the cover (rotates when playing)

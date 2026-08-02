@@ -1,4 +1,4 @@
-# Archived: Pre-Feature Baseline Repair Implementation Plan
+# Pre-Feature Baseline Repair Implementation Reference
 
-> Status: historical repair plan retained after the baseline cleanup was completed.
+> Status: reference for the implemented baseline cleanup.
 This plan captured the baseline repair pass that reconciled runtime behavior, tests, and docs.

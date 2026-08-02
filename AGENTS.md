@@ -36,7 +36,7 @@ Depending on the task, you MUST fetch and read the corresponding context:
 > **AI Context**: High-level product requirements and architectural decisions for the QtStmAutomotiveSimulator.
 
 ### Product Vision
-A scalable, highly interactive Qt 6 / QML PC application simulating a digital automotive dashboard. It morphs across Bike, Scooter, and Car modes with fluid animations, backed by a robust C++ engine that accepts UART telemetry.
+A scalable Qt 6 / QML PC application presenting a single digital Car dashboard, backed by a robust C++ engine that accepts UART telemetry.
 
 **🎨 Design Inspiration**: We are building a "Neon Cyberpunk" UI shell. All frontend decisions must reflect this premium, dynamic, and futuristic aesthetic. Use `resources/media/dashboard-preview.png` as the canonical reference currently present in the repository.
 
@@ -54,7 +54,6 @@ A scalable, highly interactive Qt 6 / QML PC application simulating a digital au
 |---|---|
 | **MVVM + Q_PROPERTY** | Best way to enforce "Zero JS in QML". C++ acts as ViewModel, QML acts as a pure reactive view. |
 | **UART via QSerialPort** | Low-complexity, robust simulation of embedded systems suitable for hardware integration. |
-| **State-Driven Layouts** | IMPLEMENTED (Phase 14): `DashboardScreen` root `state` bound to `VehicleMode.vehicleMode` (car/scooter/bike) — QML `States` + classic `PropertyChanges` (auto-restores original bindings on state exit). |
 | **Runtime Hardware Fallback** | Dependency Injection in `main.cpp` attempts to open `SerialService` first. If hardware is disconnected, it instantly falls back to `SimulatorService` at runtime, ensuring UI continuity. |
 | **Watchdog & Auto-Reconnect** | `SerialService` publishes a disconnected transition after stale input or a resource error. `main.cpp` activates `SimulatorService` fallback, while `SerialService`'s reconnect timer retries the port every 2000 ms. |
 | **Double Arch Glass Frame** | Application runs as a Frameless Transparent Window (`Qt.FramelessWindowHint`). A `Shape` with a precise `PathSvg` acts as the custom hardware bezel, preserving the compact original "Double Arch / Binocular" physical dashboard silhouette. |
@@ -64,19 +63,15 @@ A scalable, highly interactive Qt 6 / QML PC application simulating a digital au
 | **Declarative Bezel Alignment** | `DashboardScreen` uses robust `anchors` and centralized `Theme.qml` geometry tokens (`bezelArchLeftX`, `bezelArchRightX`, `gaugeInsetLeft`, `gaugeInsetRight`, and the baseline `centerPanelGap`) to keep the compact gauge/CenterHub composition aligned with the `PathSvg` bezel. |
 | **Async Media Scanning** | Use `QThread` with `QDirIterator` (Worker Object pattern) in C++ to scan OS directories without blocking the QML Render Thread. |
 | **C++ Audio Playback** | `QMediaPlayer` is managed entirely within `MusicPlayerViewModel`. Playback state and progress are exposed to QML via `Q_PROPERTY` to ensure Zero JS. |
-| **Rear Parking Assist** | `MockParkingSensorService` emits one bounded ultrasonic distance sample and reverse state to `ParkingAssistViewModel`; `CenterHubViewModel` keeps Music visible during clear/caution, auto-selects Parking Assist only for a live critical sample below 30 cm, and also accepts a C++-owned horizontal drag between the two tabs. The ViewModel owns hysteresis, live/stale/unavailable health, formatted distance, `proximityProgress` (`0.0..1.0`), and `proximitySegments` (`0..8`) so passive QML only renders the state. A critical live sample always overrides a manual request to hide the warning. Future STM32 input must provide the same high-level sample boundary; no camera, raw echo timing, or sensor parsing belongs in QML. |
-| **Independent Mock-only Cyber Safety Lab** | `MockSafetyScenarioService` drives a deterministic script through `SafetyScenarioViewModel` into a passive overlay. A C++ gate allows presentation only in Car mode while Parking Assist is not critical, and stops the lab when that condition is lost. The lab never mutates UART, telemetry, or CenterHub navigation; it continuously states `DEMO ONLY — NO REAL SENSOR / NO VEHICLE CONTROL`. |
-| **Cockpit Context Rail** | `CockpitContextViewModel` derives five compact labels from existing chrome, Safety, Parking, and serial connection status. `CockpitContextRail` is passive, non-interactive, token-only, boot-gated, and present in every vehicle mode. |
-| **One-ViewModel-per-Concern** | UI chrome state lives in dedicated small VMs (`ThemeViewModel`, `VehicleModeViewModel`, …) with their own context properties — independent lifecycles, focused TDD, never mixed into telemetry (`VehicleStatusViewModel`). |
+| **Rear Parking Assist** | `MockParkingSensorService` emits one bounded ultrasonic distance sample and reverse state to `ParkingAssistViewModel`; `CenterHubViewModel` keeps Music visible during clear/caution, auto-selects Parking Assist only for a live critical sample below 30 cm, and also accepts C++-owned horizontal navigation among CenterHub pages. The ViewModel owns hysteresis, live/stale/unavailable health, formatted distance, `proximityProgress` (`0.0..1.0`), and `proximitySegments` (`0..8`) so passive QML only renders the state. A critical live sample always overrides a manual request to hide the warning. Future STM32 input must provide the same high-level sample boundary; no camera, raw echo timing, or sensor parsing belongs in QML. |
+| **Focused ViewModels** | Retained concerns use small context VMs (`ThemeViewModel`, `TripComputerViewModel`, `ParkingAssistViewModel`, and `CenterHubViewModel`) with independent lifecycles; telemetry remains separate in `VehicleStatusViewModel`. |
 | **Centralized Theme Ternaries** | `Theme.qml` color tokens are ternaries on chrome VMs (`ThemeController.isNight`, …) with `Behavior { ColorAnimation }` declared INSIDE the singleton — the whole app cross-fades with zero per-component changes. |
-| **C++-Driven Boot Choreography** | Startup sequence (`bootStage`/`bootProgress`) is a `QSequentialAnimationGroup` timeline in `ThemeViewModel`; QML only binds ternaries (telltale self-test → gauge sweep → content fade-in). |
-| **Dip Transition Masking** | Layout morphs use a sequential transition: fade+scale both arches to 0 → `PropertyAction` applies swaps while invisible → OutBack rise. Only `opacity`/`scale` are ever animated (never width/height on complex subtrees). |
 | **MultiEffect Sibling Source** | NEVER capture an ancestor that contains the same `MultiEffect` (for example `source: parent`) because recursive capture freezes accumulated frames. Use a non-recursive sibling source; hide it only when it exists solely as the effect input. Visible gauge-tick siblings are valid sources. |
 
 ## 6. Project Layout (Do not deviate without reason)
 ```text
-src/viewmodels/   src/services/  (flat: SimulatorService, SerialService, SerialTelemetryParser, TelemetryMapper, MockScenarioEngine, MusicScanner, MockParkingSensorService, MockSafetyScenarioService)
-src/viewmodels/  (flat: VehicleStatusViewModel, MusicPlayerViewModel, ThemeViewModel, VehicleModeViewModel, DriveModeViewModel, TripComputerViewModel, ParkingAssistViewModel, CenterHubViewModel, SafetyScenarioViewModel, CockpitContextViewModel)
+src/viewmodels/   src/services/  (flat: SimulatorService, SerialService, SerialTelemetryParser, TelemetryMapper, MockScenarioEngine, MusicScanner, MockParkingSensorService)
+src/viewmodels/  (flat: VehicleStatusViewModel, MusicPlayerViewModel, ThemeViewModel, TripComputerViewModel, ParkingAssistViewModel, CenterHubViewModel)
 qml/components/   qml/screens/   resources/   docs/   .agents/
 ```
 

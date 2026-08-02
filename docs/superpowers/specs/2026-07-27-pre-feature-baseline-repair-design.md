@@ -1,4 +1,4 @@
-# Archived: Pre-Feature Baseline Repair Design
+# Pre-Feature Baseline Repair Design Reference
 
-> Status: historical repair spec retained after the baseline cleanup was completed.
+> Status: reference for the implemented baseline cleanup.
 This spec captured the baseline reconciliation work for telemetry, tests, and docs.

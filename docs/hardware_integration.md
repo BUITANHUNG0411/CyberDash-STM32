@@ -93,10 +93,10 @@ high-level sample boundary is `distanceCm` plus `reverseActive`; the ViewModel a
 integer distances from `1` through `250` cm and marks the sensor unavailable after one second
 without a valid update while reverse is active. It applies hysteresis around the Clear/Caution and
 Caution/Stop boundaries, reports `LIVE`, `STALE`, or `UNAVAILABLE`, and requests the CenterHub
-Parking Assist page only for a live sample below `30` cm. The CenterHub also exposes a
-transport-independent manual horizontal page gesture; it changes presentation state only and
-does not alter the ultrasonic sample contract. A live critical sample takes precedence over a
-manual request to return to Music.
+Parking Assist page only for a live sample below `30` cm. The CenterHub also exposes
+transport-independent page navigation for Music and Distance Warning; it changes presentation
+state only and does not alter the ultrasonic sample contract. A live critical sample takes
+precedence over a manual request to show Music.
 
 The STM32F103 should later measure echo timing and convert it to centimetres on the MCU or in a
 dedicated C++ adapter before emitting a validated high-level sample. No camera stream, raw echo

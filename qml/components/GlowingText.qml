@@ -9,7 +9,6 @@ Item {
     property alias color: label.color
     property color glowColor: Theme.accentCyan
     property real glowRadius: Theme.radiusSm
-    property real glowSpread: 0.2
 
     implicitWidth: label.implicitWidth
     implicitHeight: label.implicitHeight

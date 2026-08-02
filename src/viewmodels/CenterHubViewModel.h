@@ -11,9 +11,9 @@ class CenterHubViewModel final : public QObject
     Q_PROPERTY(int activePage READ activePage NOTIFY activePageChanged)
 
 public:
-    enum Page {
+    enum Page : int {
         MusicPage = 0,
-        ParkingPage = 1
+        ParkingPage = 1,
     };
     Q_ENUM(Page)
 
@@ -33,6 +33,7 @@ private:
     void updateActivePage();
 
     ParkingAssistViewModel *m_parkingAssist;
+    int m_requestedPage = MusicPage;
     int m_activePage = MusicPage;
     bool m_swipeActive = false;
     qreal m_swipeTranslation = 0.0;

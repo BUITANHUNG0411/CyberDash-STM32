@@ -31,10 +31,8 @@ qt_add_executable(${PROJECT_NAME}
     src/services/TelemetryMapper.cpp
     src/services/MusicScanner.cpp
     src/services/MockParkingSensorService.cpp
-    src/services/MockSafetyScenarioService.cpp
     src/viewmodels/ParkingAssistViewModel.cpp
     src/viewmodels/CenterHubViewModel.cpp
-    src/viewmodels/SafetyScenarioViewModel.cpp
 )
 
 set_source_files_properties(qml/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
@@ -52,11 +50,8 @@ qt_add_qml_module(${PROJECT_NAME}
         qml/components/GlassPanel.qml
         qml/components/NeonIcon.qml
         qml/components/NeonIconButton.qml
-        qml/components/RangeTripCard.qml
         qml/components/CenterHub.qml
-        qml/components/CockpitContextRail.qml
         qml/components/ParkingAssistView.qml
-        qml/components/SafetyScenarioOverlay.qml
         qml/screens/DashboardScreen.qml
     RESOURCES
         resources/icons/play.svg
@@ -71,13 +66,6 @@ qt_add_qml_module(${PROJECT_NAME}
         resources/icons/temperature-high.svg
         resources/icons/theme-day.svg
         resources/icons/theme-night.svg
-        resources/icons/vehicle-car.svg
-        resources/icons/vehicle-scooter.svg
-        resources/icons/vehicle-bike.svg
-        resources/icons/drive-eco.svg
-        resources/icons/drive-normal.svg
-        resources/icons/drive-sport.svg
-        resources/icons/safety-lab.svg
     SOURCES
         src/viewmodels/VehicleStatusViewModel.h
         src/viewmodels/VehicleStatusViewModel.cpp
@@ -85,20 +73,12 @@ qt_add_qml_module(${PROJECT_NAME}
         src/viewmodels/MusicPlayerViewModel.cpp
         src/viewmodels/ThemeViewModel.h
         src/viewmodels/ThemeViewModel.cpp
-        src/viewmodels/VehicleModeViewModel.h
-        src/viewmodels/VehicleModeViewModel.cpp
-        src/viewmodels/DriveModeViewModel.h
-        src/viewmodels/DriveModeViewModel.cpp
         src/viewmodels/TripComputerViewModel.h
         src/viewmodels/TripComputerViewModel.cpp
         src/viewmodels/ParkingAssistViewModel.h
         src/viewmodels/ParkingAssistViewModel.cpp
         src/viewmodels/CenterHubViewModel.h
         src/viewmodels/CenterHubViewModel.cpp
-        src/viewmodels/CockpitContextViewModel.h
-        src/viewmodels/CockpitContextViewModel.cpp
-        src/services/MockSafetyScenarioService.h
-        src/viewmodels/SafetyScenarioViewModel.h
 )
 
 target_link_libraries(${PROJECT_NAME}

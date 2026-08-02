@@ -44,7 +44,7 @@ class MusicPlayerViewModel : public QAbstractListModel
     Q_PROPERTY(float scrubberRatio READ scrubberRatio NOTIFY scrubberStateChanged)
 
 public:
-    enum SongRoles {
+    enum SongRoles : int {
         TitleRole = Qt::UserRole + 1,
         ArtistRole,
         AlbumRole,

@@ -1,6 +1,6 @@
 # Vibe Coding Documentation Standards
 
-> **AI Context**: Tool-neutral Markdown structure standards for active project guides and historical workflow artifacts, designed for reliable parsing by AI agents and human contributors.
+> **AI Context**: Tool-neutral Markdown structure standards for canonical project guides and workflow artifacts, designed for reliable parsing by AI agents and human contributors.
 
 ## 1. Structure for Active Guides
 Every active guide in `docs/` MUST adhere to the following format:
@@ -24,9 +24,14 @@ Every active guide in `docs/` MUST adhere to the following format:
    - Every opening code fence MUST declare its language explicitly.
    - Use tags such as `cpp`, `qml`, `cmake`, `bash`, `text`, or `mermaid`. Never leave an opening fence untagged.
 
-## 2. Historical Specifications and Plans
+## 2. Canonical Documentation Hygiene
 
-Dated historical artifacts, including workflow-generated specifications, plans, and reports, may use the metadata block required by the workflow that created them instead of `> **AI Context**:`. Preserve those artifacts as historical evidence; do not rewrite their original status claims as if they describe the active baseline.
+Markdown in this repository records the current useful project truth, not every abandoned path.
+
+- Keep final behavior, active constraints, accepted rationale, open risks, and current verification evidence.
+- Remove or collapse discarded prototypes, reverted implementation paths, temporary visual drafts, and plans that returned to the original baseline.
+- Use Git history for detailed archaeology. Do not keep stale Markdown only to prove that a path was attempted.
+- Dated specifications, plans, and reports may use their workflow metadata instead of `> **AI Context**:`, but they must still represent active or durable guidance. Delete abandoned artifacts instead of labeling them as old directions.
 
 ## 3. Troubleshooting Section
 Every active technical guide (for example `hardware_integration.md`, `architecture.md`, `testing_strategy.md`, and `ui_ux_guidelines.md`) MUST include a **Troubleshooting** section at the bottom.
@@ -34,5 +39,5 @@ Every active technical guide (for example `hardware_integration.md`, `architectu
 
 ## 4. Memory & Workflows System
 - **`tasks_board.md`**: Should only contain task lists (Todo, In-Progress, Done). No lengthy explanations.
-- **`journal.md`**: The place to document the reasoning behind technical decisions (Chronological Log) to prevent the AI from experiencing "amnesia" when the context window is cleared.
+- **`journal.md`**: The place to document accepted technical decisions and rationale that still help future work. It is not a complete attempt log.
 - **`.agents/workflows/`**: The designated location for step-by-step workflow guidelines (e.g., TDD, Brainstorming) instead of cluttering the System Prompt.

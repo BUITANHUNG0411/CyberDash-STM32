@@ -14,26 +14,15 @@ struct MockTelemetry {
 
 class MockScenarioEngine {
 public:
-    enum class Scenario {
-        DragRace,
-        BatteryDrain,
-        ErrorInjection
-    };
-
-    explicit MockScenarioEngine();
-
-    void setScenario(Scenario scenario);
+    MockScenarioEngine();
     void tick(double deltaTimeMs);
 
     MockTelemetry getCurrentTelemetry() const;
 
 private:
-    Scenario m_currentScenario;
     MockTelemetry m_telemetry;
     
     double m_elapsedTimeMs;
     
-    void updateDragRace(double dt);
-    void updateBatteryDrain(double dt);
-    void updateErrorInjection(double dt);
+    void updateDragRace();
 };

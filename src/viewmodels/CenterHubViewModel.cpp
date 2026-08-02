@@ -28,10 +28,11 @@ bool CenterHubViewModel::selectPage(int page)
         return false;
     }
 
-    if (page == MusicPage && m_parkingAssist && m_parkingAssist->criticalProximity()) {
+    if (page != ParkingPage && m_parkingAssist && m_parkingAssist->criticalProximity()) {
         return false;
     }
 
+    m_requestedPage = page;
     if (m_activePage != page) {
         m_activePage = page;
         emit activePageChanged();
@@ -73,6 +74,9 @@ void CenterHubViewModel::updateActivePage()
 {
     const int newActivePage = m_parkingAssist && m_parkingAssist->criticalProximity()
         ? ParkingPage
-        : MusicPage;
-    selectPage(newActivePage);
+        : m_requestedPage;
+    if (m_activePage != newActivePage) {
+        m_activePage = newActivePage;
+        emit activePageChanged();
+    }
 }

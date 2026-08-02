@@ -7,13 +7,7 @@ QtObject {
     // Cyberpunk Color Palette — Night (default) / Day (Light Glassmorphism)
     // Themed tokens are non-readonly because a Behavior cannot attach to a readonly property.
     property color backgroundDeepSpace: ThemeController.isNight ? "#0B0C10" : "#DDE7EE"
-    // Accent theo drive mode (ECO/NORMAL/SPORT) × day/night — 6 biến thể.
-    // SPORT dùng cam (không đỏ) để phân biệt rõ với warningRed/redline.
-    property color accentCyan: DriveMode.driveMode === "eco"
-                               ? (ThemeController.isNight ? "#66FC8F" : "#1E8A4C")
-                               : DriveMode.driveMode === "sport"
-                                 ? (ThemeController.isNight ? "#FF7A00" : "#C25600")
-                                 : (ThemeController.isNight ? "#66FCF1" : "#00857C")
+    property color accentCyan: ThemeController.isNight ? "#66FCF1" : "#00857C"
     readonly property color warningRed: "#FF3B30"
     property color parkingCaution: ThemeController.isNight ? "#FFB000" : "#A66800"
     property color parkingUnavailable: ThemeController.isNight ? "#74808C" : "#66727D"
@@ -56,7 +50,6 @@ QtObject {
     readonly property int durationTheme: 600
     readonly property int durationFast: 150
     readonly property int durationNormal: 300
-    readonly property int durationSlow: 600
     readonly property int durationSpin: 900
     readonly property int durationCover: 8000
     readonly property int durationPress: 100
@@ -102,7 +95,4 @@ QtObject {
     readonly property real gaugeInsetRight: 880
     // Negative margins preserve the original bezel/CenterHub overlap depth.
     readonly property real centerPanelGap: -20
-    // Keeps the top context rail clear of the CenterHub and Scooter card
-    // without moving either gauge centre or changing the overlap gap.
-    readonly property real contextRailClearance: spaceXl
 }

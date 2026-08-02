@@ -5,8 +5,6 @@ qt_add_executable(tst_viewmodels
     main.cpp
     ../src/viewmodels/VehicleStatusViewModel.cpp
     ../src/viewmodels/ThemeViewModel.cpp
-    ../src/viewmodels/VehicleModeViewModel.cpp
-    ../src/viewmodels/DriveModeViewModel.cpp
     ../src/viewmodels/TripComputerViewModel.cpp
 )
 
@@ -75,28 +73,3 @@ qt_add_executable(tst_parking_assist
 target_include_directories(tst_parking_assist PRIVATE ../src)
 target_link_libraries(tst_parking_assist PRIVATE Qt6::Core Qt6::Test)
 add_test(NAME tst_parking_assist COMMAND tst_parking_assist)
-
-qt_add_executable(tst_safety_scenario
-    tst_safety_scenario.cpp
-    ${PROJECT_SOURCE_DIR}/src/services/MockSafetyScenarioService.cpp
-    ${PROJECT_SOURCE_DIR}/src/viewmodels/SafetyScenarioViewModel.cpp
-)
-
-target_include_directories(tst_safety_scenario PRIVATE ../src)
-target_link_libraries(tst_safety_scenario PRIVATE Qt6::Core Qt6::Test)
-add_test(NAME tst_safety_scenario COMMAND tst_safety_scenario)
-
-qt_add_executable(tst_cockpit_context
-    tst_cockpit_context.cpp
-    ../src/services/MockSafetyScenarioService.cpp
-    ../src/viewmodels/CockpitContextViewModel.cpp
-    ../src/viewmodels/DriveModeViewModel.cpp
-    ../src/viewmodels/ParkingAssistViewModel.cpp
-    ../src/viewmodels/SafetyScenarioViewModel.cpp
-    ../src/viewmodels/ThemeViewModel.cpp
-    ../src/viewmodels/VehicleModeViewModel.cpp
-)
-
-target_include_directories(tst_cockpit_context PRIVATE ../src)
-target_link_libraries(tst_cockpit_context PRIVATE Qt6::Core Qt6::Test)
-add_test(NAME tst_cockpit_context COMMAND tst_cockpit_context)

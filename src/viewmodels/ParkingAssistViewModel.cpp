@@ -2,6 +2,8 @@
 
 #include <QtGlobal>
 
+#include <algorithm>
+
 ParkingAssistViewModel::ParkingAssistViewModel(qint64 staleIntervalMs, QObject *parent)
     : QObject(parent), m_staleIntervalMs(staleIntervalMs)
 {
@@ -37,7 +39,7 @@ int ParkingAssistViewModel::proximitySegments() const
         return 0;
     }
 
-    return qBound(1, 1 + static_cast<int>(proximityProgress() * 7.0), 8);
+    return (std::clamp)(1 + static_cast<int>(proximityProgress() * 7.0), 1, 8);
 }
 
 double ParkingAssistViewModel::proximityProgress() const
@@ -50,7 +52,7 @@ double ParkingAssistViewModel::proximityProgress() const
     constexpr double stopDistanceCm = 30.0;
     const double progress = (farDistanceCm - static_cast<double>(m_rearDistanceCm))
         / (farDistanceCm - stopDistanceCm);
-    return qBound(0.0, progress, 1.0);
+    return (std::clamp)(progress, 0.0, 1.0);
 }
 
 QString ParkingAssistViewModel::distanceText() const

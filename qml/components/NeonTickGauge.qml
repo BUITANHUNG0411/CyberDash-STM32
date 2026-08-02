@@ -23,12 +23,10 @@ Item {
     property real redlineValue: -1 
 
     // Giá trị hiển thị chạy mượt mà (trailing effect).
-    // Khi boot: hiển thị sweep 0→max→0 do C++ điều khiển (Behavior tắt để bám sát timeline).
-    property real displayedValue: ThemeController.isBooting
-                                  ? ThemeController.bootProgress * maxValue
-                                  : value
+    // Numeric gauge value animates independently of the static Car layout.
+    property real displayedValue: value
     Behavior on displayedValue {
-        enabled: !ThemeController.isBooting
+        enabled: true
         NumberAnimation { duration: Theme.durationGauge; easing.type: Easing.OutQuad }
     }
 
@@ -84,8 +82,6 @@ Item {
                     height: width
                     
                     Rectangle {
-                        property color activeColor: parent.parent.isRedline ? root.warningColor : root.effectiveColor
-                        
                         width: parent.parent.isMajor ? root.width * 0.04 : root.width * 0.02
                         height: parent.parent.isMajor ? 4 : 2
                         

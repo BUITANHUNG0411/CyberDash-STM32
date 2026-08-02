@@ -116,10 +116,10 @@ animates, and typesets only:
 - Document functions only when they are C++ `Q_INVOKABLE` calls forwarded
   from the component — never document inline `function` blocks as the
   project's source code does not contain them.
-- Treat the **vehicle-mode state machine** (Car → Bike → Scooter → Car) as
-  part of the documentation's first-class vocabulary. Each
-  component's `states` group and `Transitions` should be explained in
-  terms of which vehicle mode they target.
+- Treat the dashboard as a **single Car interface**. Do not document
+  removed mode branches, mode cycling, or obsolete adaptive layout states;
+  component `states` and `Transitions` should be explained only in terms
+  of retained car-dashboard presentation states.
 - For type-fluid typography and animation behaviour, reference the
   "A Type Family"-style design tokens instead of duplicating them in prose.
 

@@ -1,6 +1,7 @@
 #include <QtTest>
 #include <QCoreApplication>
 #include <QFile>
+#include <limits>
 #include "viewmodels/VehicleStatusViewModel.h"
 #include "viewmodels/ThemeViewModel.h"
 #include "viewmodels/TripComputerViewModel.h"
@@ -200,6 +201,7 @@ private slots:
         QCOMPARE(trip.avgSpeedKmh(), 0.0);
         QCOMPARE(trip.tripDisplay(), QString("0.0 km"));
         QCOMPARE(trip.odoDisplay(), QString("0 km"));
+        QCOMPARE(trip.avgSpeedDisplay(), QString("0.0 km/h"));
     }
 
     void testTripAccumulatesDistance() {
@@ -216,6 +218,7 @@ private slots:
         QCOMPARE(trip.odometerKm(), 2.0);
         QCOMPARE(trip.tripDisplay(), QString("2.0 km"));
         QCOMPARE(trip.odoDisplay(), QString("2 km"));
+        QCOMPARE(trip.avgSpeedDisplay(), QString("80.0 km/h"));
         QCOMPARE(spy.count(), 2);
     }
 
@@ -237,6 +240,47 @@ private slots:
         QCOMPARE(trip.tripKm(), 0.0);
         QCOMPARE(trip.avgSpeedKmh(), 0.0);
         QCOMPARE(spy.count(), 0);
+    }
+
+    void testTripRejectsNonFiniteSpeed() {
+        TripComputerViewModel trip;
+        QSignalSpy spy(&trip, &TripComputerViewModel::tripChanged);
+
+        trip.updateSpeed(std::numeric_limits<double>::infinity(), 1000);
+        trip.updateSpeed(std::numeric_limits<double>::quiet_NaN(), 1000);
+
+        QCOMPARE(trip.tripKm(), 0.0);
+        QCOMPARE(trip.odometerKm(), 0.0);
+        QCOMPARE(spy.count(), 0);
+    }
+
+    void testTripNormalizesNonPositiveMaxDelta() {
+        TripComputerViewModel trip(0);
+        trip.updateSpeed(36.0, 1000);
+
+        QVERIFY(trip.tripKm() > 0.0);
+        QVERIFY(trip.odometerKm() > 0.0);
+
+        TripComputerViewModel negativeTrip(-1);
+        negativeTrip.updateSpeed(36.0, 1000);
+        QVERIFY(negativeTrip.tripKm() > 0.0);
+        QVERIFY(negativeTrip.odometerKm() > 0.0);
+    }
+
+    void testTripSignalsOnlyWhenEffectiveStateChanges() {
+        TripComputerViewModel trip;
+        QSignalSpy spy(&trip, &TripComputerViewModel::tripChanged);
+
+        trip.updateSpeed(0.0, 1000);
+        QCOMPARE(spy.count(), 0);
+
+        trip.updateSpeed(60.0, 60000);
+        QCOMPARE(spy.count(), 1);
+
+        trip.resetTrip();
+        QCOMPARE(spy.count(), 2);
+        trip.resetTrip();
+        QCOMPARE(spy.count(), 2);
     }
 
     void testTripClampsStaleDelta() {

@@ -16,6 +16,16 @@ Window {
         onActivated: Qt.quit()
     }
 
+    Shortcut {
+        sequence: "Ctrl+Left"
+        onActivated: CenterHubController.moveSelection(-1)
+    }
+
+    Shortcut {
+        sequence: "Ctrl+Right"
+        onActivated: CenterHubController.moveSelection(1)
+    }
+
     // Khung Cluster vật lý giả lập dạng Double Arch (Dựa theo tài liệu inspiration-design)
     Item {
         id: clusterFrame

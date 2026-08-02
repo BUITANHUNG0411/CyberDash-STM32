@@ -175,13 +175,59 @@ private slots:
         QCOMPARE(hub.activePage(), CenterHubViewModel::MusicPage);
     }
 
+    void centerHubExposesVehicleStylePageNavigation()
+    {
+        ParkingAssistViewModel parking;
+        CenterHubViewModel hub(&parking);
+
+        QCOMPARE(hub.pageCount(), 3);
+        QCOMPARE(hub.activePageLabel(), QStringLiteral("MUSIC"));
+
+        QVERIFY(hub.moveSelection(1));
+        QCOMPARE(hub.activePage(), CenterHubViewModel::ParkingPage);
+        QCOMPARE(hub.activePageLabel(), QStringLiteral("PARK"));
+
+        QVERIFY(hub.moveSelection(1));
+        QCOMPARE(hub.activePage(), CenterHubViewModel::TripPage);
+        QCOMPARE(hub.activePageLabel(), QStringLiteral("TRIP"));
+    }
+
+    void centerHubDirectionalNavigationStopsAtBoundaries()
+    {
+        ParkingAssistViewModel parking;
+        CenterHubViewModel hub(&parking);
+
+        QVERIFY(!hub.moveSelection(-1));
+        QCOMPARE(hub.activePage(), CenterHubViewModel::MusicPage);
+
+        QVERIFY(hub.selectPage(CenterHubViewModel::TripPage));
+        QVERIFY(!hub.moveSelection(1));
+        QCOMPARE(hub.activePage(), CenterHubViewModel::TripPage);
+        QVERIFY(!hub.moveSelection(0));
+        QVERIFY(!hub.moveSelection(2));
+    }
+
+    void centerHubCriticalParkingLocksDirectionalNavigation()
+    {
+        ParkingAssistViewModel parking;
+        CenterHubViewModel hub(&parking);
+
+        parking.updateSensorSample(29, true);
+        QCOMPARE(hub.activePage(), CenterHubViewModel::ParkingPage);
+        QVERIFY(!hub.moveSelection(-1));
+        QVERIFY(!hub.moveSelection(1));
+        QCOMPARE(hub.activePage(), CenterHubViewModel::ParkingPage);
+    }
+
     void centerHubRejectsInvalidPageRequest()
     {
         ParkingAssistViewModel parking;
         CenterHubViewModel hub(&parking);
 
-        QVERIFY(!hub.selectPage(2));
-        QCOMPARE(hub.activePage(), CenterHubViewModel::MusicPage);
+        QVERIFY(hub.selectPage(CenterHubViewModel::TripPage));
+        QCOMPARE(hub.activePage(), CenterHubViewModel::TripPage);
+        QVERIFY(!hub.selectPage(3));
+        QCOMPARE(hub.activePage(), CenterHubViewModel::TripPage);
     }
 
     void centerHubManualSelectionHonorsCriticalSafetyOverride()

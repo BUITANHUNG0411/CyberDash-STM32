@@ -12,6 +12,7 @@ class TripComputerViewModel : public QObject
     Q_PROPERTY(double avgSpeedKmh READ avgSpeedKmh NOTIFY tripChanged)
     Q_PROPERTY(QString tripDisplay READ tripDisplay NOTIFY tripChanged)
     Q_PROPERTY(QString odoDisplay READ odoDisplay NOTIFY tripChanged)
+    Q_PROPERTY(QString avgSpeedDisplay READ avgSpeedDisplay NOTIFY tripChanged)
 
 public:
     // maxDeltaMs clamps stale gaps (serial<->simulator source switch, UI stalls).
@@ -22,6 +23,7 @@ public:
     double avgSpeedKmh() const;
     QString tripDisplay() const; // "12.4 km"
     QString odoDisplay() const;  // "132 km"
+    QString avgSpeedDisplay() const; // "42.0 km/h"
 
     Q_INVOKABLE void resetTrip();
 

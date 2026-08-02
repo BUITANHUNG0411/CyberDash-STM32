@@ -52,6 +52,7 @@ qt_add_qml_module(${PROJECT_NAME}
         qml/components/NeonIconButton.qml
         qml/components/CenterHub.qml
         qml/components/ParkingAssistView.qml
+        qml/components/TripComputerView.qml
         qml/screens/DashboardScreen.qml
     RESOURCES
         resources/icons/play.svg

@@ -70,8 +70,13 @@ QtObject {
     readonly property int textMd: 18
     readonly property int textLg: 20
     readonly property int textXl: 22
+    readonly property int displaySm: 36
     readonly property int displayMd: 90
     readonly property int displayLg: 100
+
+    // CenterHub navigation geometry
+    readonly property real centerNavTabWidth: 70
+    readonly property real centerNavTabHeight: 24
 
     // Spacing
     readonly property int spaceXs: 4

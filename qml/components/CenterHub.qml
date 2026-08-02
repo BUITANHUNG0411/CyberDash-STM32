@@ -11,11 +11,11 @@ Item {
     id: root
 
     StackLayout {
+        currentIndex: CenterHubController.activePage
         anchors {
             fill: parent
             topMargin: Theme.spaceXl + 24 + Theme.spaceSm
         }
-        currentIndex: CenterHubController.activePage
 
         MusicPlayer {
             Layout.fillWidth: true
@@ -23,6 +23,11 @@ Item {
         }
 
         ParkingAssistView {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+        }
+
+        TripComputerView {
             Layout.fillWidth: true
             Layout.fillHeight: true
         }
@@ -42,8 +47,8 @@ Item {
             color: CenterHubController.activePage === 0 ? Theme.accentCyan : Theme.trackInactive
             border.color: Theme.glassPanelBorder
             border.width: 1
-            Layout.preferredWidth: 70
-            Layout.preferredHeight: 24
+            Layout.preferredWidth: Theme.centerNavTabWidth
+            Layout.preferredHeight: Theme.centerNavTabHeight
 
             Text {
                 anchors.centerIn: parent
@@ -63,8 +68,8 @@ Item {
             color: CenterHubController.activePage === 1 ? Theme.accentCyan : Theme.trackInactive
             border.color: Theme.glassPanelBorder
             border.width: 1
-            Layout.preferredWidth: 70
-            Layout.preferredHeight: 24
+            Layout.preferredWidth: Theme.centerNavTabWidth
+            Layout.preferredHeight: Theme.centerNavTabHeight
 
             Text {
                 anchors.centerIn: parent
@@ -76,6 +81,27 @@ Item {
             MouseArea {
                 anchors.fill: parent
                 onClicked: CenterHubController.selectPage(1)
+            }
+        }
+
+        Rectangle {
+            radius: Theme.radiusSm
+            color: CenterHubController.activePage === 2 ? Theme.accentCyan : Theme.trackInactive
+            border.color: Theme.glassPanelBorder
+            border.width: 1
+            Layout.preferredWidth: Theme.centerNavTabWidth
+            Layout.preferredHeight: Theme.centerNavTabHeight
+
+            Text {
+                anchors.centerIn: parent
+                text: "TRIP"
+                color: CenterHubController.activePage === 2 ? Theme.textOnAccent : Theme.textSecondary
+                font { family: Theme.fontMain; pixelSize: Theme.textXs; bold: true }
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                onClicked: CenterHubController.selectPage(2)
             }
         }
 

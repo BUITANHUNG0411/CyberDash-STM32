@@ -10,11 +10,20 @@ import com.showcase
 Item {
     id: root
 
+    readonly property color activePageAccent: CenterHubController.activePage === 1
+                                               ? ParkingAssist.proximityLevel === 3
+                                                 ? Theme.warningRed
+                                                 : Theme.parkingCaution
+                                               : Theme.accentCyan
+
     StackLayout {
         currentIndex: CenterHubController.activePage
         anchors {
             fill: parent
-            topMargin: Theme.spaceXl + 24 + Theme.spaceSm
+            topMargin: Theme.centerStatusLedHeight
+                        + Theme.spaceLg
+                        + Theme.centerNavTabHeight
+                        + Theme.spaceSm
         }
 
         MusicPlayer {
@@ -34,18 +43,57 @@ Item {
 
     }
 
+    Row {
+        id: clusterStatusLeds
+        spacing: Theme.centerStatusLedSpacing
+        anchors {
+            top: parent.top
+            horizontalCenter: parent.horizontalCenter
+            topMargin: Theme.spaceXs
+        }
+
+        Rectangle {
+            width: Theme.centerStatusLedWidth
+            height: Theme.centerStatusLedHeight
+            radius: height / 2
+            color: CenterHubController.activePage === 0
+                   ? Theme.accentCyan
+                   : Theme.trackInactive
+        }
+
+        Rectangle {
+            width: Theme.centerStatusLedWidth
+            height: Theme.centerStatusLedHeight
+            radius: height / 2
+            color: CenterHubController.activePage === 1
+                   ? root.activePageAccent
+                   : Theme.trackInactive
+        }
+
+        Rectangle {
+            width: Theme.centerStatusLedWidth
+            height: Theme.centerStatusLedHeight
+            radius: height / 2
+            color: CenterHubController.activePage === 2
+                   ? Theme.accentCyan
+                   : Theme.trackInactive
+        }
+    }
+
     RowLayout {
         spacing: Theme.spaceSm
         anchors {
             top: parent.top
             horizontalCenter: parent.horizontalCenter
-            topMargin: Theme.spaceMd
+            topMargin: Theme.centerStatusLedHeight + Theme.spaceLg
         }
 
         Rectangle {
             radius: Theme.radiusSm
-            color: CenterHubController.activePage === 0 ? Theme.accentCyan : Theme.trackInactive
-            border.color: Theme.glassPanelBorder
+            color: CenterHubController.activePage === 0 ? root.activePageAccent : Theme.trackInactive
+            border.color: CenterHubController.activePage === 0
+                          ? root.activePageAccent
+                          : Theme.glassPanelBorder
             border.width: 1
             Layout.preferredWidth: Theme.centerNavTabWidth
             Layout.preferredHeight: Theme.centerNavTabHeight
@@ -65,8 +113,10 @@ Item {
 
         Rectangle {
             radius: Theme.radiusSm
-            color: CenterHubController.activePage === 1 ? Theme.accentCyan : Theme.trackInactive
-            border.color: Theme.glassPanelBorder
+            color: CenterHubController.activePage === 1 ? root.activePageAccent : Theme.trackInactive
+            border.color: CenterHubController.activePage === 1
+                          ? root.activePageAccent
+                          : Theme.glassPanelBorder
             border.width: 1
             Layout.preferredWidth: Theme.centerNavTabWidth
             Layout.preferredHeight: Theme.centerNavTabHeight
@@ -86,8 +136,10 @@ Item {
 
         Rectangle {
             radius: Theme.radiusSm
-            color: CenterHubController.activePage === 2 ? Theme.accentCyan : Theme.trackInactive
-            border.color: Theme.glassPanelBorder
+            color: CenterHubController.activePage === 2 ? root.activePageAccent : Theme.trackInactive
+            border.color: CenterHubController.activePage === 2
+                          ? root.activePageAccent
+                          : Theme.glassPanelBorder
             border.width: 1
             Layout.preferredWidth: Theme.centerNavTabWidth
             Layout.preferredHeight: Theme.centerNavTabHeight

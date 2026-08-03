@@ -73,10 +73,26 @@ QtObject {
     readonly property int displaySm: 36
     readonly property int displayMd: 90
     readonly property int displayLg: 100
+    readonly property int parkingDistanceDisplay: 72
+    readonly property int tripHeroDisplay: 58
+    readonly property int tripMetricDisplay: 24
+    readonly property int tripMetaDisplay: 11
+    readonly property int tripCardHeight: 78
+    readonly property int tripRailWidth: 56
+    readonly property int tripResetWidth: 92
+    readonly property int tripResetHeight: 26
+    readonly property int clusterFrameInset: 2
+    readonly property int clusterFrameLineWidth: 2
+    readonly property int clusterFrameHighlightHeight: 3
+    readonly property real clusterFrameHighlightRatio: 0.48
+    readonly property real clusterFrameHighlightOpacity: 0.92
 
     // CenterHub navigation geometry
     readonly property real centerNavTabWidth: 70
     readonly property real centerNavTabHeight: 24
+    readonly property real centerStatusLedWidth: 32
+    readonly property real centerStatusLedHeight: 6
+    readonly property real centerStatusLedSpacing: 18
 
     // Spacing
     readonly property int spaceXs: 4

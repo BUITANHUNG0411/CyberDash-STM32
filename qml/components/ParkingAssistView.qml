@@ -22,7 +22,9 @@ Item {
     }
 
     GlassPanel {
+        id: parkingPanel
         anchors.fill: parent
+        accentColor: root.proximityColor
     }
 
     Column {
@@ -79,7 +81,7 @@ Item {
         }
         font {
             family: Theme.fontDisplay
-            pixelSize: Theme.displayMd
+            pixelSize: Theme.parkingDistanceDisplay
             bold: true
         }
     }

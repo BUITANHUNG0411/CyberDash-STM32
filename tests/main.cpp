@@ -1,6 +1,7 @@
 #include <QtTest>
 #include <QCoreApplication>
 #include <QFile>
+#include <QRegularExpression>
 #include <limits>
 #include "viewmodels/VehicleStatusViewModel.h"
 #include "viewmodels/ThemeViewModel.h"
@@ -51,6 +52,108 @@ private slots:
         QVERIFY2(!dashboard.contains("CockpitContext"), "Dashboard must not contain Context Rail UI");
         QVERIFY2(!dashboard.contains("VehicleDiagnostics"), "Dashboard must not contain Diagnostics UI");
         QVERIFY2(!dashboard.contains("DriveMode"), "Dashboard must not contain Drive Mode UI");
+    }
+
+    void testTripComputerVisualContract() {
+        const QString tripPath = QFINDTESTDATA("../qml/components/TripComputerView.qml");
+        const QString parkingPath = QFINDTESTDATA("../qml/components/ParkingAssistView.qml");
+        QVERIFY(!tripPath.isEmpty());
+        QVERIFY(!parkingPath.isEmpty());
+
+        QFile tripFile(tripPath);
+        QFile parkingFile(parkingPath);
+        QVERIFY(tripFile.open(QIODevice::ReadOnly | QIODevice::Text));
+        QVERIFY(parkingFile.open(QIODevice::ReadOnly | QIODevice::Text));
+
+        const QString trip = QString::fromUtf8(tripFile.readAll());
+        const QString parking = QString::fromUtf8(parkingFile.readAll());
+
+        QVERIFY2(trip.contains(QStringLiteral("id: tripHero")),
+                 "Trip must expose a dedicated hero value");
+        QVERIFY2(trip.contains(QStringLiteral("Theme.tripHeroDisplay")),
+                 "Trip hero size must come from Theme.qml");
+        QVERIFY2(trip.contains(QStringLiteral("id: statsRow")),
+                 "Trip must group secondary values in a stats row");
+        QVERIFY2(trip.contains(QStringLiteral("Theme.tripMetricDisplay")),
+                 "Trip stat size must come from Theme.qml");
+        QVERIFY2(trip.contains(QStringLiteral("text: \"RESET TRIP\"")),
+                 "Trip must expose an explicit reset affordance");
+        QVERIFY2(trip.contains(QStringLiteral("TripComputer.resetTrip()")),
+                 "Reset must remain a direct C++ invokable call");
+        QVERIFY2(parking.contains(QStringLiteral("Theme.parkingDistanceDisplay")),
+                 "Parking distance must use a dedicated compact display token");
+        QVERIFY2(!parking.contains(QStringLiteral("font.pixelSize: Theme.displayMd")),
+                 "Parking must not use the oversized shared display token");
+
+        const QRegularExpression executableJs(
+            QStringLiteral("\\b(function|if|for|while|switch|var|let|const)\\b"));
+        QVERIFY2(!executableJs.match(trip).hasMatch(),
+                 "TripComputerView.qml must contain no executable JavaScript keywords");
+    }
+
+    void testOemClusterSkinContract() {
+        const QString cmakePath = QFINDTESTDATA("../CMakeLists.txt");
+        const QString themePath = QFINDTESTDATA("../qml/Theme.qml");
+        const QString framePath = QFINDTESTDATA("../qml/components/InstrumentFrame.qml");
+        const QString glassPath = QFINDTESTDATA("../qml/components/GlassPanel.qml");
+        const QString musicPath = QFINDTESTDATA("../qml/components/MusicPlayer.qml");
+        const QString parkingPath = QFINDTESTDATA("../qml/components/ParkingAssistView.qml");
+        const QString centerPath = QFINDTESTDATA("../qml/components/CenterHub.qml");
+        QVERIFY(!cmakePath.isEmpty());
+        QVERIFY(!themePath.isEmpty());
+        QVERIFY(!framePath.isEmpty());
+        QVERIFY(!glassPath.isEmpty());
+        QVERIFY(!musicPath.isEmpty());
+        QVERIFY(!parkingPath.isEmpty());
+        QVERIFY(!centerPath.isEmpty());
+
+        auto readSource = [](const QString &path) {
+            QFile file(path);
+            if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+                return QString();
+            }
+            return QString::fromUtf8(file.readAll());
+        };
+
+        const QString cmake = readSource(cmakePath);
+        const QString theme = readSource(themePath);
+        const QString frame = readSource(framePath);
+        const QString glass = readSource(glassPath);
+        const QString music = readSource(musicPath);
+        const QString parking = readSource(parkingPath);
+        const QString center = readSource(centerPath);
+
+        QVERIFY2(cmake.contains(QStringLiteral("qml/components/InstrumentFrame.qml")),
+                 "InstrumentFrame must be registered in the QML module");
+        QVERIFY2(theme.contains(QStringLiteral("clusterFrameLineWidth: 2")),
+                 "The OEM frame must remain visually legible at dashboard scale");
+        QVERIFY2(theme.contains(QStringLiteral("clusterFrameHighlightRatio: 0.48")),
+                 "The OEM accent highlight must be long enough to read as a bezel");
+        QVERIFY2(theme.contains(QStringLiteral("centerStatusLedWidth: 32")),
+                 "CenterHub status LEDs must be visible at the dashboard scale");
+        QVERIFY2(frame.contains(QStringLiteral("property color accentColor")),
+                 "InstrumentFrame must expose a typed accent color");
+        QVERIFY2(frame.contains(QStringLiteral("Theme.clusterFrameInset")),
+                 "InstrumentFrame geometry must come from Theme.qml");
+        QVERIFY2(glass.contains(QStringLiteral("property color accentColor")),
+                 "GlassPanel must expose the frame accent contract");
+        QVERIFY2(glass.contains(QStringLiteral("InstrumentFrame")),
+                 "GlassPanel must render the shared physical frame");
+        QVERIFY2(music.contains(QStringLiteral("InstrumentFrame")),
+                 "MusicPlayer must receive the shared physical frame");
+        QVERIFY2(parking.contains(QStringLiteral("accentColor: root.proximityColor")),
+                 "Parking must drive the frame accent from proximity state");
+        QVERIFY2(center.contains(QStringLiteral("id: clusterStatusLeds")),
+                 "CenterHub must expose the OEM status LED rail");
+        QVERIFY2(center.contains(QStringLiteral("root.activePageAccent")),
+                 "CenterHub tabs and LEDs must share the active page accent");
+        QVERIFY2(center.contains(QStringLiteral("Theme.centerStatusLedWidth")),
+                 "CenterHub LED geometry must come from Theme.qml");
+
+        const QRegularExpression executableJs(
+            QStringLiteral("\\b(function|if|for|while|switch|var|let|const)\\b"));
+        QVERIFY2(!executableJs.match(frame).hasMatch(),
+                 "InstrumentFrame.qml must contain no executable JavaScript keywords");
     }
 
     void testInitialValues() {

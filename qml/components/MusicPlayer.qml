@@ -488,6 +488,12 @@ Item {
         }
     }
 
+    InstrumentFrame {
+        anchors.fill: parent
+        accentColor: Theme.accentCyan
+        z: 10
+    }
+
     // Error Toast (driven by declarative binding to MusicViewModel.lastError)
     Rectangle {
         anchors.horizontalCenter: parent.horizontalCenter
